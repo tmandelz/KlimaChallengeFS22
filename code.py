@@ -7,7 +7,3 @@ print("Hallo Jan2")
 
 
 print()
-
-
-print()
-
