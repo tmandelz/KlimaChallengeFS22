@@ -1,68 +1,61 @@
-from datetime import datetime
-import os
-from re import U
+# %%
 import pandas as pd
 import matplotlib.pyplot as plt
+# %%
 
 
-from influxdb_client import InfluxDBClient, Point, WritePrecision
-from influxdb_client.client.write_api import SYNCHRONOUS
+def GetAdFromGrid(dataframe, GRIDNo):
+    TMaxd = dataframe[dataframe['TEMPERATURE_MAX'] == (
+        dataframe.groupby(['day', 'month'])['TEMPERATURE_MAX'].transform('max'))].reset_index(drop=True).groupby(['month', 'day']).first()
 
-# You can generate an API token from the "API Tokens Tab" in the UI
-# token = "DNWM4ywYjBUbRto-HVTSzKlqxLBOvzXBMzhxXnIlFEOjp5SGIIccdYaTIMQWTU2JWmwO_owyYCGO6O-6suxa0w=="
-# org = "mandelzt@gmail.com"
-# bucket = "mandelzt's Bucket"
+    TMaxd = TMaxd.sort_values('DAY')
+    list_of_dates = TMaxd['DAY']
 
-# with InfluxDBClient(url='https://us-east-1-1.aws.cloud2.influxdata.com', token=token, org=org) as client:
-#     write_api = client.write_api(write_options=SYNCHRONOUS)
-#     data = "mem,host=host1 used_percent=23.43234543"
-#     write_api.write(bucket, org, data)
+    ADS = pd.DataFrame(
+        columns=['MaxDate', 'Dateranges', 'TemperatureMax', '90Q'])
+    AD = pd.DataFrame(columns=['MaxDate', 'Dateranges', 'TemperatureMax'])
 
+    for i, date in enumerate(list_of_dates):
+        set_of_dates_expand = set()
+        set_of_dates_expand.update(pd.date_range(start=date, periods=16))
+        set_of_dates_expand.update(pd.date_range(end=date, periods=16))
+        try:
+            AdIndex = dataframe['DAY'].isin(set_of_dates_expand)
+            AdIndex = AdIndex[AdIndex].index
+            AD['MaxDate'] = date
+            AD['Dateranges'] = dataframe.iloc[AdIndex]['DAY'].tolist()
+            AD['TemperatureMax'] = dataframe.iloc[AdIndex]['TEMPERATURE_MAX'].tolist()
+            AD['90Q'] = AD.TemperatureMax.quantile(0.9)
 
-    
-#     query = """from(bucket: "mandelzt's Bucket") |> range(start: -1h)"""
-#     tables = client.query_api().query(query, org=org)
-#     for table in tables:
-#         for record in table.records:
-#             print(record)
+        except:
+            print("An exception occurred")
 
+        ADS = ADS.append(AD)
 
+    plt.plot(ADS['MaxDate'], ADS['90Q'], 'o')
+    plt.title(f'Grid: {GRIDNo}')
+    plt.show()
 
-
-
-
- 
-dfexampleAT = pd.read_csv(r"C:\Users\tmand\OneDrive\Dokumente\GitHub\KlimaChallengeFS22\ExampleData\AT\BKMON20220308_Falle426_Landersdorf.csv",sep=";")
-
-dfexampleAT = dfexampleAT.reset_index(drop=True)
-print(dfexampleAT)
-
-print(dfexampleAT["Buchdrucker"].unique())
-
-
-
-print(dfexampleAT["Woche"])
-print(dfexampleAT["Buchdrucker"])
-plt.bar(dfexampleAT["Woche"],dfexampleAT["Buchdrucker"])
-plt.xlabel("Wochenanzahl seit Beginn Messung")
-plt.ylabel("Anzahl Borkis in Falle")
-plt.title("Landersdorf - AT Beispielsdatenset")
+    return ADS
 
 
+# %%
 
-plt.show()
+Austria = pd.read_csv('C:\Users\Tom\OneDrive\Dokumente\Github\KlimaChallengeFS22\Oesterreich\Oesterreich.csv', sep=';')
+Austria['DAY'] = pd.to_datetime(
+    Austria['DAY'], format='%Y%m%d')
 
+# %%
+# Remove 29 February
+Austria['year'] = Austria['DAY'].dt.year
+Austria['month'] = Austria['DAY'].dt.month
+Austria['day'] = Austria['DAY'].dt.day
+Austria = Austria.drop(
+    Austria[(Austria['month'] == 2) & (Austria['day'] == 29)].index)
 
-
-
-
-
-
-
-
-
-
-
-
-
+# %%
+for i in Austria['GRID_NO'].unique()[:5]:
+    SingleGrid = Austria[Austria['GRID_NO'] == i].reset_index(drop=True)
+    print(i)
+    ADSforGrid = GetAdFromGrid(SingleGrid, i)
 
