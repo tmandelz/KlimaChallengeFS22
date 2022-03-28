@@ -32,10 +32,10 @@ def df_to_geojson(dictionary):
     # %%
 
 
-Austria = pd.read_csv('.\Oesterreich\Oesterreich.csv', sep=';')
+Austria = pd.read_csv('.\CSV\Oesterreich\Oesterreich.csv', sep=';')
 Austria = Austria[["GRID_NO", "LATITUDE",
                    "LONGITUDE", "ALTITUDE"]].drop_duplicates()
-Sweden = pd.read_csv('.\Sweden\Sverige.csv', sep=';')
+Sweden = pd.read_csv('.\CSV\Sweden\Sverige.csv', sep=';')
 Sweden = Sweden[["GRID_NO", "LATITUDE",
                  "LONGITUDE", "ALTITUDE"]].drop_duplicates()
 df = [Austria, Sweden]
@@ -81,6 +81,8 @@ def color_producer(elevation):
     if elevation < 500:
         return 'green'
     elif 500 <= elevation < 1000:
+        return 'yellow'
+    elif 1000 <= elevation < 2000:
         return 'orange'
     else:
         return 'red'
@@ -101,9 +103,6 @@ fgp = folium.FeatureGroup(name="GridNo")
 fgp.add_child(folium.GeoJson(data=geojson,
 style_function=lambda x: {'fillColor':'green' if x['properties']['GRID_NO'] < 83120
 else 'orange' if 90000 <= x['properties']['GRID_NO'] < 93000 else 'red'}))
-
-
-
 
 
 m.add_child(fgv)
