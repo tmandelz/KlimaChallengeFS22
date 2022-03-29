@@ -105,8 +105,17 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
 
     return df_output
 
-# %%
-Luxembourg_read = pd.read_csv("C:/Users/j/Desktop/Daten/Daten/Luxembourg.csv",sep= ";", parse_dates=['DAY'])
 
-values = calculate_magnitude(Luxembourg_read,"2010.01.01")
+# %% Einlesen der filenames
+with open("filenames.txt") as names:
+    list_filenames = names.read().split("\n")
+    
+# %% 
+df_all_magnitudes = pd.DataFrame()
+for files in list_filenames:
+    read_file = pd.read_csv("C:/Users/j/Desktop/Daten/Daten/" + files,sep= ";", parse_dates=['DAY'])
+    df_all_magnitudes = pd.concat(df_all_magnitudes,calculate_magnitude(read_file,"2010.01.01"))
+    print(files)
+df_all_magnitudes = df_all_magnitudes.drop_duplicates()
+
 
