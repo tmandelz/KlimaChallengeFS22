@@ -114,8 +114,9 @@ with open("filenames.txt") as names:
 df_all_magnitudes = pd.DataFrame()
 for files in list_filenames:
     read_file = pd.read_csv("C:/Users/j/Desktop/Daten/Daten/" + files,sep= ";", parse_dates=['DAY'])
-    df_all_magnitudes = pd.concat(df_all_magnitudes,calculate_magnitude(read_file,"2010.01.01"))
-    print(files)
+    df_all_magnitudes = pd.concat([df_all_magnitudes,calculate_magnitude(read_file,"2010.01.01")])
 df_all_magnitudes = df_all_magnitudes.drop_duplicates()
 
 
+
+# %%
