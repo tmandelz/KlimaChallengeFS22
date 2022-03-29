@@ -49,10 +49,10 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     # Neues Datumsformat hinzufügen
     df_values["month_day"] = df_values["DAY"].dt.strftime('%m/%d')
     # Spalten umbennenen
-    reference_df = reference_df.rename(columns= {"DAY":"month_day","TEMPERATURE_MAX":"reference_temperature"})
+    df_reference = df_reference.rename(columns= {"DAY":"month_day","TEMPERATURE_MAX":"reference_temperature"})
 
     # Werte löschen die kleiner sind als die Referenzwerte.
-    df_values_reference= pd.merge(df_values,reference_df,on=["GRID_NO","month_day"],how='left')
+    df_values_reference= pd.merge(df_values,df_reference,on=["GRID_NO","month_day"],how='left')
     df_values_reference = df_values_reference[df_values_reference["TEMPERATURE_MAX"] > df_values_reference["reference_temperature"]].drop("month_day",axis=1)
 
 
@@ -65,7 +65,7 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     df_max_values = df_max_values.loc[:,"TEMPERATURE_MAX"].reset_index()
 
     # Magnitude ausrechnen
-    df_single_magnitudes = pd.merge(reference_df,df_max_values,on=["GRID_NO"],how='left')
+    df_single_magnitudes = pd.merge(df_values_reference,df_max_values,on=["GRID_NO"],how='left')
     df_single_magnitudes.loc[:,"magnitude"] = (df_single_magnitudes.loc[:,"TEMPERATURE_MAX"] - df_single_magnitudes.loc[:,0.25])/ (df_single_magnitudes.loc[:,0.75]-df_single_magnitudes.loc[:,0.25])
     # Werte löschen die kleiner sind als T30y25p
     df_single_magnitudes = df_single_magnitudes[df_single_magnitudes["TEMPERATURE_MAX"]>df_single_magnitudes[0.25]]
@@ -104,4 +104,9 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     df_output = pd.merge(df_sum_magnitudes,df_normalised,on=["GRID_NO"],how='left')
 
     return df_output
-    
+
+# %%
+Luxembourg_read = pd.read_csv("C:/Users/j/Desktop/Daten/Daten/Luxembourg.csv",sep= ";", parse_dates=['DAY'])
+
+values = calculate_magnitude(Luxembourg_read,"2010.01.01")
+
