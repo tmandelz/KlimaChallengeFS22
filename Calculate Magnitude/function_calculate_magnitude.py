@@ -70,38 +70,8 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     # Werte löschen die kleiner sind als T30y25p
     df_single_magnitudes = df_single_magnitudes[df_single_magnitudes["TEMPERATURE_MAX"]>df_single_magnitudes[0.25]]
 
-
-    # Magnituden an aufeinanderfolgenden Tagen Summieren
-    df_single_magnitudes.sort_values(by= ["GRID_NO","DAY"])
-    df_single_magnitudes["Start_Date"] = df_single_magnitudes["DAY"]
-    df_single_magnitudes["End_Date"] = df_single_magnitudes["DAY"] + timedelta(days = 1)
-
-    
-    df_sum_magnitudes = pd.DataFrame()
-    new_safe = 0
-    # Durch alle Magnituden iterieren
-    for index, row in df_single_magnitudes.iterrows():
-        if new_safe == 1:
-            # Prüfen ob sie aufeinanderfolgend sind
-            if (row["GRID_NO"] == grid_no) & (end_date == row["Start_Date"]):
-                mangnitude += row["magnitude"]
-                end_date = row["End_Date"]    
-            else:
-                df_to_concat = pd.DataFrame({"GRID_NO":grid_no,"Start_Date" : start_date, "End_Date": end_date,"sum_magnitude": mangnitude},index=[0])
-                df_sum_magnitudes = pd.concat([df_sum_magnitudes,df_to_concat])
-                new_safe = 0
-
-        if new_safe == 0:
-            new_safe = 1
-            grid_no = row["GRID_NO"]
-            start_date = row["Start_Date"]
-            end_date = row["End_Date"]
-            mangnitude = row["magnitude"]
-    
-    df_sum_magnitudes = df_sum_magnitudes.reset_index(drop=True)
-
     # Longtitude Latitude und Altitude mergen
-    df_output = pd.merge(df_sum_magnitudes,df_normalised,on=["GRID_NO"],how='left')
+    df_output = pd.merge(df_single_magnitudes,df_normalised,on=["GRID_NO"],how='left')
 
     return df_output
 
