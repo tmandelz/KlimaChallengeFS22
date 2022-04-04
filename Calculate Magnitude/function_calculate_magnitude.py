@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 # %%
 def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.DataFrame:
     # Normalisiertes Data Frame und Data Frame mit den Werten für die Berechnungen
-    df_normalised= df_country[["GRID_NO","LATITUDE","LONGITUDE","ALTITUDE"]].drop_duplicates()
+    df_normalised= df_country[["GRID_NO","LATITUDE","LONGITUDE","ALTITUDE","LAND"]].drop_duplicates()
     df_values = df_country[["GRID_NO","DAY","TEMPERATURE_MAX"]]
 
     # Referenzperiode Berechnen
@@ -71,22 +71,36 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     df_single_magnitudes = df_single_magnitudes[df_single_magnitudes["TEMPERATURE_MAX"]>df_single_magnitudes[0.25]]
 
     # Longtitude Latitude und Altitude mergen
-    df_output = pd.merge(df_single_magnitudes,df_normalised,on=["GRID_NO"],how='left')
+    df_single_magnitudes = pd.merge(df_single_magnitudes,df_normalised,on=["GRID_NO"],how='left')
+    return df_single_magnitudes
 
-    return df_output
-
+# %%
+def count_magnitude_year_land(single_magnitude):
+    
+    count_per_grid_no= single_magnitude.groupby([single_magnitude['DAY'].map(lambda x: x.year),"LAND"])["magnitude"].count().reset_index()
+    grids_per_land = single_magnitude.loc[:,["GRID_NO","LAND"]].drop_duplicates().groupby(["LAND"]).count()
+    count_per_grid_no  = pd.merge(count_per_grid_no,grids_per_land, on= "LAND")
+    count_per_grid_no["number"] = count_per_grid_no.loc[:,"magnitude"]/count_per_grid_no.loc[:,"GRID_NO"]
+    return count_per_grid_no.loc[:,["DAY","LAND","number"]]
 
 # %% Einlesen der filenames
 with open("filenames.txt") as names:
     list_filenames = names.read().split("\n")
     
 # %% 
-df_all_magnitudes = pd.DataFrame()
+df_all_files = pd.DataFrame()
 for files in list_filenames:
     read_file = pd.read_csv("C:/Users/j/Desktop/Daten/Daten/" + files,sep= ";", parse_dates=['DAY'])
-    df_all_magnitudes = pd.concat([df_all_magnitudes,calculate_magnitude(read_file,"2010.01.01")])
-df_all_magnitudes = df_all_magnitudes.drop_duplicates()
+    read_file["LAND"] = files[:-4]
+    df_all_files = pd.concat((df_all_files,calculate_magnitude(read_file,"2010.01.01")))
 
 
+# %%
 
+df_sum_year_land = count_magnitude_year_land(df_all_files)
+# %%
+df_all_files.head()
+
+# %%
+df_sum_year_land.head()
 # %%
