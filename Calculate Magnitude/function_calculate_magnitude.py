@@ -81,7 +81,7 @@ def count_magnitude_year_land(single_magnitude):
     grids_per_land = single_magnitude.loc[:,["GRID_NO","LAND"]].drop_duplicates().groupby(["LAND"]).count()
     count_per_grid_no  = pd.merge(count_per_grid_no,grids_per_land, on= "LAND")
     count_per_grid_no["number"] = count_per_grid_no.loc[:,"magnitude"]/count_per_grid_no.loc[:,"GRID_NO"]
-    return count_per_grid_no.loc[:,["DAY","LAND","number"]]
+    return grids_per_land #count_per_grid_no.loc[:,["DAY","LAND","number"]]
 
 # %% Einlesen der filenames
 with open("filenames.txt") as names:
