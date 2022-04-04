@@ -76,13 +76,11 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
 
 # %%
 def count_magnitude_year_land(single_magnitude):
-    
     count_per_grid_no= single_magnitude.groupby([single_magnitude['DAY'].map(lambda x: x.year),"LAND"])["magnitude"].count().reset_index()
-    grids_per_land = single_magnitude.loc[:,["GRID_NO","LAND"]].drop_duplicates().groupby(["LAND"]).count()
+    grids_per_land = single_magnitude.loc[:,["GRID_NO","LAND"]].drop_duplicates().groupby(["LAND"]).count().reset_index()
     count_per_grid_no  = pd.merge(count_per_grid_no,grids_per_land, on= "LAND")
-    count_per_grid_no["number"] = count_per_grid_no.loc[:,"magnitude"]/count_per_grid_no.loc[:,"GRID_NO"]
-    return grids_per_land #count_per_grid_no.loc[:,["DAY","LAND","number"]]
-
+    count_per_grid_no["number_of_magnitude"] = count_per_grid_no.loc[:,"magnitude"]/count_per_grid_no.loc[:,"GRID_NO"]
+    return count_per_grid_no.loc[:,["LAND","DAY","number_of_magnitude"]]
 # %% Einlesen der filenames
 with open("filenames.txt") as names:
     list_filenames = names.read().split("\n")
@@ -98,9 +96,4 @@ for files in list_filenames:
 # %%
 
 df_sum_year_land = count_magnitude_year_land(df_all_files)
-# %%
-df_all_files.head()
 
-# %%
-df_sum_year_land.head()
-# %%
