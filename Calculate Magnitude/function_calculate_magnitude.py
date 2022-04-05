@@ -1,10 +1,12 @@
 # %% import Packages
-
 import pandas as pd
 import plotly.express as px
 from datetime import datetime,timedelta,date
 import plotly.graph_objects as go
 import folium
+import geopandas as gpd
+import matplotlib.pyplot as plt
+from shapely.geometry import Point, Polygon
 
 # %%
 def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.DataFrame:
@@ -98,19 +100,7 @@ for files in list_filenames:
 
 df_sum_year_land = count_magnitude_year_land(df_all_files)
 #%%
-
-import geojson
-
-with open("country_shapes.geojson") as f:
-    gj = pd.DataFrame(geojson.load(f))
-
-# %%
-df_country = pd.DataFrame()
-for feature in gj["features"]:
-    one_country = {"country":feature["properties"]["cntry_name"],"geometry_type":feature['geometry']['type'],"coordinates":feature['geometry']['coordinates']}
-    df_country = pd.concat((df_country,pd.DataFrame(one_country)))
- # %%
-df_joined = pd.merge(df_sum_year_land, df_country, on =["country"],how = "left")   
+  
 # %%
 folium.Choropleth(
     #The GeoJSON data to represent the world country
