@@ -1,2 +1,2 @@
 Andorra.csv
-Belgique.csv
+Belgium.csv

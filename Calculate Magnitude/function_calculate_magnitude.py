@@ -4,11 +4,12 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime,timedelta,date
 import plotly.graph_objects as go
+import folium
 
 # %%
 def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.DataFrame:
     # Normalisiertes Data Frame und Data Frame mit den Werten für die Berechnungen
-    df_normalised= df_country[["GRID_NO","LATITUDE","LONGITUDE","ALTITUDE","LAND"]].drop_duplicates()
+    df_normalised= df_country[["GRID_NO","LATITUDE","LONGITUDE","ALTITUDE","country"]].drop_duplicates()
     df_values = df_country[["GRID_NO","DAY","TEMPERATURE_MAX"]]
 
     # Referenzperiode Berechnen
@@ -76,11 +77,11 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
 
 # %%
 def count_magnitude_year_land(single_magnitude):
-    count_per_grid_no= single_magnitude.groupby([single_magnitude['DAY'].map(lambda x: x.year),"LAND"])["magnitude"].count().reset_index()
-    grids_per_land = single_magnitude.loc[:,["GRID_NO","LAND"]].drop_duplicates().groupby(["LAND"]).count().reset_index()
-    count_per_grid_no  = pd.merge(count_per_grid_no,grids_per_land, on= "LAND")
+    count_per_grid_no= single_magnitude.groupby([single_magnitude['DAY'].map(lambda x: x.year),"country"])["magnitude"].count().reset_index()
+    grids_per_land = single_magnitude.loc[:,["GRID_NO","country"]].drop_duplicates().groupby(["country"]).count().reset_index()
+    count_per_grid_no  = pd.merge(count_per_grid_no,grids_per_land, on= "country")
     count_per_grid_no["number_of_magnitude"] = count_per_grid_no.loc[:,"magnitude"]/count_per_grid_no.loc[:,"GRID_NO"]
-    return count_per_grid_no.loc[:,["LAND","DAY","number_of_magnitude"]]
+    return count_per_grid_no.loc[:,["country","DAY","number_of_magnitude"]]
 # %% Einlesen der filenames
 with open("filenames.txt") as names:
     list_filenames = names.read().split("\n")
@@ -89,11 +90,37 @@ with open("filenames.txt") as names:
 df_all_files = pd.DataFrame()
 for files in list_filenames:
     read_file = pd.read_csv("C:/Users/j/Desktop/Daten/Daten/" + files,sep= ";", parse_dates=['DAY'])
-    read_file["LAND"] = files[:-4]
+    read_file["country"] = files[:-4]
     df_all_files = pd.concat((df_all_files,calculate_magnitude(read_file,"2010.01.01")))
 
 
 # %%
 
 df_sum_year_land = count_magnitude_year_land(df_all_files)
+#%%
 
+import geojson
+
+with open("country_shapes.geojson") as f:
+    gj = pd.DataFrame(geojson.load(f))
+
+# %%
+df_country = pd.DataFrame()
+for feature in gj["features"]:
+    one_country = {"country":feature["properties"]["cntry_name"],"geometry_type":feature['geometry']['type'],"coordinates":feature['geometry']['coordinates']}
+    df_country = pd.concat((df_country,pd.DataFrame(one_country)))
+ # %%
+df_joined = pd.merge(df_sum_year_land, df_country, on =["country"],how = "left")   
+# %%
+folium.Choropleth(
+    #The GeoJSON data to represent the world country
+    geo_data=df_country,
+    name='choropleth COVID-19',
+    data=df_sum_year_land,
+    #The column aceppting list with 2 value; The country name and  the numerical value
+    columns=['country', 'number_of_magnitude'],
+    key_on='feature.properties.name',
+    fill_color='PuRd',
+    nan_fill_color='white'
+)
+# %%
