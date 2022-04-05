@@ -1,12 +1,9 @@
 # %% import Packages
+from asyncore import write
 import pandas as pd
 import plotly.express as px
 from datetime import datetime,timedelta,date
 import plotly.graph_objects as go
-import folium
-import geopandas as gpd
-import matplotlib.pyplot as plt
-from shapely.geometry import Point, Polygon
 
 # %%
 def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.DataFrame:
@@ -53,6 +50,7 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     df_values["month_day"] = df_values["DAY"].dt.strftime('%m/%d')
     # Spalten umbennenen
     df_reference = df_reference.rename(columns= {"DAY":"month_day","TEMPERATURE_MAX":"reference_temperature"})
+    df_reference_output = pd.merge(df_normalised,df_reference, on= ["GRID_NO"], how= "left")
 
     # Werte löschen die kleiner sind als die Referenzwerte.
     df_values_reference= pd.merge(df_values,df_reference,on=["GRID_NO","month_day"],how='left')
@@ -75,7 +73,7 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
 
     # Longtitude Latitude und Altitude mergen
     df_single_magnitudes = pd.merge(df_single_magnitudes,df_normalised,on=["GRID_NO"],how='left')
-    return df_single_magnitudes
+    return df_single_magnitudes,df_reference_output
 
 # %%
 def count_magnitude_year_land(single_magnitude):
@@ -90,10 +88,13 @@ with open("filenames.txt") as names:
     
 # %% 
 df_all_files = pd.DataFrame()
+df_thresh = pd.DataFrame()
 for files in list_filenames:
     read_file = pd.read_csv("C:/Users/j/Desktop/Daten/Daten/" + files,sep= ";", parse_dates=['DAY'])
     read_file["country"] = files[:-4]
-    df_all_files = pd.concat((df_all_files,calculate_magnitude(read_file,"2010.01.01")))
+    df_magnitude, df_threshold = calculate_magnitude(read_file,"2010.01.01")
+    df_all_files = pd.concat((df_all_files,df_magnitude))
+    df_thresh = pd.concat((df_thresh,df_threshold))
 
 
 # %%
@@ -101,16 +102,10 @@ for files in list_filenames:
 df_sum_year_land = count_magnitude_year_land(df_all_files)
 #%%
   
+df_thresh.head()
+df_all_files.head()
 # %%
-folium.Choropleth(
-    #The GeoJSON data to represent the world country
-    geo_data=df_country,
-    name='choropleth COVID-19',
-    data=df_sum_year_land,
-    #The column aceppting list with 2 value; The country name and  the numerical value
-    columns=['country', 'number_of_magnitude'],
-    key_on='feature.properties.name',
-    fill_color='PuRd',
-    nan_fill_color='white'
-)
+df_thresh.to_csv("C:/Users/j/OneDrive/Klima Challenge/Github Respository/Calculate Magnitude/threshhold.csv",index = False)
+# %%
+df_all_files.to_csv("C:/Users/j/OneDrive/Klima Challenge/Github Respository/Calculate Magnitude/magnitude.csv",index = False)
 # %%
