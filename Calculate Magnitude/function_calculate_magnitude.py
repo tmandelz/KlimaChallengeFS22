@@ -101,11 +101,11 @@ for files in list_filenames:
 
 df_sum_year_land = count_magnitude_year_land(df_all_files)
 #%%
-  
-df_thresh.head()
-df_all_files.head()
+
 # %%
 df_thresh.to_csv("C:/Users/j/OneDrive/Klima Challenge/Github Respository/Calculate Magnitude/threshhold.csv",index = False)
 # %%
 df_all_files.to_csv("C:/Users/j/OneDrive/Klima Challenge/Github Respository/Calculate Magnitude/magnitude.csv",index = False)
+
+
 # %%

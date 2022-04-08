@@ -1,4 +1,1 @@
-Andorra.csv
-Belgium.csv
-Bosnia_Herzegovina.csv
 Luxembourg.csv
