@@ -93,30 +93,35 @@ def count_magnitude_year_land(single_magnitude):
 # %% Einlesen der filenames
 with open("filenames.txt") as names:
     list_filenames = names.read().split("\n")
-    
+# %%
+polynoms = pd.read_csv("polynoms.csv", sep = ";") 
+
 # %% 
 df_all_files = pd.DataFrame()
 df_thresh = pd.DataFrame()
 for files in list_filenames:
     read_file = pd.read_csv("C:/Users/j/Desktop/Daten/Daten/" + files,sep= ";", parse_dates=['DAY'])
     read_file["country"] = files[:-4]
+    read_file = pd.merge(read_file,polynoms, on = "GRID_NO",how = "left")
     df_magnitude, df_threshold = calculate_magnitude(read_file,"2010.01.01")
     df_all_files = pd.concat((df_all_files,df_magnitude))
     df_thresh = pd.concat((df_thresh,df_threshold))
 
 
 # %%
-
 df_sum_year_land = count_magnitude_year_land(df_all_files)
+# %%
+df_all_files.head()
+
 #%%
 
 
 
-read_albania = pd.read_csv("threshhold_albania.csv",sep = ",")
-read_albania['geometry_y'] = read_albania['geometry_y'].apply(wkt.loads)
-read_albania.head()
+
+df_all_files['geometry_y'] = df_all_files['geometry_y'].apply(wkt.loads)
+df_all_files.head()
 # %%
-geopandas= gpd.GeoDataFrame(read_albania, geometry = "geometry_y", crs='epsg:4326' )
+geopandas= gpd.GeoDataFrame(df_all_files, geometry = "geometry_y", crs='epsg:4326' )
 
 
 # %%
@@ -126,8 +131,11 @@ geopandas.plot("reference_temperature")
 fig = px.choropleth(geopandas,
                    geojson=geopandas.geometry,
                    locations=geopandas.index,
-                   color="GRID_NO",
+                   color="reference_temperature",
                    projection="mercator")
 fig.update_geos(fitbounds="locations")
 fig.show()
+# %%
+
+fig.write_html("plot")
 # %%
