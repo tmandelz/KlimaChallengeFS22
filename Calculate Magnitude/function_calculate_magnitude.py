@@ -1,14 +1,22 @@
 # %% import Packages
 from asyncore import write
+from os import sep
+from pickle import TRUE
 import pandas as pd
 import plotly.express as px
 from datetime import datetime,timedelta,date
 import plotly.graph_objects as go
+import geopandas as gpd
+import matplotlib as pl
+import numpy as np
+import folium
+from shapely.geometry import Point, Polygon
+from shapely import wkt
 
 # %%
 def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.DataFrame:
     # Normalisiertes Data Frame und Data Frame mit den Werten für die Berechnungen
-    df_normalised= df_country[["GRID_NO","LATITUDE","LONGITUDE","ALTITUDE","country"]].drop_duplicates()
+    df_normalised= df_country[["GRID_NO","geometry_y","ALTITUDE","country"]].drop_duplicates()
     df_values = df_country[["GRID_NO","DAY","TEMPERATURE_MAX"]]
 
     # Referenzperiode Berechnen
@@ -102,10 +110,24 @@ for files in list_filenames:
 df_sum_year_land = count_magnitude_year_land(df_all_files)
 #%%
 
-# %%
-df_thresh.to_csv("C:/Users/j/OneDrive/Klima Challenge/Github Respository/Calculate Magnitude/threshhold.csv",index = False)
-# %%
-df_all_files.to_csv("C:/Users/j/OneDrive/Klima Challenge/Github Respository/Calculate Magnitude/magnitude.csv",index = False)
 
 
+read_albania = pd.read_csv("threshhold_albania.csv",sep = ",")
+read_albania['geometry_y'] = read_albania['geometry_y'].apply(wkt.loads)
+read_albania.head()
+# %%
+geopandas= gpd.GeoDataFrame(read_albania, geometry = "geometry_y", crs='epsg:4326' )
+
+
+# %%
+geopandas.plot("reference_temperature")
+
+# %%
+fig = px.choropleth(geopandas,
+                   geojson=geopandas.geometry,
+                   locations=geopandas.index,
+                   color="GRID_NO",
+                   projection="mercator")
+fig.update_geos(fitbounds="locations")
+fig.show()
 # %%
