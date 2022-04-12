@@ -1,5 +1,6 @@
 # %% import Packages
 from asyncore import write
+from operator import index
 from os import sep
 from pickle import TRUE
 import pandas as pd
@@ -111,13 +112,9 @@ for files in list_filenames:
 # %%
 df_sum_year_land = count_magnitude_year_land(df_all_files)
 # %%
-df_all_files.head()
 
-#%%
-
-
-
-
+df_all_files = pd.read_csv("magnitude.csv",sep = ";", parse_dates=['DAY'])
+# %%
 df_all_files['geometry_y'] = df_all_files['geometry_y'].apply(wkt.loads)
 df_all_files.head()
 # %%
@@ -132,10 +129,24 @@ fig = px.choropleth(geopandas,
                    geojson=geopandas.geometry,
                    locations=geopandas.index,
                    color="reference_temperature",
-                   projection="mercator")
-fig.update_geos(fitbounds="locations")
+                   scope="europe"
+                   )
+fig.update_geos(fitbounds="locations",visible = False)
 fig.show()
+
+
+# %%
+boundaries = pd.read_csv("boundaries.csv",sep = ";")
+boundaries = boundaries.loc[boundaries["Continent of the territory"]== "Europe"]
+boundaries = boundaries.rename(columns={"English Name": "country"})
+# %%
+df_all_files = pd.read_csv("magnitude.csv",sep = ";", parse_dates=['DAY'])
+# %%
+df_country = count_magnitude_year_land(df_all_files)
+# %%
+df_merged = pd.merge(df_country.loc[df_country["country"]== "Albania"],boundaries, on = "country", how = "left")
+# %%
+df_merged['Geo Shape'] = df_merged['Geo Shape'].apply(wkt.loads)
+gpd.GeoDataFrame(df_merged, geometry = "Geo Shape", crs='epsg:4326' )
 # %%
 
-fig.write_html("plot")
-# %%
