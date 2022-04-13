@@ -13,6 +13,8 @@ import numpy as np
 import folium
 from shapely.geometry import Point, Polygon
 from shapely import wkt
+import plotly as plt
+
 
 # %%
 def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.DataFrame:
@@ -110,43 +112,57 @@ for files in list_filenames:
 
 
 # %%
-df_sum_year_land = count_magnitude_year_land(df_all_files)
-# %%
-
 df_all_files = pd.read_csv("magnitude.csv",sep = ";", parse_dates=['DAY'])
-# %%
-df_all_files['geometry_y'] = df_all_files['geometry_y'].apply(wkt.loads)
-df_all_files.head()
-# %%
-geopandas= gpd.GeoDataFrame(df_all_files, geometry = "geometry_y", crs='epsg:4326' )
-
-
-# %%
-geopandas.plot("reference_temperature")
-
-# %%
-fig = px.choropleth(geopandas,
-                   geojson=geopandas.geometry,
-                   locations=geopandas.index,
-                   color="reference_temperature",
-                   scope="europe"
-                   )
-fig.update_geos(fitbounds="locations",visible = False)
-fig.show()
-
-
-# %%
-boundaries = pd.read_csv("boundaries.csv",sep = ";")
-boundaries = boundaries.loc[boundaries["Continent of the territory"]== "Europe"]
-boundaries = boundaries.rename(columns={"English Name": "country"})
-# %%
-df_all_files = pd.read_csv("magnitude.csv",sep = ";", parse_dates=['DAY'])
-# %%
 df_country = count_magnitude_year_land(df_all_files)
-# %%
-df_merged = pd.merge(df_country.loc[df_country["country"]== "Albania"],boundaries, on = "country", how = "left")
-# %%
-df_merged['Geo Shape'] = df_merged['Geo Shape'].apply(wkt.loads)
-gpd.GeoDataFrame(df_merged, geometry = "Geo Shape", crs='epsg:4326' )
-# %%
+shapefile_country = gpd.read_file("boundaries.shp")
+boundaries = pd.read_csv("boundaries.csv",sep = ";")
+shapefile_country = pd.DataFrame(shapefile_country)
+shapefile_country = shapefile_country.reset_index()
+boundaries = boundaries.reset_index()
+shapefile_country = pd.merge(shapefile_country,boundaries, on = "index").loc[:,["geometry","English Name"]]
+shapefile_country = shapefile_country.rename(columns= {"English Name": "country"})
+df_merged = pd.merge(df_country[df_country["country"] == "Albania"],shapefile_country, on = "country", how = "left")
 
+# %%
+scl = [[0.0, '#ffffff'],[0.2, '#b4a8ce'],[0.4, '#8573a9'],
+       [0.6, '#7159a3'],[0.8, '#5732a1'],[1.0, '#2c0579']]
+
+data_slider = []
+for day in df_merged.DAY.unique():
+    # I select the year
+    df_sected_crime = df_merged[df_merged['DAY']== day]
+
+    for col in df_sected_crime.columns:  # I transform the columns into string type so I can:
+        df_sected_crime[col] = df_sected_crime[col].astype(str)
+
+    ### create the dictionary with the data for the current year
+    data_one_year = dict(
+                        type='choropleth',
+                        geojson = df_sected_crime["geometry"],
+                        locations = df_sected_crime['country'],
+                        z =df_sected_crime['number_of_magnitude'].astype(float),
+                        colorscale = scl,
+                        locationmode = "country names"                       
+                        )
+    data_slider.append(data_one_year)
+
+
+steps = []
+
+for i in range(len(data_slider)):
+    step = dict(method='restyle',
+                args=['visible', [False] * len(data_slider)],
+                label='Year {}'.format(i + 1979)) # label to be displayed for each step (year)
+    step['args'][1][i] = True
+    steps.append(step)
+
+
+##  I create the 'sliders' object from the 'steps' 
+
+sliders = [dict(active=0, pad={"t": 1}, steps=steps)]  
+layout = dict(geo=dict(scope='europe',projection=dict( type='natural earth' )),sliders = sliders)
+
+
+fig = dict(data=data_slider, layout=layout)
+plt.offline.iplot(fig)
+# %%
