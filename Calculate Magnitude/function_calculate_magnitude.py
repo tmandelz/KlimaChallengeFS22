@@ -16,6 +16,7 @@ from shapely import wkt
 import plotly as plt
 
 
+
 # %%
 def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.DataFrame:
     # Normalisiertes Data Frame und Data Frame mit den Werten für die Berechnungen
@@ -121,7 +122,7 @@ shapefile_country = shapefile_country.reset_index()
 boundaries = boundaries.reset_index()
 shapefile_country = pd.merge(shapefile_country,boundaries, on = "index").loc[:,["geometry","English Name"]]
 shapefile_country = shapefile_country.rename(columns= {"English Name": "country"})
-df_merged = pd.merge(df_country[df_country["country"] == "Albania"],shapefile_country, on = "country", how = "left")
+df_merged = pd.merge(df_country[df_country["country"] != "Kosovo"],shapefile_country, on = "country", how = "left")
 
 # %%
 scl = [[0.0, '#ffffff'],[0.2, '#b4a8ce'],[0.4, '#8573a9'],
@@ -141,8 +142,10 @@ for day in df_merged.DAY.unique():
                         geojson = df_sected_crime["geometry"],
                         locations = df_sected_crime['country'],
                         z =df_sected_crime['number_of_magnitude'].astype(float),
-                        colorscale = scl,
-                        locationmode = "country names"                       
+                        colorscale =  px.colors.sequential.Oranges,
+                        locationmode = "country names" ,
+                        zmax = 30,
+                        zmin = 0                      
                         )
     data_slider.append(data_one_year)
 
@@ -165,4 +168,7 @@ layout = dict(geo=dict(scope='europe',projection=dict( type='natural earth' )),s
 
 fig = dict(data=data_slider, layout=layout)
 plt.offline.iplot(fig)
+# %%
+
+
 # %%

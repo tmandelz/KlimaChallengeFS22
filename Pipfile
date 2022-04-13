@@ -17,6 +17,7 @@ rtree = {path = "./wheels/Rtree-0.9.7-cp39-cp39-win_amd64.whl"}
 shapely = {path = "./wheels/Shapely-1.8.1.post1-cp39-cp39-win_amd64.whl"}
 geopandas = "*"
 folium = "*"
+dash = "*"
 
 [dev-packages]
 
