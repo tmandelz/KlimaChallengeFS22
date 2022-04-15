@@ -15,6 +15,7 @@ from shapely.geometry import Point, Polygon
 from shapely import wkt
 import plotly as plt
 from  dash import dash, dcc, html, Input, Output
+from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform
 from plotly.tools import mpl_to_plotly
 
 
@@ -148,41 +149,41 @@ fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', colo
 fig.update_geos(fitbounds="locations", visible=False)
 fig.show()
 
-# %%
-country_value = "Albania"
-year_value = 1979 
-# %%
-app = dash.Dash(__name__)
 
+# %%
+app = DashProxy(prevent_initial_callbacks=True, transforms=[MultiplexerTransform()])
 
 app.layout = html.Div([
     
-    dcc.Graph(figure=fig2, id = "figure2" ),
+    dcc.Graph(figure=fig2, id = "europe" ),
     dcc.Slider(min = 1979, max = 2020, step = 1,
                value=1979,
                id='my-slider',
                marks = {i: i for i in range(1979,2020,1)}
     ),
-    dcc.Graph(figure=fig, id = "figure" )
+    dcc.Graph(figure=fig, id = "country" ),
+    dcc.Store(id = "year"),
+    dcc.Store(id = "country_value")
 
 ])
 
 @app.callback(
-    Output('figure2', 'figure'),
-    Output('figure', 'figure'),
+    Output('europe', 'figure'),
+    Output('country', 'figure'),
+    Output("year","data"),
     Input('my-slider', 'value'),
+    Input("country_value", "data")
     )
-def update_output_div(input_value):
-    global year_value
-    year_value = input_value
-    new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == year_value], geometry= "geometry", crs='epsg:4326')
+def update_output_div(input_value,country):
+    year = input_value
+    new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == year], geometry= "geometry", crs='epsg:4326')
     figure = px.choropleth(new_df, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
                            range_color=(0, 30),
                            locationmode = "country names"
                           )
-    new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == year_value) & (df_merged["country"] == country_value)], geometry= "geometry", crs='epsg:4326')
+    new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == year) & (df_merged["country"] == country)], geometry= "geometry", crs='epsg:4326')
     fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
@@ -190,25 +191,16 @@ def update_output_div(input_value):
                            locationmode = "country names"
                           )
     fig.update_geos(fitbounds="locations", visible=False)
-    return figure,fig
-
-
-if __name__ == '__main__':
-    app.run_server(debug=False)
-# %%
-app = dash.Dash(__name__)
-    
-app.layout = html.Div([
-    
-    dcc.Graph(figure=fig2, id = "figure2" ),
-    dcc.Graph(figure=fig, id = "figure" )])
+    return figure,fig,year
 @app.callback(
-    Output('figure', 'figure'),
-    Input('figure2', 'clickData'))
+    Output('country', 'figure'),
+    Output("country_value","data"),
+    Input('europe', 'clickData'),
+    Input("year","data"))
 
-def select_country(clickData):
+def select_country(clickData,year):
     country = json.loads(json.dumps(clickData, indent=2))["points"][0]["location"]
-    new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == 2000) & (df_merged["country"] == select_country)], geometry= "geometry", crs='epsg:4326')
+    new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == year) & (df_merged["country"] == country)], geometry= "geometry", crs='epsg:4326')
     fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
@@ -216,10 +208,9 @@ def select_country(clickData):
                            locationmode = "country names"
                           )
     fig.update_geos(fitbounds="locations", visible=False)
-    return fig
+    return fig,country
     
 
 if __name__ == '__main__':
     app.run_server(debug=False)
-
 # %%
