@@ -14,6 +14,9 @@ import folium
 from shapely.geometry import Point, Polygon
 from shapely import wkt
 import plotly as plt
+from  dash import dash, dcc, html, Input, Output
+from plotly.tools import mpl_to_plotly
+
 
 
 
@@ -124,51 +127,99 @@ shapefile_country = pd.merge(shapefile_country,boundaries, on = "index").loc[:,[
 shapefile_country = shapefile_country.rename(columns= {"English Name": "country"})
 df_merged = pd.merge(df_country[df_country["country"] != "Kosovo"],shapefile_country, on = "country", how = "left")
 
-# %%
-scl = [[0.0, '#ffffff'],[0.2, '#b4a8ce'],[0.4, '#8573a9'],
-       [0.6, '#7159a3'],[0.8, '#5732a1'],[1.0, '#2c0579']]
 
-data_slider = []
-for day in df_merged.DAY.unique():
-    # I select the year
-    df_sected_crime = df_merged[df_merged['DAY']== day]
-
-    for col in df_sected_crime.columns:  # I transform the columns into string type so I can:
-        df_sected_crime[col] = df_sected_crime[col].astype(str)
-
-    ### create the dictionary with the data for the current year
-    data_one_year = dict(
-                        type='choropleth',
-                        geojson = df_sected_crime["geometry"],
-                        locations = df_sected_crime['country'],
-                        z =df_sected_crime['number_of_magnitude'].astype(float),
-                        colorscale =  px.colors.sequential.Oranges,
-                        locationmode = "country names" ,
-                        zmax = 30,
-                        zmin = 0                      
-                        )
-    data_slider.append(data_one_year)
-
-
-steps = []
-
-for i in range(len(data_slider)):
-    step = dict(method='restyle',
-                args=['visible', [False] * len(data_slider)],
-                label='Year {}'.format(i + 1979)) # label to be displayed for each step (year)
-    step['args'][1][i] = True
-    steps.append(step)
-
-
-##  I create the 'sliders' object from the 'steps' 
-
-sliders = [dict(active=0, pad={"t": 1}, steps=steps)]  
-layout = dict(geo=dict(scope='europe',projection=dict( type='natural earth' )),sliders = sliders)
-
-
-fig = dict(data=data_slider, layout=layout)
-plt.offline.iplot(fig)
 # %%
 
+new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == 2000], geometry= "geometry", crs='epsg:4326')
+fig2 = px.choropleth(new_df, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
+                           color_continuous_scale=px.colors.sequential.Oranges,
+                           scope = "europe",
+                           range_color=(0, 30),
+                           locationmode = "country names"
+                          )
+
+new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == 2000) & (df_merged["country"] == "Albania" )], geometry= "geometry", crs='epsg:4326')
+fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
+                           color_continuous_scale=px.colors.sequential.Oranges,
+                           scope = "europe",
+                           range_color=(0, 30),
+                           locationmode = "country names"
+                          )
+fig.update_geos(fitbounds="locations", visible=False)
+fig.show()
+
+# %%
+country_value = "Albania"
+year_value = 1979 
+# %%
+app = dash.Dash(__name__)
+
+
+app.layout = html.Div([
+    
+    dcc.Graph(figure=fig2, id = "figure2" ),
+    dcc.Slider(min = 1979, max = 2020, step = 1,
+               value=1979,
+               id='my-slider',
+               marks = {i: i for i in range(1979,2020,1)}
+    ),
+    dcc.Graph(figure=fig, id = "figure" )
+
+])
+
+@app.callback(
+    Output('figure2', 'figure'),
+    Output('figure', 'figure'),
+    Input('my-slider', 'value'),
+    )
+def update_output_div(input_value):
+    global year_value
+    year_value = input_value
+    new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == year_value], geometry= "geometry", crs='epsg:4326')
+    figure = px.choropleth(new_df, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
+                           color_continuous_scale=px.colors.sequential.Oranges,
+                           scope = "europe",
+                           range_color=(0, 30),
+                           locationmode = "country names"
+                          )
+    new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == year_value) & (df_merged["country"] == country_value)], geometry= "geometry", crs='epsg:4326')
+    fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
+                           color_continuous_scale=px.colors.sequential.Oranges,
+                           scope = "europe",
+                           range_color=(0, 30),
+                           locationmode = "country names"
+                          )
+    fig.update_geos(fitbounds="locations", visible=False)
+    return figure,fig
+
+
+if __name__ == '__main__':
+    app.run_server(debug=False)
+# %%
+app = dash.Dash(__name__)
+    
+app.layout = html.Div([
+    
+    dcc.Graph(figure=fig2, id = "figure2" ),
+    dcc.Graph(figure=fig, id = "figure" )])
+@app.callback(
+    Output('figure', 'figure'),
+    Input('figure2', 'clickData'))
+
+def select_country(clickData):
+    country = json.loads(json.dumps(clickData, indent=2))["points"][0]["location"]
+    new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == 2000) & (df_merged["country"] == select_country)], geometry= "geometry", crs='epsg:4326')
+    fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
+                           color_continuous_scale=px.colors.sequential.Oranges,
+                           scope = "europe",
+                           range_color=(0, 30),
+                           locationmode = "country names"
+                          )
+    fig.update_geos(fitbounds="locations", visible=False)
+    return fig
+    
+
+if __name__ == '__main__':
+    app.run_server(debug=False)
 
 # %%
