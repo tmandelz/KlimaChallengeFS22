@@ -3,7 +3,7 @@
  
 
 
-## Pipenv for Virutal Environment
+## Pipenv for Virtual Environment
 
 
 ### First install of Environment
