@@ -8,7 +8,7 @@
 
 ### First install of Environment
 
-1. open CMD
+ Markup : 1. open CMD
               1. cd /your/local/github/repofolder/
               2. pipenv install
         2. Restart VS Code
@@ -16,6 +16,6 @@
 
 
 ### Environment already installed (Update dependecies)
-1. open CMD
+ Markup : 1. open CMD
               1. cd /your/local/github/repofolder/
               2. pipenv sync
