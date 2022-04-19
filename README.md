@@ -8,14 +8,14 @@
 
 ### First install of Environment
 
- Markup : 1. open CMD
-              1. cd /your/local/github/repofolder/
-              2. pipenv install
-        2. Restart VS Code
-        3. Choose the newly created "KlimachallengeFS22" Virtual Environment Interpreter
+ 1. open CMD
+ 2. cd /your/local/github/repofolder/
+ 3. pipenv install
+ 4. Restart VS Code
+ 5. Choose the newly created "KlimachallengeFS22" Virtual Environment Interpreter
 
 
 ### Environment already installed (Update dependecies)
- Markup : 1. open CMD
-              1. cd /your/local/github/repofolder/
-              2. pipenv sync
+ 1. open CMD
+ 2. cd /your/local/github/repofolder/
+ 3. pipenv sync
