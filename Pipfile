@@ -18,6 +18,7 @@ shapely = {path = "./wheels/Shapely-1.8.1.post1-cp39-cp39-win_amd64.whl"}
 geopandas = "*"
 folium = "*"
 dash = "*"
+psycopg2 = "*"
 
 [dev-packages]
 
