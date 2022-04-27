@@ -125,33 +125,23 @@ for files in list_filenames:
 # %%
 df_all_files = pd.read_csv("magnitude.csv",sep = ";", parse_dates=['DAY'])
 df_country = count_magnitude_year_land(df_all_files)
-shapefile_country = gpd.read_file("ne_50m_admin_0_countries.dbf").rename(columns= {"SOVEREIGNT": "country"}).loc[:,["geometry","country"]]
+shapefile_country = gpd.read_file("ne_50m_admin_0_countries.shp").rename(columns= {"SOVEREIGNT": "country"}).loc[:,["geometry","country"]]
 df_merged = pd.merge(df_country,shapefile_country, on = "country", how = "left")
 
-#%%
-df_merged[(df_merged["country"] == "Kosovo") & (df_merged["DAY"]== 2017)]
-# %%
-new_df = gpd.GeoDataFrame(df_merged[(df_merged["country"] == "Kosovo") & (df_merged["DAY"]== 2017)], geometry= "geometry", crs='epsg:4326')
-fig2 = px.choropleth(new_df, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
-                           color_continuous_scale=px.colors.sequential.Oranges,
-                           scope = "europe",
-                           locationmode = "country names"
-                          )
-new_df.plot()
-fig2.show()
+
 
 # %%
-new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == 1980], geometry= "geometry", crs='epsg:4326')
+new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == 1979], geometry= "geometry", crs='epsg:4326')
 fig2 = px.choropleth(new_df, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
                            range_color=(0, 30),
                            locationmode = "country names"
                           )
-#%%
-new_df[]
-#%%
-new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == 1980) & (df_merged["country"] == "Kosovo" )], geometry= "geometry", crs='epsg:4326')
+fig2.show()
+
+
+new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == 1979) & (df_merged["country"] == "Albania" )], geometry= "geometry", crs='epsg:4326')
 fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
@@ -225,6 +215,3 @@ if __name__ == '__main__':
     app.run_server(debug=False)
 # %%
 
-
-df_merged[df_merged["country"]=="Luxembourg"]
-# %%
