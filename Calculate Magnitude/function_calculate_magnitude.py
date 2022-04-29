@@ -17,7 +17,7 @@ import plotly as plt
 from  dash import dash, dcc, html, Input, Output
 from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform
 from plotly.tools import mpl_to_plotly
-
+import json
 
 
 
@@ -97,7 +97,12 @@ def count_magnitude_year_land(single_magnitude):
     grids_per_land = single_magnitude.loc[:,["GRID_NO","country"]].drop_duplicates().groupby(["country"]).count().reset_index()
     count_per_grid_no  = pd.merge(count_per_grid_no,grids_per_land, on= "country")
     count_per_grid_no["number_of_magnitude"] = count_per_grid_no.loc[:,"magnitude"]/count_per_grid_no.loc[:,"GRID_NO"]
+    # fill in missing values
+    iterables = [count_per_grid_no['country'].unique(),count_per_grid_no['DAY'].unique()]
+    count_per_grid_no = count_per_grid_no.set_index(['country','DAY'])
+    count_per_grid_no = count_per_grid_no.reindex(index=pd.MultiIndex.from_product(iterables, names=['country', 'DAY']), fill_value=0).reset_index()
     return count_per_grid_no.loc[:,["country","DAY","number_of_magnitude"]]
+
 # %% Einlesen der filenames
 with open("filenames.txt") as names:
     list_filenames = names.read().split("\n")
@@ -116,30 +121,27 @@ for files in list_filenames:
     df_thresh = pd.concat((df_thresh,df_threshold))
 
 
+
 # %%
 df_all_files = pd.read_csv("magnitude.csv",sep = ";", parse_dates=['DAY'])
 df_country = count_magnitude_year_land(df_all_files)
-shapefile_country = gpd.read_file("boundaries.shp")
-boundaries = pd.read_csv("boundaries.csv",sep = ";")
-shapefile_country = pd.DataFrame(shapefile_country)
-shapefile_country = shapefile_country.reset_index()
-boundaries = boundaries.reset_index()
-shapefile_country = pd.merge(shapefile_country,boundaries, on = "index").loc[:,["geometry","English Name"]]
-shapefile_country = shapefile_country.rename(columns= {"English Name": "country"})
-df_merged = pd.merge(df_country[df_country["country"] != "Kosovo"],shapefile_country, on = "country", how = "left")
+shapefile_country = gpd.read_file("ne_50m_admin_0_countries.shp").rename(columns= {"SOVEREIGNT": "country"}).loc[:,["geometry","country"]]
+df_merged = pd.merge(df_country,shapefile_country, on = "country", how = "left")
+
 
 
 # %%
-
-new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == 2000], geometry= "geometry", crs='epsg:4326')
+new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == 1979], geometry= "geometry", crs='epsg:4326')
 fig2 = px.choropleth(new_df, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
                            range_color=(0, 30),
                            locationmode = "country names"
                           )
+fig2.show()
 
-new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == 2000) & (df_merged["country"] == "Albania" )], geometry= "geometry", crs='epsg:4326')
+
+new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == 1979) & (df_merged["country"] == "Albania" )], geometry= "geometry", crs='epsg:4326')
 fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
@@ -147,8 +149,6 @@ fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', colo
                            locationmode = "country names"
                           )
 fig.update_geos(fitbounds="locations", visible=False)
-fig.show()
-
 
 # %%
 app = DashProxy(prevent_initial_callbacks=True, transforms=[MultiplexerTransform()])
@@ -162,8 +162,8 @@ app.layout = html.Div([
                marks = {i: i for i in range(1979,2020,1)}
     ),
     dcc.Graph(figure=fig, id = "country" ),
-    dcc.Store(id = "year"),
-    dcc.Store(id = "country_value")
+    dcc.Store(id = "year",storage_type='local',data = 1979),
+    dcc.Store(id = "country_value",storage_type='local',data = "Albania")
 
 ])
 
@@ -192,12 +192,12 @@ def update_output_div(input_value,country):
                           )
     fig.update_geos(fitbounds="locations", visible=False)
     return figure,fig,year
+
 @app.callback(
     Output('country', 'figure'),
     Output("country_value","data"),
     Input('europe', 'clickData'),
     Input("year","data"))
-
 def select_country(clickData,year):
     country = json.loads(json.dumps(clickData, indent=2))["points"][0]["location"]
     new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == year) & (df_merged["country"] == country)], geometry= "geometry", crs='epsg:4326')
@@ -214,3 +214,4 @@ def select_country(clickData,year):
 if __name__ == '__main__':
     app.run_server(debug=False)
 # %%
+
