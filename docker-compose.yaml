@@ -23,8 +23,8 @@ services:
       expose:
         - '5432'
       environment:
-        POSTGRES_USER: user # The PostgreSQL user (useful to connect to the database)
-        POSTGRES_PASSWORD: password # The PostgreSQL password (useful to connect to the database)
+        POSTGRES_USER: root # The PostgreSQL user (useful to connect to the database)
+        POSTGRES_PASSWORD: orDtiURVtHUHwiQDeRCv # The PostgreSQL password (useful to connect to the database)
         POSTGRES_DB: klimachallengefs22 # The PostgreSQL default database (automatically created at first launch)
       volumes:
           - "./SQL/1_DatabaseScript.sql:/docker-entrypoint-initdb.d/init.sql"
