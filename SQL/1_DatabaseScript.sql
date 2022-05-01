@@ -2,9 +2,10 @@ DROP TABLE IF EXISTS customers;
 DROP TABLE IF EXISTS contacts;
 
 CREATE TABLE Grids (
-	id_Grid INT,
+	id_Grid SERIAL,
+   GridNumber INT,
 	Country VARCHAR ( 200 ) NOT NULL,
-	geometryval geometry NOT NULL,
+	Geometryval geometry NOT NULL,
    PRIMARY KEY(id_Grid)
 );
 
@@ -47,5 +48,7 @@ CREATE TABLE Magnitude (
       ON UPDATE CASCADE
 );
 
-CREATE USER klima WITH ENCRYPTED PASSWORD 'sN24*tqNP7bzBSe4@yw&';
+-- Create a User "klima" with a password
+CREATE USER klima WITH ENCRYPTED PASSWORD 'orDtiURVtHUHwiQDeRCv';
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO klima;
+GRANT ALL PRIVILEGES ON ALL Sequences IN SCHEMA public TO klima;
