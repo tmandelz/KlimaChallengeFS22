@@ -3,7 +3,7 @@
 import os
 import pandas as pd
 import psycopg2
-
+import glob
 
 # endregion #
 #%%
@@ -69,11 +69,11 @@ except:
 
 #%%
 # region # Start Schrittnummer 1.0 - Schrittname "Ordner mit allen CSV's einlesen" - ( Autor/In Jan) #
-# kurze Beschreibung des Schrittes in Worten
+# Alle Dateinamen werden in einer Liste gespeichert.
 
 # region # Variablen definition #
 
-
+data =  glob.glob('C:/Users/j/Desktop/github_data/Daten/*.csv')
 # endregion #
 
 # endregion # Ende Schrittnummer bsp. 3.1 - Schrittname bsp. "Insert Grids SQL" - ( Autor/In bsp. Thomas Mandelz) #
