@@ -15,7 +15,7 @@ from shapely.geometry import Point, Polygon
 from shapely import wkt
 import plotly as plt
 from  dash import dash, dcc, html, Input, Output
-from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform
+from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform, State
 from plotly.tools import mpl_to_plotly
 import json
 
@@ -129,29 +129,26 @@ shapefile_country = gpd.read_file("ne_50m_admin_0_countries.shp").rename(columns
 df_merged = pd.merge(df_country,shapefile_country, on = "country", how = "left")
 
 
-
 # %%
-new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == 1979], geometry= "geometry", crs='epsg:4326')
-fig2 = px.choropleth(new_df, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
+new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == 1979].set_index("country"), geometry= "geometry", crs='epsg:4326')
+fig2 = px.choropleth(new_df, geojson= new_df.geometry, locations= new_df.index, color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
-                           range_color=(0, 30),
-                           locationmode = "country names"
+                           range_color=(0, 30)
                           )
 fig2.show()
 
-
-new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == 1979) & (df_merged["country"] == "Albania" )], geometry= "geometry", crs='epsg:4326')
-fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
+# %%
+new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == 1979) & (df_merged["country"] == "Albania" )].set_index("country"), geometry= "geometry", crs='epsg:4326')
+fig = px.choropleth(new_df2, geojson= new_df2.geometry,  locations= new_df2.index, color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
-                           range_color=(0, 30),
-                           locationmode = "country names"
+                           range_color=(0, 30)
                           )
 fig.update_geos(fitbounds="locations", visible=False)
 
 # %%
-app = DashProxy(prevent_initial_callbacks=True, transforms=[MultiplexerTransform()])
+app = DashProxy( transforms=[MultiplexerTransform()])
 
 app.layout = html.Div([
     
@@ -161,6 +158,7 @@ app.layout = html.Div([
                id='my-slider',
                marks = {i: i for i in range(1979,2020,1)}
     ),
+    
     dcc.Graph(figure=fig, id = "country" ),
     dcc.Store(id = "year",storage_type='local',data = 1979),
     dcc.Store(id = "country_value",storage_type='local',data = "Albania")
@@ -176,19 +174,19 @@ app.layout = html.Div([
     )
 def update_output_div(input_value,country):
     year = input_value
-    new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == year], geometry= "geometry", crs='epsg:4326')
-    figure = px.choropleth(new_df, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
+    print(year)
+    new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == year].set_index("country"), geometry= "geometry", crs='epsg:4326')
+    figure = px.choropleth(new_df, geojson= new_df.geometry, locations= new_df.index, color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
-                           range_color=(0, 30),
-                           locationmode = "country names"
+                           range_color=(0, 30)
                           )
-    new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == year) & (df_merged["country"] == country)], geometry= "geometry", crs='epsg:4326')
-    fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
+
+    new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == year) & (df_merged["country"] == country )].set_index("country"), geometry= "geometry", crs='epsg:4326')
+    fig = px.choropleth(new_df2, geojson= new_df2.geometry,  locations= new_df2.index, color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
-                           range_color=(0, 30),
-                           locationmode = "country names"
+                           range_color=(0, 30)
                           )
     fig.update_geos(fitbounds="locations", visible=False)
     return figure,fig,year
@@ -200,18 +198,58 @@ def update_output_div(input_value,country):
     Input("year","data"))
 def select_country(clickData,year):
     country = json.loads(json.dumps(clickData, indent=2))["points"][0]["location"]
-    new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == year) & (df_merged["country"] == country)], geometry= "geometry", crs='epsg:4326')
-    fig = px.choropleth(new_df2, geojson= new_df.geometry, locations='country', color ="number_of_magnitude",
+    new_df2 = gpd.GeoDataFrame(df_merged[(df_merged["DAY"] == year) & (df_merged["country"] == country )].set_index("country"), geometry= "geometry", crs='epsg:4326')
+    fig = px.choropleth(new_df2, geojson= new_df2.geometry,  locations= new_df2.index, color ="number_of_magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
-                           range_color=(0, 30),
-                           locationmode = "country names"
+                           range_color=(0, 30)
                           )
     fig.update_geos(fitbounds="locations", visible=False)
-    return fig,country
     
+    return fig,country
 
 if __name__ == '__main__':
     app.run_server(debug=False)
 # %%
+app = DashProxy()
 
+app.layout = html.Div([
+    
+    dcc.Graph(figure=fig2, id = "europe" ),
+    dcc.Interval(id='auto-stepper',
+                interval=1*100, # in milliseconds
+                n_intervals=0),
+    dcc.Slider(min = 1979, max = 2020, step = 1,
+               value=1979,
+               id='my-slider',
+               marks = {i: i for i in range(1979,2020,1)}
+    ),
+    dcc.Store(id = "year",storage_type='local',data = 1979),
+])
+
+@app.callback(
+    Output('europe', 'figure'),
+    Input('my-slider', 'value'),
+    )
+def update_output_div(input_value):
+    new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == input_value].set_index("country"), geometry= "geometry", crs='epsg:4326')
+    figure = px.choropleth(new_df, geojson= new_df.geometry, locations= new_df.index, color ="number_of_magnitude",
+                           color_continuous_scale=px.colors.sequential.Oranges,
+                           scope = "europe",
+                           range_color=(0, 30)
+                          )
+    fig.update_geos(fitbounds="locations", visible=False)
+    return figure
+
+@app.callback(
+    Output('my-slider', 'value'),
+    Input('auto-stepper', 'n_intervals'))
+def on_click(n_intervals):
+    if n_intervals is None:
+        return 0
+    else:
+        return (n_intervals+1) % 1979
+
+if __name__ == '__main__':
+    app.run_server(debug=False)
+# %%
