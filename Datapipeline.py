@@ -67,20 +67,35 @@ except:
 
 
 
+#%%
+# region # Start Schrittnummer 1.0 - Schrittname "Ordner mit allen CSV's einlesen" - ( Autor/In Jan) #
+# kurze Beschreibung des Schrittes in Worten
+
+# region # Variablen definition #
+
+
+# endregion #
+
+# endregion # Ende Schrittnummer bsp. 3.1 - Schrittname bsp. "Insert Grids SQL" - ( Autor/In bsp. Thomas Mandelz) #
+
+
+#%%
+# region # Start Schrittnummer 2.2 - Schrittname "Threshhold und Magnitude berechnen" - ( Autor/In Jan) #
+# kurze Beschreibung des Schrittes in Worten
+
+# region # Variablen definition #
+
+
+# endregion #
+
+
+# region # Start Code Ablauf #
 
 
 
+# endregion # Ende Code Ablauf #
 
-
-
-
-
-
-
-
-
-
-
+# endregion # Ende Schrittnummer bsp. 3.1 - Schrittname bsp. "Insert Grids SQL" - ( Autor/In bsp. Thomas Mandelz) #
 
 
 
