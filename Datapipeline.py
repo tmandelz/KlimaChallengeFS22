@@ -79,9 +79,18 @@ data =  glob.glob('C:/Users/j/Desktop/github_data/Daten/*.csv')
 
 # endregion # Ende Schrittnummer bsp. 3.1 - Schrittname bsp. "Insert Grids SQL" - ( Autor/In bsp. Thomas Mandelz) #
 
-
 #%%
-# region # Start Schrittnummer 2.2 - Schrittname "Threshhold und Magnitude berechnen" - ( Autor/In Jan) #
+############################### TEMPLATE ###############################
+# region # Start Schrittnummer bsp. 2.1, 2.2, 2.3 - Grid Translation / Countries / CountryGrids - ( Autor/In Daniela) #
+# kurze Beschreibung des Schrittes in Worten
+
+
+
+
+# Ende Schrittnummer bsp. 2.1, 2.2, 2.3 - Grid Translation / Countries / CountryGrids - ( Autor/In Daniela) #
+############################### TEMPLATE ###############################
+#%%
+# region # Start Schrittnummer 2.4 - Schrittname "Threshhold und Magnitude berechnen" - ( Autor/In Jan) #
 # kurze Beschreibung des Schrittes in Worten
 
 # region # Variablen definition #
