@@ -15,11 +15,15 @@ year = 2018
 
 dirname = os.path.dirname(__file__)
 magnitudePath = os.path.join(
-    dirname, '../Plot 3/magnitude.csv')
+    dirname, '../Plot3/magnitude.csv')
+threshholdPath = os.path.join(
+    dirname, '../Plot3/threshhold.csv')
+LuxembourgPath = os.path.join(
+    dirname, '../Plot3/Luxembourg.csv')
 
 mag = pd.read_csv(magnitudePath, sep=";")
-threshold = pd.read_csv("../Plot 3/threshhold.csv", sep = ";")
-data = pd.read_csv("../Plot 3/Luxembourg.csv", sep =";")
+threshold = pd.read_csv(threshholdPath, sep = ";")
+data = pd.read_csv(LuxembourgPath, sep =";")
 
 mag = mag.loc[mag['GRID_NO']==grid]
 threshold = threshold.loc[threshold['GRID_NO']==grid]
