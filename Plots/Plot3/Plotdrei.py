@@ -8,13 +8,23 @@ Created on Tue Apr 19 08:02:53 2022
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import os
+
 
 grid = 95097
 year = 2018
 
-mag = pd.read_csv("magnitude.csv", sep=";")
-threshold = pd.read_csv("threshhold.csv", sep = ";")
-data = pd.read_csv("Luxembourg.csv", sep =";")
+dirname = os.path.dirname(__file__)
+magnitudePath = os.path.join(
+    dirname, './magnitude.csv')
+thresholdPath = os.path.join(
+    dirname, './threshhold.csv')
+LuxembourgPath = os.path.join(
+    dirname, './Luxembourg.csv')
+
+mag = pd.read_csv(magnitudePath, sep=";")
+threshold = pd.read_csv(thresholdPath, sep = ";")
+data = pd.read_csv(LuxembourgPath, sep =";")
 
 mag = mag.loc[mag['GRID_NO']==grid]
 threshold = threshold.loc[threshold['GRID_NO']==grid]
