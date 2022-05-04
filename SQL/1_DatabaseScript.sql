@@ -18,8 +18,8 @@ CREATE TABLE Grid (
    
 CREATE TABLE CountryGrid (
 	id_CountryGrid SERIAL,
-    Country_id_Country INT NOT NULL,
-        Grid_id_Grid INT NOT NULL,
+   Country_id_Country INT NOT NULL,
+   Grid_id_Grid INT NOT NULL,
    PRIMARY KEY(id_CountryGrid),
       CONSTRAINT fk_CountryGrid_Country
     FOREIGN KEY (Country_id_Country)
@@ -33,13 +33,14 @@ CREATE TABLE CountryGrid (
          ON UPDATE CASCADE
 );
 
-CREATE TABLE Temperature (
-	id_Temperature SERIAL,
+CREATE TABLE TemperatureMagnitude (
+	id_TemperatureMagnitude SERIAL,
 	Date DATE NOT NULL,
 	Temperature_Max numeric(10,2) NOT NULL,
+   Magnitude numeric(10,6) NOT NULL,
    Grid_id_Grid INT NOT NULL,
-   PRIMARY KEY(id_Temperature),
-   CONSTRAINT fk_Temperature_Grids
+   PRIMARY KEY(id_TemperatureMagnitude),
+   CONSTRAINT fk_TemperatureMagnitude_Grid
     FOREIGN KEY (Grid_id_Grid)
       REFERENCES  Grid(id_Grid)
          ON DELETE CASCADE
@@ -48,7 +49,7 @@ CREATE TABLE Temperature (
 
 CREATE TABLE Threshold (
 	id_Threshold SERIAL,
-	Date DATE NOT NULL,
+	Date varchar(20) NOT NULL,
 	Threshold numeric(10,6) NOT NULL,
    Grid_id_Grid INT NOT NULL,
    PRIMARY KEY(id_Threshold),
@@ -59,18 +60,6 @@ CREATE TABLE Threshold (
       ON UPDATE CASCADE
 );
 
-CREATE TABLE Magnitude (
-	id_Magnitude SERIAL,
-	Date DATE NOT NULL,
-	Magnitude numeric(10,6)  NOT NULL,
-   Grid_id_Grid INT NOT NULL,
-   PRIMARY KEY(id_Magnitude),
-   CONSTRAINT fk_Magnitude_Grids
-    FOREIGN KEY (Grid_id_Grid)
-      REFERENCES  Grid(id_Grid)
-      ON DELETE CASCADE
-      ON UPDATE CASCADE
-);
 -- Create a User "klima" with a password
 CREATE USER klima WITH ENCRYPTED PASSWORD 'orDtiURVtHUHwiQDeRCv';
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO klima;
