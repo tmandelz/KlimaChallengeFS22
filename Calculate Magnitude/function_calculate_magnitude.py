@@ -8,18 +8,18 @@ import plotly.express as px
 from datetime import datetime,timedelta,date
 import plotly.graph_objects as go
 import geopandas as gpd
+
 import matplotlib as pl
 import numpy as np
 import folium
 from shapely.geometry import Point, Polygon
-from shapely import wkt
+
+
 import plotly as plt
 from  dash import dash, dcc, html, Input, Output
 from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform, State
 from plotly.tools import mpl_to_plotly
 import json
-
-
 
 # %%
 def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.DataFrame:
@@ -211,45 +211,32 @@ def select_country(clickData,year):
 if __name__ == '__main__':
     app.run_server(debug=False)
 # %%
-app = DashProxy()
 
-app.layout = html.Div([
-    
-    dcc.Graph(figure=fig2, id = "europe" ),
-    dcc.Interval(id='auto-stepper',
-                interval=1*100, # in milliseconds
-                n_intervals=0),
-    dcc.Slider(min = 1979, max = 2020, step = 1,
-               value=1979,
-               id='my-slider',
-               marks = {i: i for i in range(1979,2020,1)}
-    ),
-    dcc.Store(id = "year",storage_type='local',data = 1979),
-])
+step_num = 10
 
-@app.callback(
-    Output('europe', 'figure'),
-    Input('my-slider', 'value'),
-    )
-def update_output_div(input_value):
-    new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == input_value].set_index("country"), geometry= "geometry", crs='epsg:4326')
-    figure = px.choropleth(new_df, geojson= new_df.geometry, locations= new_df.index, color ="number_of_magnitude",
-                           color_continuous_scale=px.colors.sequential.Oranges,
-                           scope = "europe",
-                           range_color=(0, 30)
-                          )
-    fig.update_geos(fitbounds="locations", visible=False)
-    return figure
+
+app = DashProxy( transforms=[MultiplexerTransform()])
+
+app.layout = html.Div(children=[
+dcc.Interval(id='auto-stepper',
+            interval=1*1000, # in milliseconds
+             n_intervals=0
+),
+dcc.Slider(
+    id = "steper",
+    min=1,
+    max=step_num,
+    value=1
+)])
 
 @app.callback(
-    Output('my-slider', 'value'),
-    Input('auto-stepper', 'n_intervals'))
+   Output('steper', 'value'),
+   Input('auto-stepper', 'n_intervals'))
 def on_click(n_intervals):
     if n_intervals is None:
         return 0
     else:
-        return (n_intervals+1) % 1979
-
+        return (n_intervals+1)%step_num
 if __name__ == '__main__':
     app.run_server(debug=False)
 # %%
