@@ -4,6 +4,10 @@ services:
     image: klimachallengefs22:heatwaves
     container_name: 'Python'
     restart: always
+    ports:
+      - 8050:8050
+    expose:
+      - '8050'
     networks:
       node_net:
         ipv4_address: 172.28.1.5
