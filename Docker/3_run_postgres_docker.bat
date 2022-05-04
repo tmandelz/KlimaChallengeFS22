@@ -1,2 +1,2 @@
 REM start postgres docker file with psql
-docker exec -it postgres psql -U klima -W klimachallengefs22
+docker exec -it postgres psql postgres://klima:orDtiURVtHUHwiQDeRCv@db:5432/klimachallengefs22

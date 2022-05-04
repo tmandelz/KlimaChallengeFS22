@@ -4,7 +4,6 @@ DROP TABLE IF EXISTS CountryGrid;
 DROP TABLE IF EXISTS Temperature;
 DROP TABLE IF EXISTS ObservationDay;
 
-
 CREATE TABLE Country (
 	id_Country INT NOT NULL,
 	CountryName VARCHAR (250) NOT NULL,

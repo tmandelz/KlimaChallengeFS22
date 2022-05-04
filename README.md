@@ -19,3 +19,8 @@
  1. open CMD
  2. cd /your/local/github/repofolder/
  3. pipenv sync
+
+
+
+### Open Dashboard
+1. Call localhost:8050 in Browser

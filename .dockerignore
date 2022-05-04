@@ -1,12 +1,14 @@
-# Ignore everything
-**
+# # Ignore everything
+# **
 
-# ... except for dependencies and source
-!grid/
-!CSV/
-!SQL/
-!Calculate_Magnitude/
-!requirements.txt
-!DataWrite.py
-!Mapprojection.py
-!Datapipeline.py
+# # ... except for dependencies and source
+# !grid/
+# !CSV/
+# !SQL/
+# !Plots/
+# !Calculate_Magnitude/
+# !requirements.txt
+# !DataWrite.py
+# !Mapprojection.py
+# !Datapipeline.py
+# !heatmap.py

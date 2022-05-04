@@ -20,9 +20,14 @@ RUN useradd --create-home appuser
 WORKDIR /home/appuser
 USER appuser
 
+EXPOSE 8050
+EXPOSE 80
+EXPOSE 443
+
+
 # Install application into container
 COPY . .
 
+
 # Run the application
-ENTRYPOINT ["python", "-m", "http.server"]
-CMD ["--directory", "klima", "8000"]
+CMD gunicorn heatmap:server --bind 172.28.1.5:8050
