@@ -6,6 +6,8 @@ import psycopg2
 import glob
 from datetime import datetime,timedelta,date
 import geopandas as gpd
+import shapely.speedups
+shapely.speedups.enable()
 
 # endregion #
 #%%
