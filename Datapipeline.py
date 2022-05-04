@@ -5,6 +5,7 @@ import pandas as pd
 import psycopg2
 import glob
 from datetime import datetime,timedelta,date
+import geopandas as gpd
 
 # endregion #
 #%%
@@ -216,7 +217,7 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     return df_single_magnitudes,df_reference
 
 try:
-    for files in filepath:
+    for files in data:
         read_file = pd.read_csv(files,sep= ";", parse_dates=['DAY'])
         df_magnitude, df_threshold = calculate_magnitude(read_file,"2010.01.01")
         df_all_files = pd.concat((df_all_files,df_magnitude))
