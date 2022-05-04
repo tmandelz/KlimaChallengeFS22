@@ -12,7 +12,7 @@ dirname = os.path.dirname(__file__)
 magnitudePath = os.path.join(
     dirname, './Plots/Plot_2/magnitude.csv')
 CountryshapefilePath = os.path.join(
-    dirname, './Plots/Plot_2/ne_50m_admin_0_countries.shp')
+    dirname, './Shapefiles/ne_50m_admin_0_countries.shp')
 
 # %%
 df_countries = pd.read_csv(magnitudePath, delimiter=';', usecols=[
@@ -51,7 +51,7 @@ new_df = gpd.GeoDataFrame(
 new_df.head()
 
 
-shapefile_country = gpd.read_file("ne_50m_admin_0_countries.shp").rename(
+shapefile_country = gpd.read_file(CountryshapefilePath).rename(
     columns={"SOVEREIGNT": "country"}).loc[:, ["geometry", "country"]]
 shapefile_countryAlbania = shapefile_country[shapefile_country["country"] == "Albania"]
 shapefile_countryAlbania = gpd.GeoDataFrame(
@@ -59,12 +59,6 @@ shapefile_countryAlbania = gpd.GeoDataFrame(
 
 # %%
 newdfx = new_df.overlay(shapefile_countryAlbania, how="intersection")
-
-
-
-
-newdfxx = newdfx[newdfx["magnitude"]== NAN]
-newdfxx.head()
 # %%
 fig = px.choropleth(newdfx, geojson=newdfx.geometry,
                     locations=newdfx.index,
