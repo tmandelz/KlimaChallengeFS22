@@ -19,8 +19,12 @@ geopandas = "*"
 folium = "*"
 dash = "*"
 psycopg2 = "*"
-
-[dev-packages]
+dash-extensions = "*"
+nbformat = "*"
+flask = "*"
 
 [requires]
 python_version = "3.9"
+
+[dev-packages]
+autopep8 = "*"
