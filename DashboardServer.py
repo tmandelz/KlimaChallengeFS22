@@ -1,38 +1,24 @@
-import dash
-from dash import dcc
-from dash import html
-import plotly.express as px
-import pandas as pd
+from dash import dcc,html
+from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform
+import flask
 
-app = dash.Dash(__name__)
+server = flask.Flask(__name__)
 
-# assume you have a "long-form" data frame
-# see https://plotly.com/python/px-arguments/ for more options
-df = pd.DataFrame({
-    "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
-    "Amount": [4, 1, 2, 2, 4, 5],
-    "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
-})
+app = DashProxy(server=server,prevent_initial_callbacks=True,
+                transforms=[MultiplexerTransform()])
+app.layout = html.Div([
+    # dcc.Graph(figure=fig, id="country"),
+    # dcc.Slider(min=1979, max=2020, step=1,
+    #            value=1979,
+    #            id='my-slider',
+    #            marks={i: i for i in range(1979, 2020, 1)}
+    #            ),
+    # dcc.Graph(figure=m, id = "country" ),
+    # dcc.Store(id = "year",storage_type='local',data = 1979),
+    # dcc.Store(id = "country_value",storage_type='local',data = "Albania"),
 
-fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
 
-fig2 = px.scatter(df,x="Fruit",y="Amount" ,color="City")
-
-app.layout = html.Div(children=[
-    html.H1(children='Hello Dash'),
-
-    html.Div(children='''
-        Dash: A web application framework for your data.
-    '''),
-    dcc.Graph(id="test",figure=fig2),
-    dcc.Graph(
-        id='example-graph',
-        figure=fig,
-    )
-    
-
-    
 ])
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(host="172.28.1.5", debug=True, port=8050)

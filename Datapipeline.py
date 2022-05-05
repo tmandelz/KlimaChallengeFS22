@@ -128,8 +128,8 @@ country_grids.to_csv(CountryGridDataFile, sep=';')
 
 # %%
 small_grid = small_compl[['GRID_NO', 'geometry_y']]
+small_grid.drop_duplicates(subset= ["GRID_NO","geometry_y"],keep="first" , inplace=True)
 small_grid.to_csv(GridDataFile, sep=';')
-
 
 # Ende 2.1, 2.2, 2.3 - Grid Translation / Countries / CountryGrids - ( Autor/In Daniela) #
 print("2.1, 2.2, 2.3 - Grid Translation / Countries / CountryGrids - ( Autor/In Daniela)")
@@ -488,8 +488,7 @@ print("Start 3.5 - Insert SQL Threshhold - Thomas Mandelz")
 
 # region # Funktions definition #
 
-# TODO Date -> int
-def CreateInsertThresholdQuery(Date: str, Threshold: float, Grid_id_Grid:int)-> str:
+def CreateInsertThresholdQuery(Date: int, Threshold: float, Grid_id_Grid:int)-> str:
     """
     id_Threshold: ID des Thresholds
     Date: Jahrestag
@@ -498,7 +497,7 @@ def CreateInsertThresholdQuery(Date: str, Threshold: float, Grid_id_Grid:int)-> 
 
     info: Erstellt ein Insert Query für ein Threshold (Thresholdtabelle)
     """
-    return f"INSERT INTO Threshold(id_Threshold,Date,Threshold,Grid_id_Grid) VALUES (DEFAULT,'{Date}',{Threshold},{Grid_id_Grid});"
+    return f"INSERT INTO Threshold(id_Threshold,Date,Threshold,Grid_id_Grid) VALUES (DEFAULT,{Date},{Threshold},{Grid_id_Grid});"
 # endregion #
 
 # region # Start Code Ablauf #
@@ -519,7 +518,7 @@ try:
         try:
             #TODO: Parameter Zuweisung
             # Create Query with Parameters
-            insertquery = CreateInsertThresholdQuery(Date=row["month_day"], Threshold=row["reference_temperature"], Grid_id_Grid=row["GRID_NO"])
+            insertquery = CreateInsertThresholdQuery(Date=row["noDay"], Threshold=row["reference_temperature"], Grid_id_Grid=row["GRID_NO"])
             print(insertquery)
             # Execute the query and commit
             mydb.cursor().execute(insertquery)

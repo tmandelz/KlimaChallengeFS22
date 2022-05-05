@@ -27,4 +27,4 @@ COPY . .
 
 
 # Run the application
-CMD gunicorn heatmap:server --bind 172.28.1.5:8050
+CMD gunicorn DashboardServer:server --bind 172.28.1.5:8050

@@ -49,7 +49,7 @@ CREATE TABLE TemperatureMagnitude (
 
 CREATE TABLE Threshold (
 	id_Threshold SERIAL,
-	Date varchar(20) NOT NULL,
+	Date INT NOT NULL,
 	Threshold numeric(10,6) NOT NULL,
    Grid_id_Grid INT NOT NULL,
    PRIMARY KEY(id_Threshold),
