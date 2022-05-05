@@ -39,6 +39,7 @@ psqlUserPassword = "orDtiURVtHUHwiQDeRCv"
 
 #%%
 # region # Start 1.0 - "Ordner mit allen CSV's einlesen" - ( Autor/In Jan) #
+print("Start 1.0 - "Ordner mit allen CSV's einlesen" - ( Autor/In Jan)")
 # Alle Dateinamen werden in einer Liste gespeichert.
 
 # region # Variablen definition #
@@ -63,9 +64,12 @@ ThresholdDataFile = os.path.join(dirname,'./Data/ThresholdData/threshold.csv')
 # endregion #
 
 # endregion # Ende 1.0 - "Ordner mit allen CSV's einlesen" - ( Autor/In Jan) #
+print("Ende 1.0 - "Ordner mit allen CSV's einlesen" - ( Autor/In Jan)")
+
 
 #%%
 # region # Start 2.1, 2.2, 2.3 - Grid Translation / Countries / CountryGrids - ( Autor/In Daniela) #
+print("Start 2.1, 2.2, 2.3 - Grid Translation / Countries / CountryGrids - ( Autor/In Daniela)")
 # TODO kurze Beschreibung des Schrittes in Worten
 
 # region # Variablen definition #
@@ -128,8 +132,11 @@ small_grid.to_csv(GridDataFile, sep=';')
 
 
 # Ende 2.1, 2.2, 2.3 - Grid Translation / Countries / CountryGrids - ( Autor/In Daniela) #
+print("2.1, 2.2, 2.3 - Grid Translation / Countries / CountryGrids - ( Autor/In Daniela)")
+
 #%%
 # region # Start 2.4 - "Threshhold und Magnitude berechnen" - ( Autor/In Jan) #
+print("Start 2.4 - "Threshhold und Magnitude berechnen" - ( Autor/In Jan)")
 # Berechnung des Thresholds und der Magnitude aus den Rohdaten.
 
 # region # Variablen definition #
@@ -226,10 +233,12 @@ except Exception as e:
 # endregion # Ende Code Ablauf #
 
 # endregion # Ende 2.4 - "Threshhold und Magnitude berechnen" - ( Autor/In Jan) #
+print("Ende 2.4 - "Threshhold und Magnitude berechnen" - ( Autor/In Jan)")
 
 
 #%%
 # region # Start 3.1 - Insert SQL Countries - Thomas Mandelz #
+print("Start 3.1 - Insert SQL Countries - Thomas Mandelz")
 # Erstellt aus dem preprocessedem CSV alle Ländereiträge
 
 # region # Variablen definition #
@@ -293,9 +302,11 @@ finally:
 # endregion # Ende Code Ablauf #
 
 # endregion # Ende 3.1 - Insert SQL Countries - Thomas Mandelz #
+print("Ende 3.1 - Insert SQL Countries - Thomas Mandelz")
 
 #%%
 # region # Start 3.2 - Insert SQL Grids - Thomas Mandelz #
+print("Start 3.2 - Insert SQL Grids - Thomas Mandelz")
 # Erstellt aus dem preprocessedem CSV alle Grideinträge
 
 # region # Variablen definition #
@@ -348,9 +359,11 @@ finally:
 # endregion # Ende Code Ablauf #
 
 # endregion # Ende 3.2 - Insert SQL Grids - Thomas Mandelz #
+print(Ende 3.2 - Insert SQL Grids - Thomas Mandelz")
 
 #%%
 # region # Start 3.3 - Insert SQL CountryGrids - Thomas Mandelz #
+print("Start 3.3 - Insert SQL CountryGrids - Thomas Mandelz")
 # Erstellt aus dem preprocessedem CSV alle GridCountryEinträge
 
 # region # Variablen definition #
@@ -403,10 +416,12 @@ finally:
 # endregion # Ende Code Ablauf #
 
 # endregion # Ende 3.3 - Insert SQL CountryGrids - Thomas Mandelz #
+print("Ende 3.3 - Insert SQL CountryGrids - Thomas Mandelz")
 
 # #%%
 #%%
 # region # Start 3.4 - Insert SQL Temperature-Magnitude - Thomas Mandelz #
+print("Start 3.4 - Insert SQL Temperature-Magnitude - Thomas Mandelz")
 # Erstellt aus dem preprocessedem CSV alle Einträge der Temperaturen pro Tag
 
 # region # Variablen definition #
@@ -461,9 +476,11 @@ finally:
 # endregion # Ende Code Ablauf #
 
 # endregion # Ende 3.4 - Insert SQL Temperature-Magnitude - Thomas Mandelz #
+print("Ende 3.4 - Insert SQL Temperature-Magnitude - Thomas Mandelz")
 
 #%%
 # region # Start 3.5 - Insert SQL Threshhold - Thomas Mandelz #
+print("Start 3.5 - Insert SQL Threshhold - Thomas Mandelz")
 # Erstellt aus dem preprocessedem CSV alle Einträge der Temperaturen pro Tag
 
 # region # Variablen definition #
@@ -519,4 +536,5 @@ finally:
 # endregion # Ende Code Ablauf #
 
 # endregion # Ende 3.5 - Insert SQL Threshhold - Thomas Mandelz #
+print("Ende 3.5 - Insert SQL Threshhold - Thomas Mandelz")
 
