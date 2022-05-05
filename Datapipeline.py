@@ -87,7 +87,7 @@ gdf_new = gdf.to_crs('epsg:4326') # umwandeln in Koordinatensystem vom Temp-Date
 
 #%%
 #liest alle Rohdaten ein im Unterordner csv
-df_test = pd.DataFrame()
+df_test = pd.DataFrame(columns =['GRID_NO', 'LATITUDE', 'LONGITUDE'])
 
 # beim Read das Land (resp. Name des CSV) als Spalte anhängen
 for f in UnprocessedDataFiles:
@@ -95,7 +95,8 @@ for f in UnprocessedDataFiles:
     frame = frame.drop_duplicates(subset=['GRID_NO'])
     frame['country'] = os.path.splitext(os.path.basename(f))[0]
     
-    df_test = df_test.append(frame)
+    # df_test = df_test.append(frame)
+    df_test = pd.concat([df_test, frame])
 
 #%%
 #Country-shapes einlesen: Achtung, man benötigt alle 4 files, nicht nur das shx!!!
