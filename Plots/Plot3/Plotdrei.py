@@ -47,9 +47,10 @@ magni["End"] = magni["Start"] + magni["Count"]
 magni = magni.reset_index(drop=True)
 
 ####
-
+print(threshold)
 threshold["NoDay"] = threshold["Unnamed: 0"] + 1
 
+#Jan macht Anpassungen und erfasst den dayofyear statt Datum., evlt braucht es dieses datawrangling beim Datum nicht mehr
 data["Date"] = pd.to_datetime(data["DAY"], format='%Y%m%d')
 data["Year"] = data['Date'].dt.year
 data = data.loc[data['Year']==year]
