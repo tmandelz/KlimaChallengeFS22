@@ -82,7 +82,6 @@ gridShapefile = os.path.join(
 gdf = gpd.read_file(gridShapefile) # laden der grid definition
 gdf = gdf.set_crs(epsg=3035) # definieren des Koordinatensystems
 gdf_new = gdf.to_crs('epsg:4326') # umwandeln in Koordinatensystem vom Temp-Datensatz 
-gdf_new.tail() 
 
 #gdf_new.plot() # dauert etwas....
 
@@ -130,28 +129,20 @@ small_grid.to_csv(GridDataFile, sep=';')
 # Ende 2.1, 2.2, 2.3 - Grid Translation / Countries / CountryGrids - ( Autor/In Daniela) #
 #%%
 # region # Start 2.4 - "Threshhold und Magnitude berechnen" - ( Autor/In Jan) #
-# TODO kurze Beschreibung des Schrittes in Worten
+# Berechnung des Thresholds und der Magnitude aus den Rohdaten.
 
 # region # Variablen definition #
 df_all_files = pd.DataFrame()
 df_thresh = pd.DataFrame()
 # endregion #
 
-# region # Start Code Ablauf #
-# TODO Funktionstooltips und Funktionen in Funktionsregion verschieben
+# region # Funktions definition #
 def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.DataFrame:
+    """
+    df_country: one country of the raw Data
+    reference_period: end of the reference period for the the threshold 
+    """
     df_values = df_country[["GRID_NO","DAY","TEMPERATURE_MAX"]]
-
-    #### TODO Day of Year
-    # data["Date"] = pd.to_datetime(data["DAY"], format='%Y%m%d')
-    # data["Year"] = data['Date'].dt.year
-    # data = data.loc[data['Year']==year]
-    # data["NoDay"] =data['Date'].dt.dayofyear
-
-
-
-
-
     # Referenzperiode Berechnen
     df_date_cleaned = df_values[df_values["DAY"] < reference_period]
     # 29. Februar löschen
@@ -211,8 +202,14 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     # Werte löschen die kleiner sind als T30y25p
     df_single_magnitudes = df_single_magnitudes[df_single_magnitudes["TEMPERATURE_MAX"]>df_single_magnitudes[0.25]]
     
-    return df_single_magnitudes,df_reference
+    
+    df_reference["month_day"] = "2001/" + df_reference["month_day"]
+    df_reference["noDay"]  = pd.to_datetime(df_reference["month_day"], format='%Y/%m/%d').dt.dayofyear
 
+    return df_single_magnitudes,df_reference.reset_index().loc[:,["GRID_NO","reference_temperature","noDay"]]
+
+# endregion # 
+# region # Start Code Ablauf #
 try:
     for files in UnprocessedDataFiles:
         read_file = pd.read_csv(files,sep= ";", parse_dates=['DAY'])
@@ -225,13 +222,9 @@ try:
 except Exception as e:
     print("couldn't calculate Magnitude/Threshold")
     raise e
-
-
 # endregion # Ende Code Ablauf #
 
 # endregion # Ende 2.4 - "Threshhold und Magnitude berechnen" - ( Autor/In Jan) #
-
-
 
 
 #%%
