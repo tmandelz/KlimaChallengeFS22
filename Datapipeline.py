@@ -142,6 +142,16 @@ df_thresh = pd.DataFrame()
 def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.DataFrame:
     df_values = df_country[["GRID_NO","DAY","TEMPERATURE_MAX"]]
 
+    #### TODO Day of Year
+    # data["Date"] = pd.to_datetime(data["DAY"], format='%Y%m%d')
+    # data["Year"] = data['Date'].dt.year
+    # data = data.loc[data['Year']==year]
+    # data["NoDay"] =data['Date'].dt.dayofyear
+
+
+
+
+
     # Referenzperiode Berechnen
     df_date_cleaned = df_values[df_values["DAY"] < reference_period]
     # 29. Februar löschen
@@ -230,7 +240,7 @@ except Exception as e:
 
 # region # Variablen definition #
 # endregion #
-
+# TODO Funktionstooltip
 def ConnectPostgresSql():
     return psycopg2.connect(
             port=port,
@@ -467,6 +477,7 @@ finally:
 
 # region # Funktions definition #
 
+# TODO Date -> int
 def CreateInsertThresholdQuery(Date: str, Threshold: float, Grid_id_Grid:int)-> str:
     """
     id_Threshold: ID des Thresholds
