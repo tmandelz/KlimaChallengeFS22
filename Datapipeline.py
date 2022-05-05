@@ -39,7 +39,7 @@ psqlUserPassword = "orDtiURVtHUHwiQDeRCv"
 
 #%%
 # region # Start 1.0 - "Ordner mit allen CSV's einlesen" - ( Autor/In Jan) #
-print("Start 1.0 - "Ordner mit allen CSV's einlesen" - ( Autor/In Jan)")
+print("Start 1.0 - Ordner mit allen CSV's einlesen - ( Autor/In Jan)")
 # Alle Dateinamen werden in einer Liste gespeichert.
 
 # region # Variablen definition #
@@ -64,7 +64,7 @@ ThresholdDataFile = os.path.join(dirname,'./Data/ThresholdData/threshold.csv')
 # endregion #
 
 # endregion # Ende 1.0 - "Ordner mit allen CSV's einlesen" - ( Autor/In Jan) #
-print("Ende 1.0 - "Ordner mit allen CSV's einlesen" - ( Autor/In Jan)")
+print("Ende 1.0 - Ordner mit allen CSV's einlesen - ( Autor/In Jan)")
 
 
 #%%
@@ -136,7 +136,7 @@ print("2.1, 2.2, 2.3 - Grid Translation / Countries / CountryGrids - ( Autor/In 
 
 #%%
 # region # Start 2.4 - "Threshhold und Magnitude berechnen" - ( Autor/In Jan) #
-print("Start 2.4 - "Threshhold und Magnitude berechnen" - ( Autor/In Jan)")
+print("Start 2.4 - Threshhold und Magnitude berechnen - ( Autor/In Jan)")
 # Berechnung des Thresholds und der Magnitude aus den Rohdaten.
 
 # region # Variablen definition #
@@ -233,7 +233,7 @@ except Exception as e:
 # endregion # Ende Code Ablauf #
 
 # endregion # Ende 2.4 - "Threshhold und Magnitude berechnen" - ( Autor/In Jan) #
-print("Ende 2.4 - "Threshhold und Magnitude berechnen" - ( Autor/In Jan)")
+print("Ende 2.4 - Threshhold und Magnitude berechnen - ( Autor/In Jan)")
 
 
 #%%
@@ -359,7 +359,7 @@ finally:
 # endregion # Ende Code Ablauf #
 
 # endregion # Ende 3.2 - Insert SQL Grids - Thomas Mandelz #
-print(Ende 3.2 - Insert SQL Grids - Thomas Mandelz")
+print("Ende 3.2 - Insert SQL Grids - Thomas Mandelz")
 
 #%%
 # region # Start 3.3 - Insert SQL CountryGrids - Thomas Mandelz #
