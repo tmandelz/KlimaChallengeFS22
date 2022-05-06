@@ -127,13 +127,41 @@ def create_fig3(country, year, grid_no= None):
 
 
 fig_europe=create_europe_fig(2016)
+
+
 # %% update figures
 def update_europe(year,fig,data = data_europe):
     fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
     return fig
 
-update_europe(2000,fig_europe).show()
 
+
+# %% Dash 1 With europe
+server = flask.Flask(__name__)
+app = DashProxy(server=server,prevent_initial_callbacks=True,
+                transforms=[MultiplexerTransform()])
+
+app.layout = html.Div([
+    #dcc.Graph(figure=fig_europe, id = "europe" ),
+    dcc.Slider(min = 1979, max = 2020, step = 1,
+               value=1979,
+               id='year_slider',
+               marks = {i: i for i in range(1979,2021,1)}),
+
+    #dcc.Store(id = "year",storage_type='local',data = 1979)
+    ])
+# @app.callback(
+#     Output('europe', 'figure'),
+#     Output("year","data"),
+#     Input('year_slider', 'value'),
+#     )
+# def update_output_div(year):
+#     europe_fig = update_europe(year,fig_europe)
+#     return europe_fig,year
+
+
+if __name__ == '__main__':
+    app.run_server(host="localhost", debug=True,)
 # %% Dashboards
 server = flask.Flask(__name__)
 app = DashProxy(server=server,prevent_initial_callbacks=True,
@@ -202,20 +230,3 @@ if __name__ == '__main__':
 
 
 
-#%%
-import plotly.express as px
-
-df = px.data.gapminder().query("year==2007")
-fig = px.choropleth(df, locations="iso_alpha",
-                    color="lifeExp", # lifeExp is a column of gapminder
-                    hover_name="country", # column to add to hover information
-                    color_continuous_scale=px.colors.sequential.Plasma)
-fig.show()
-print(df)
-
-fig.update_traces(z=df["pop"])
-fig.show()
-# %%
-
-
-df["values"] = 2
