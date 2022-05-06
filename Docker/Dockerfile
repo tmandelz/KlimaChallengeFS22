@@ -15,14 +15,19 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONFAULTHANDLER 1
 
 FROM base AS runtime
-# Create and switch to a new user
-RUN useradd --create-home appuser
-WORKDIR /home/appuser
-USER appuser
+WORKDIR /klima/
+
+EXPOSE 8050
+EXPOSE 80
+EXPOSE 443
+
 
 # Install application into container
 COPY . .
 
+
 # Run the application
+# CMD python Datapipeline.py
+# CMD gunicorn DashboardServer:server --bind 172.28.1.5:8050
 ENTRYPOINT ["python", "-m", "http.server"]
-CMD ["--directory", "klima", "8000"]
+CMD ["--directory", "directory", "8000"]

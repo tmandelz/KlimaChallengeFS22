@@ -21,8 +21,10 @@ dash = "*"
 psycopg2 = "*"
 dash-extensions = "*"
 nbformat = "*"
-
-[dev-packages]
+flask = "*"
 
 [requires]
 python_version = "3.9"
+
+[dev-packages]
+autopep8 = "*"
