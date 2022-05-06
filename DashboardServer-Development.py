@@ -57,18 +57,15 @@ def GetDataEurope():
 
         cursor.execute(queryMagnitudeSum)
         MagnitudeSumdf = pd.DataFrame(cursor.fetchall(), columns = ['country', 'year', 'sumMagnitude'])
-        print(MagnitudeSumdf)
         dfmerged = GridCountGeodf.merge(MagnitudeSumdf,on=["country"], how='inner')
         dfmerged["country"] = dfmerged["country"].astype(str)
         dfmerged["sumMagnitude"] = dfmerged["sumMagnitude"].astype(float)
         dfmerged["countMagnitude"] = dfmerged["sumMagnitude"].astype(float) / dfmerged["gridcount"].astype(float)
-        print(dfmerged)
-        print(dfmerged.dtypes)
 
-        iterables = [dfmerged['country'].unique(),range(1979,2020)]
+
+        iterables = [dfmerged['country'].unique(),range(1979,2021)]
         count_per_grid_no = dfmerged.set_index(['country','year'])
         count_per_grid_no = count_per_grid_no.reindex(index=pd.MultiIndex.from_product(iterables, names=['country', 'year']), fill_value=None).reset_index()
-        print(count_per_grid_no)
         
         return count_per_grid_no
     except Exception as e:
@@ -88,10 +85,9 @@ def GetDataCountry():
         print(f"Error while connecting to postgres Sql Server. \n {e}")
         raise e
 #%%
-
-
-# %% default Figures
 data_europe = GetDataEurope()
+# %% default Figures
+
 def create_europe_fig(year,data = data_europe):
 
     data = data[data["year"] == year]
@@ -103,9 +99,10 @@ def create_europe_fig(year,data = data_europe):
                             width=960,
                             height=540
                             )
-    europe_fig.show()
+    
 
     return europe_fig
+
 
 def create_country_fig(country,year):
 
@@ -129,8 +126,42 @@ def create_fig3(country, year, grid_no= None):
     return fig3
 
 
-create_europe_fig(2016)
-create_country_fig("Luxembourg",2016)
+fig_europe=create_europe_fig(2016)
+
+
+# %% update figures
+def update_europe(year,fig,data = data_europe):
+    fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
+    return fig
+
+
+
+# %% Dash 1 With europe
+server = flask.Flask(__name__)
+app = DashProxy(server=server,prevent_initial_callbacks=True,
+                transforms=[MultiplexerTransform()])
+
+app.layout = html.Div([
+    #dcc.Graph(figure=fig_europe, id = "europe" ),
+    dcc.Slider(min = 1979, max = 2020, step = 1,
+               value=1979,
+               id='year_slider',
+               marks = {i: i for i in range(1979,2021,1)}),
+
+    #dcc.Store(id = "year",storage_type='local',data = 1979)
+    ])
+# @app.callback(
+#     Output('europe', 'figure'),
+#     Output("year","data"),
+#     Input('year_slider', 'value'),
+#     )
+# def update_output_div(year):
+#     europe_fig = update_europe(year,fig_europe)
+#     return europe_fig,year
+
+
+if __name__ == '__main__':
+    app.run_server(host="localhost", debug=True,)
 # %% Dashboards
 server = flask.Flask(__name__)
 app = DashProxy(server=server,prevent_initial_callbacks=True,
@@ -144,7 +175,7 @@ app.layout = html.Div([
     dcc.Slider(min = 1979, max = 2020, step = 1,
                value=2016,
                id='year_slider',
-               marks = {i: i for i in range(1979,2020,1)}
+               marks = {i: i for i in range(1979,2021,1)}
     ),
     
     dcc.Graph(figure=create_country_fig("Albania",2016), id = "country" ),
@@ -165,7 +196,7 @@ app.layout = html.Div([
     Input("grid_no", "data")
     )
 def update_output_div(year,country,grid_no):
-    europe_fig = create_europe_fig(year)
+    europe_fig = update_europe(year,fig_europe)
     country_fig = create_country_fig(year,country)
     fig3 = create_fig3(year,country,grid_no)
     return europe_fig,country_fig, fig3,year
@@ -199,20 +230,3 @@ if __name__ == '__main__':
 
 
 
-#%%
-import plotly.express as px
-
-df = px.data.gapminder().query("year==2007")
-fig = px.choropleth(df, locations="iso_alpha",
-                    color="lifeExp", # lifeExp is a column of gapminder
-                    hover_name="country", # column to add to hover information
-                    color_continuous_scale=px.colors.sequential.Plasma)
-fig.show()
-print(df)
-
-fig.update_traces(z=df["pop"])
-fig.show()
-# %%
-
-
-df["values"] = 2
