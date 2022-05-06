@@ -27,4 +27,7 @@ COPY . .
 
 
 # Run the application
-CMD gunicorn DashboardServer:server --bind 172.28.1.5:8050
+# CMD python Datapipeline.py
+# CMD gunicorn DashboardServer:server --bind 172.28.1.5:8050
+ENTRYPOINT ["python", "-m", "http.server"]
+CMD ["--directory", "directory", "8000"]
