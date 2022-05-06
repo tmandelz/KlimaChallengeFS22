@@ -18,10 +18,9 @@ shapely.speedups.enable()
 # Main Directory Variables
 dirname = os.path.dirname(__file__)
 hostname = socket.gethostname()
-
 # POSTGRES SQL Variables
 global server
-if hostname != "TomDesktop":
+if hostname != "TomDesktop" and hostname != "TomLaptopLenovo":
     server = "db"
 else:
     server = "127.0.0.1"
@@ -261,7 +260,7 @@ def CreateInsertCountryQuery(id_Country:int, CountryName: str, CountryShape: str
 
     info: Erstellt ein Insert Query für ein Land
     """
-    return f"INSERT INTO Country(id_Country, CountryName, CountryShape) VALUES ({id_Country}, '{CountryName}', st_geomfromtext('{CountryShape}'));"
+    return f"INSERT INTO Country(id_Country, CountryName, CountryShape) VALUES ({id_Country}, '{CountryName}', '{CountryShape}');"
 
 # endregion #
 
