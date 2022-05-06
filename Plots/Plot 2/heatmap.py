@@ -9,10 +9,14 @@ import folium
 from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform
 from  dash import dash, dcc, html, Input, Output
 import os
+from plotly.offline import plot
 
 dirname = os.path.dirname(__file__)
 magnitudePath = os.path.join(
     dirname, './magnitude.csv')
+shapePath = os.path.join(
+    dirname, './ne_50m_admin_0_countries.shx')
+
 
 #%%
 df_countries = pd.read_csv(magnitudePath, delimiter=';',usecols=['GRID_NO', 'DAY', 'magnitude', 'geometry_y', 'country']) 
@@ -27,63 +31,100 @@ df_countries['Cumulative_days'] = df_countries.groupby(df_countries['DAY'].diff(
 #magnitude zusammenzählen im gleichen Jahr pro Grid
 df_sumMagnitude = df_countries.groupby([df_countries['GRID_NO'], df_countries['DAY'].dt.year]).agg({'magnitude': sum}).reset_index(level=[0,1])
 
-df_countries.head()
+#%%
+df_sumMagnitude = pd.merge(df_sumMagnitude, df_countries[['GRID_NO', 'geometry_y', 'country']], on='GRID_NO', how='left')
+df_sumMagnitude = df_sumMagnitude.drop_duplicates()
+df_sumMagnitude =df_sumMagnitude.rename(columns= {'DAY': 'Year'})
 df_sumMagnitude.head()
 
-# %%
-#Matrix mit Zeilen als Grid-No und Spalten als Jahre, Werte=magnitude
-df_sumMagnitude1 = df_sumMagnitude.pivot(index='GRID_NO', columns='DAY', values='magnitude')
-df_sumMagnitude1.tail()
+#%%
+#Country-shapes einlesen: Achtung, man benötigt alle 4 files, nicht nur das shx!!!
+country_shape = gpd.read_file(shapePath).rename(columns= {"SOVEREIGNT": "country"}).loc[:,["geometry","country"]]
+country_shape.head()
+country_grids = pd.DataFrame(country_shape)
+country_grids = country_grids.sort_values('country').reset_index(drop=True)
+country_grids['id'] = country_grids.index
+country_grids.head()
 
 #%%
+#chose the variables (country)
+country= 'Albania'
+df_country = df_sumMagnitude[df_sumMagnitude['country'] == country].sort_values(by='Year')
+df_shape = country_shape[country_shape['country'] == country]
+
+#%%
+# geopandasFile machen aus df_country -> gpd_df 
 from shapely import wkt
-import pandas as pd
+df_country['geometry_y'] = gpd.GeoSeries.from_wkt(df_country['geometry_y'])
+gpd_df = gpd.GeoDataFrame(df_country, geometry='geometry_y', crs='epsg:4326')
+gpd_df.head()
 
-df_countries['geometry_y'] = gpd.GeoSeries.from_wkt(df_countries['geometry_y'])
-new_df = gpd.GeoDataFrame(df_countries, geometry='geometry_y', crs='epsg:4326')
+#%%
+# intersection zwischen shape und daten
+intersect_df = gpd_df.overlay(df_shape, how='intersection')
 
-# shapefile_country = gpd.read_file("ne_50m_admin_0_countries.shp").rename(columns= {"SOVEREIGNT": "country"}).loc[:,["geometry_y","country"]]
 
-# %%
-df_countriesAlbania = df_countries[df_countries["country"] == "Albania" ]
-df_countriesAlbania = df_countries[df_countries["DAY"].dt.year == 1979]
-# df[df['Start'].dt.year == 2001]
-
-new_df = gpd.GeoDataFrame(df_countriesAlbania, geometry="geometry_y", crs='epsg:4326')
-new_df.head()
-# %%
-fig = px.choropleth(new_df, geojson= new_df.geometry, 
-                            locations=new_df.index,
-                             color ="magnitude",
+#%%
+fig = px.choropleth(intersect_df, geojson= intersect_df.geometry, 
+                           locations=intersect_df.index,
+                           color ="magnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
                            range_color=(0, 30),
+                           animation_frame= intersect_df.Year
                         #    locationmode = "country names"
                           )
 fig.update_geos(fitbounds="locations", visible=False)
-
-
-# # %%
-fig.show()
-# fig.write_html(r"C:\Users\Tom\OneDrive\Dokumente\Github\KlimaChallengeFS22\myplot.html")
+#plot(fig)
 
 # %%
-app = DashProxy(prevent_initial_callbacks=True, transforms=[MultiplexerTransform()])
-app.layout = html.Div([
-  html.H1("Folium Test"),
-  html.Iframe(id='map',srcDoc=open('test.html','r').read(),width='100%',height='1000'),
-    dcc.Slider(min = 1979, max = 2020, step = 1,
-               value=1979,
-               id='my-slider',
-               marks = {i: i for i in range(1979,2020,1)}
-    ),
-    # dcc.Graph(figure=m, id = "country" ),
-    # dcc.Store(id = "year",storage_type='local',data = 1979),
-    # dcc.Store(id = "country_value",storage_type='local',data = "Albania"),
+app = DashProxy(transforms=[MultiplexerTransform()])
 
+app.layout = html.Div(children=[
+    # All elements from the top of the page
+    html.Div([
+        html.Div([
+            html.H1(children='Hello Dash'),
 
+            html.Div(children='''
+                Dash: A web application framework for Python.
+            '''),
+
+            dcc.Graph(
+                id='graph1',
+                figure=fig
+            ),  
+        ], className='six columns'),
+        html.Div([
+            html.H1(children='Hello Dash'),
+
+            html.Div(children='''
+                Dash: A web application framework for Python.
+            '''),
+
+            dcc.Graph(
+                id='graph2',
+                figure=fig
+            ),  
+        ], className='six columns'),
+    ], className='row'),
+    # New Div for all elements in the new 'row' of the page
+    html.Div([
+        html.H1(children='Hello Dash'),
+
+        html.Div(children='''
+            Dash: A web application framework for Python.
+        '''),
+
+        dcc.Graph(
+            id='graph3',
+            figure=fig
+        ),  
+    ], className='row'),
 ])
-    
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=False)
+# %%

@@ -19,6 +19,8 @@ geopandas = "*"
 folium = "*"
 dash = "*"
 psycopg2 = "*"
+dash-extensions = "*"
+nbformat = "*"
 
 [dev-packages]
 
