@@ -21,10 +21,7 @@ dirname = os.path.dirname(__file__)
 hostname = socket.gethostname()
 # POSTGRES SQL Variables
 global server
-# if hostname != "TomDesktop" and hostname != "TomLaptopLenovo":
-#     server = "db"
-# else:
-server = "v000727.adm.ds.fhnw.ch"
+server = "v000727.edu.ds.fhnw.ch"
 
 global port
 port = 443
@@ -112,19 +109,19 @@ def create_europe_fig(year,data = data_europe):
 
 def create_country_fig(country,year):
 
-    country_fig = px.choropleth(newdfx, geojson=newdfx.geometry,
-                    locations=newdfx.index,
-                    color="magnitude",
-                    color_continuous_scale=px.colors.sequential.Blues,
-                    scope="europe",
-                    range_color=(0, 2),
-                    )
+    # country_fig = px.choropleth(newdfx, geojson=newdfx.geometry,
+    #                 locations=newdfx.index,
+    #                 color="magnitude",
+    #                 color_continuous_scale=px.colors.sequential.Blues,
+    #                 scope="europe",
+    #                 range_color=(0, 2),
+    #                 )
     
     
-    country_fig.show()
+    # country_fig.show()
     
     
-    # country_fig = 1
+    country_fig = 1
     return country_fig
 
 def create_fig3(country, year, grid_no= None):
@@ -142,6 +139,7 @@ app = DashProxy(server=server,prevent_initial_callbacks=True,
 
 
 app.layout = html.Div([
+    dcc.Graph(figure=create_europe_fig(2016), id = "europe" ),
     dcc.Graph(figure=create_europe_fig(2016), id = "europe" ),
     dcc.Slider(min = 1979, max = 2020, step = 1,
                value=2016,
@@ -195,4 +193,26 @@ def select_country(year,country,clickData):
     fig3 = create_fig3(year,country,grid_no)
     return fig3,grid_no
 if __name__ == '__main__':
-    app.run_server(host="172.28.1.5", debug=True, port=8050)
+    app.run_server(host="localhost", debug=True,)
+
+
+
+
+
+#%%
+import plotly.express as px
+
+df = px.data.gapminder().query("year==2007")
+fig = px.choropleth(df, locations="iso_alpha",
+                    color="lifeExp", # lifeExp is a column of gapminder
+                    hover_name="country", # column to add to hover information
+                    color_continuous_scale=px.colors.sequential.Plasma)
+fig.show()
+print(df)
+
+fig.update_traces(z=df["pop"])
+fig.show()
+# %%
+
+
+df["values"] = 2
