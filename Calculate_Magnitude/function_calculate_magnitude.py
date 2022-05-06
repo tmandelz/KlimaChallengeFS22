@@ -128,7 +128,6 @@ df_country = count_magnitude_year_land(df_all_files)
 shapefile_country = gpd.read_file("ne_50m_admin_0_countries.shp").rename(columns= {"SOVEREIGNT": "country"}).loc[:,["geometry","country"]]
 df_merged = pd.merge(df_country,shapefile_country, on = "country", how = "left")
 
-
 # %%
 new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == 1979].set_index("country"), geometry= "geometry", crs='epsg:4326')
 fig2 = px.choropleth(new_df, geojson= new_df.geometry, locations= new_df.index, color ="number_of_magnitude",
@@ -148,7 +147,8 @@ fig = px.choropleth(new_df2, geojson= new_df2.geometry,  locations= new_df2.inde
 fig.update_geos(fitbounds="locations", visible=False)
 
 # %%
-app = DashProxy( transforms=[MultiplexerTransform()])
+step_num = 2020
+app = DashProxy(transforms=[MultiplexerTransform()])
 
 app.layout = html.Div([
     
@@ -158,6 +158,11 @@ app.layout = html.Div([
                id='my-slider',
                marks = {i: i for i in range(1979,2020,1)}
     ),
+    dcc.Interval(id='auto-stepper',
+            interval=1*1000, # in milliseconds
+            n_intervals=0,
+            max_intervals=40
+),
     
     dcc.Graph(figure=fig, id = "country" ),
     dcc.Store(id = "year",storage_type='local',data = 1979),
@@ -166,13 +171,23 @@ app.layout = html.Div([
 ])
 
 @app.callback(
+    Output('steper', 'value'),
     Output('europe', 'figure'),
     Output('country', 'figure'),
     Output("year","data"),
+    Input('auto-stepper', 'n_intervals'),
     Input('my-slider', 'value'),
     Input("country_value", "data")
     )
-def update_output_div(input_value,country):
+def update_output_div(auto_stepper,input_value,country):
+    if auto_stepper is None:
+        value = 1979
+    elif input_value != auto_stepper:
+        value =  auto_stepper
+    else:
+        value = (auto_stepper+1)%step_num
+        
+
     year = input_value
     print(year)
     new_df = gpd.GeoDataFrame(df_merged[df_merged["DAY"] == year].set_index("country"), geometry= "geometry", crs='epsg:4326')
@@ -189,7 +204,7 @@ def update_output_div(input_value,country):
                            range_color=(0, 30)
                           )
     fig.update_geos(fitbounds="locations", visible=False)
-    return figure,fig,year
+    return value, figure,fig,year
 
 @app.callback(
     Output('country', 'figure'),
@@ -212,7 +227,7 @@ if __name__ == '__main__':
     app.run_server(debug=False)
 # %%
 
-step_num = 10
+step_num = 15
 
 
 app = DashProxy( transforms=[MultiplexerTransform()])
@@ -220,23 +235,67 @@ app = DashProxy( transforms=[MultiplexerTransform()])
 app.layout = html.Div(children=[
 dcc.Interval(id='auto-stepper',
             interval=1*1000, # in milliseconds
-             n_intervals=0
+            n_intervals=0,
+            max_intervals=8
 ),
 dcc.Slider(
     id = "steper",
-    min=1,
+    min=8,
     max=step_num,
     value=1
 )])
 
 @app.callback(
    Output('steper', 'value'),
-   Input('auto-stepper', 'n_intervals'))
-def on_click(n_intervals):
+   Input('auto-stepper', 'n_intervals'),
+   Input("steper","value"))
+def on_click(n_intervals,slider_stepper):
+    print("autostepper")
+    print(n_intervals )
+    print("this is slider value")
+    print(slider_stepper)
     if n_intervals is None:
         return 0
+    elif slider_stepper!=1 and slider_stepper != n_intervals+7:
+        return slider_stepper
     else:
-        return (n_intervals+1)%step_num
+        print((n_intervals+1)%step_num)
+        return (n_intervals+8)%step_num
 if __name__ == '__main__':
     app.run_server(debug=False)
 # %%
+step_num = 2020
+
+
+app = DashProxy( transforms=[MultiplexerTransform()])
+
+app.layout = html.Div(children=[
+dcc.Interval(id='auto-stepper',
+            interval=1*1000, # in milliseconds
+            n_intervals=1979,
+            max_intervals=8
+),
+dcc.Slider(
+    id = "steper",
+    min=1979,
+    max=step_num,
+    value=1979,
+    marks = {i: i for i in range(1979,2020,1)}
+)])
+
+@app.callback(
+   Output('steper', 'value'),
+   Input('auto-stepper', 'n_intervals'),
+   Input("steper","value"))
+def on_click(n_intervals,slider_stepper):
+    print(n_intervals +2)
+    print(slider_stepper)
+    if n_intervals is None:
+        return 0
+    elif slider_stepper != n_intervals :
+        return slider_stepper
+    else:
+        print((n_intervals+1)%step_num)
+        return (n_intervals+1)%step_num
+if __name__ == '__main__':
+    app.run_server(debug=False)
