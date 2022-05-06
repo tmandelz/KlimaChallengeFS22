@@ -127,17 +127,13 @@ def create_fig3(country, year, grid_no= None):
 
 
 fig_europe=create_europe_fig(2016)
-# %%
-data = data_europe[data_europe["year"] == 1994]
-# %%
-data["country"]
 # %% update figures
 def update_europe(year,fig,data = data_europe):
     fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
     return fig
+
 update_europe(2000,fig_europe).show()
-# %%
-fig_europe.update_traces(z = data["countMagnitude"])
+
 # %% Dashboards
 server = flask.Flask(__name__)
 app = DashProxy(server=server,prevent_initial_callbacks=True,
@@ -172,7 +168,7 @@ app.layout = html.Div([
     Input("grid_no", "data")
     )
 def update_output_div(year,country,grid_no):
-    europe_fig = create_europe_fig(year)
+    europe_fig = update_europe(year,fig_europe)
     country_fig = create_country_fig(year,country)
     fig3 = create_fig3(year,country,grid_no)
     return europe_fig,country_fig, fig3,year
