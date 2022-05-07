@@ -5,93 +5,89 @@ Created on Tue Apr 19 08:02:53 2022
 @author: schue
 """
 
-import pandas as pd
+from dash import dcc,html
+from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform, State
+import flask
+import plotly as plt
+import json
 import plotly.express as px
 import plotly.graph_objects as go
+import pandas as pd
+
+import psycopg2
 import os
-
-
-grid = 95097
-year = 2018
+import socket
+import geopandas as gpd
 
 dirname = os.path.dirname(__file__)
-magnitudePath = os.path.join(
-    dirname, './magnitude.csv')
-thresholdPath = os.path.join(
-    dirname, './threshhold.csv')
-LuxembourgPath = os.path.join(
-    dirname, './Luxembourg.csv')
+hostname = socket.gethostname()
+# POSTGRES SQL Variables
+global server
+server = "v000727.edu.ds.fhnw.ch"
 
-mag = pd.read_csv(magnitudePath, sep=";")
-threshold = pd.read_csv(thresholdPath, sep = ";")
-data = pd.read_csv(LuxembourgPath, sep =";")
+global port
+port = 443
+global database
+database = "klimachallengefs22"
+global psqlUser
+psqlUser = "klima"
+global psqlUserPassword
+psqlUserPassword = "orDtiURVtHUHwiQDeRCv"
+def ConnectPostgresSql():
+    return psycopg2.connect(
+            port=port,
+            host=server,
+            database=database,
+            user=psqlUser,
+            password=psqlUserPassword)
 
-mag = mag.loc[mag['GRID_NO']==grid]
-threshold = threshold.loc[threshold['GRID_NO']==grid]
-data = data.loc[data['GRID_NO']==grid]
+# varibles for gridno and year and definition of length of heatwave
+grid = 96099
+year = 2020
+lengthofheatwave = 3
 
-print(mag.dtypes)
-print(threshold.dtypes)
+# built query and get data
+queryData = f"select Threshold.date as NoDay, Threshold.threshold as reference_temperature, Threshold.Grid_id_Grid, TemperatureMagnitude.date, TemperatureMagnitude.temperature_max, TemperatureMagnitude.magnitude, EXTRACT(DOY FROM TemperatureMagnitude.date) as Magnitudenoday from Threshold full join TemperatureMagnitude on Threshold.date = EXTRACT(DOY FROM TemperatureMagnitude.date) where extract(year from TemperatureMagnitude.date) = {year} and Threshold.Grid_id_grid = {grid} and TemperatureMagnitude.Grid_id_grid = {grid}"
 
-mag["Date"] = pd.to_datetime(mag["DAY"])
-mag["Year"] = mag['Date'].dt.year
-mag = mag.loc[mag['Year']==year]
-mag["NoDay"] =mag['Date'].dt.dayofyear
+mydb = ConnectPostgresSql()
+cursor = mydb.cursor()
 
-####
+cursor.execute(queryData)
+data = pd.read_sql(queryData,mydb)
 
-mag['grp_date'] = mag["NoDay"].diff().ne(1).cumsum()
-magni = mag.groupby('grp_date').agg(Start = ("NoDay", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'))
-magni = magni.loc[magni['Count'] >= 3]
-magni["End"] = magni["Start"] + magni["Count"]
+# control of data, can be deleted
+print(data.head())
+print("Rows:", data.shape[0])
+
+# generate df(magni) of heatwaves
+data['grp_date'] = data["noday"].diff().ne(1).cumsum()
+magni = data.groupby('grp_date').agg(Start = ("noday", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'))
+magni = magni.loc[magni['Count'] >= lengthofheatwave]
+magni["End"] = magni["Start"] + magni["Count"] -1
 magni = magni.reset_index(drop=True)
 
-####
-print(threshold)
-threshold["NoDay"] = threshold["Unnamed: 0"] + 1
-
-#Jan macht Anpassungen und erfasst den dayofyear statt Datum., evlt braucht es dieses datawrangling beim Datum nicht mehr
-data["Date"] = pd.to_datetime(data["DAY"], format='%Y%m%d')
-data["Year"] = data['Date'].dt.year
-data = data.loc[data['Year']==year]
-data["NoDay"] =data['Date'].dt.dayofyear
-
-merged = pd.merge(data, threshold, on = "NoDay")
-merged = pd.merge(merged, mag, how = "left", on = "NoDay")
-
-# fig = px.line(merged, x = "NoDay", y = ["reference_temperature_x", "TEMPERATURE_MAX_x"])
-# fig.add_bar(x = "NoDay", y = "magnitude")
-
+# start plot
 fig = go.Figure()
 
+# plot threshold temp
 fig.add_trace(
     go.Scatter(
-        x=merged["NoDay"],
-        y=merged["reference_temperature_x"],
+        x=data["noday"],
+        y=data["reference_temperature"],
         line_color = "blue",
         name = "Threshold Temperature"
     ))
 
+# add temp of day
 fig.add_trace(
     go.Scatter(
-        x=merged["NoDay"],
-        y=merged["TEMPERATURE_MAX_x"],
+        x=data["noday"],
+        y=data["temperature_max"],
         line_color = "red",
         name = "Max Temperature"
     ))
 
-# fig.add_trace(
-#     go.Bar(
-#         x=magni["Start"],
-#         y=magni["Count"],
-#         marker_color = "orange"
-#     ))
-
-# fig.add_vrect(x0=magni.loc[0,"Start"], x1=magni.loc[0, "End"], 
-#                annotation_text="Anzahl Tage", annotation_position="top left",
-#                annotation=dict(font_size=15, font_family="Arial"),
-#               fillcolor="orange", opacity=0.25, line_width=0)
-
+# add heatwaves by adding vertical rectangle for each heatwave
 for x in range(len(magni)):
     c = magni.loc[x,"Count"]
     fig.add_vrect(x0=magni.loc[x,"Start"], x1=magni.loc[x, "End"], 
@@ -99,6 +95,6 @@ for x in range(len(magni)):
                 annotation=dict(font_size=15, font_family="Arial", textangle=-90),
               fillcolor="orange", opacity=0.25, line_width=0),
 
-
+# generate and save plot
 fig.show()
 fig.write_html("file.html")
