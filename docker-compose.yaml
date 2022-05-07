@@ -5,7 +5,7 @@ services:
     container_name: 'Python'
     restart: always
     ports:
-      - 8050:8050
+      - 80:8050
     expose:
       - '8050'
     networks:

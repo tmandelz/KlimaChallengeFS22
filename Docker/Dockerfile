@@ -1,7 +1,7 @@
 FROM python:3.9-slim as base
 
 # Update base container install
-RUN apt-get update && apt-get install -y --no-install-recommends gcc && apt-get install gdal-bin -y
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && apt-get install gdal-bin -y && apt-get install nano
 RUN pip install --upgrade pip
 
 COPY requirements.txt /tmp/

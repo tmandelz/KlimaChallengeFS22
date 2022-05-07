@@ -22,6 +22,7 @@ psycopg2 = "*"
 dash-extensions = "*"
 nbformat = "*"
 flask = "*"
+iso3166 = "*"
 
 [requires]
 python_version = "3.9"
