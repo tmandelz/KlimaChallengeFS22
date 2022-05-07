@@ -4,16 +4,15 @@ numpy
 plotly
 matplotlib
 ipykernel
-mysql-connector-python
 fiona==1.8.21
 pyproj==3.3.0
 rtree==0.9.7
 shapely==1.8.1
 geopandas
-folium
 dash
 psycopg2-binary
 dash_extensions
 nbformat
 gunicorn
 flask
+iso3166
