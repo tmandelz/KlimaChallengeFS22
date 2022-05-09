@@ -122,9 +122,19 @@ for files in list_filenames:
 
 
 
-# %%
+# %% Test fill Values
+df_all_files = pd.read_csv("magnitude.csv",sep = ";", parse_dates=['DAY'])#.loc[:,["magnitude","GRID_NO","DAY"]]
+df_all_files = df_all_files.loc[:,["magnitude","GRID_NO","DAY"]]
+dates= pd.DataFrame(pd.date_range(start="1979-01-01",end="2020-12-31"))
+dates = dates[dates[0].dt.strftime('%m/%d') != "02/29"]
+iterables = [df_all_files['GRID_NO'].unique(),dates[0]]
+df_all_files = df_all_files.set_index(['GRID_NO','DAY'])
+df_all_files = df_all_files.reindex(index=pd.MultiIndex.from_product(iterables, names=['GRID_NO', 'DAY']), fill_value=0).reset_index()
+# %% Script for Dashboard
 df_all_files = pd.read_csv("magnitude.csv",sep = ";", parse_dates=['DAY'])
 df_country = count_magnitude_year_land(df_all_files)
+
+# %%
 shapefile_country = gpd.read_file("ne_50m_admin_0_countries.shp").rename(columns= {"SOVEREIGNT": "country"}).loc[:,["geometry","country"]]
 df_merged = pd.merge(df_country,shapefile_country, on = "country", how = "left")
 

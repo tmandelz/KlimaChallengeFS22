@@ -9,7 +9,7 @@ import glob
 import geopandas as gpd
 from datetime import datetime,timedelta
 import geopandas as gpd
-import iso3166 
+import iso3166
 import shapely.speedups
 shapely.speedups.enable()
 
@@ -226,13 +226,25 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     df_single_magnitudes.loc[:,"magnitude"] = (df_single_magnitudes.loc[:,"TEMPERATURE_MAX"] - df_single_magnitudes.loc[:,0.25])/ (df_single_magnitudes.loc[:,0.75]-df_single_magnitudes.loc[:,0.25])
     # Werte löschen die kleiner sind als T30y25p
     df_single_magnitudes = df_single_magnitudes[df_single_magnitudes["TEMPERATURE_MAX"]>df_single_magnitudes[0.25]]
-    
+
+    # Calculate all Dates without the 29.02
+    dates= pd.DataFrame(pd.date_range(start="1979-01-01",end="2020-12-31"))
+    dates = dates[dates[0].dt.strftime('%m/%d') != "02/29"]
+    # Calculate the values to fill
+    iterables = [df_single_magnitudes['GRID_NO'].unique(),dates[0]]
+    df_single_magnitudes = df_single_magnitudes.set_index(['GRID_NO','DAY'])
+    df_single_magnitudes = df_single_magnitudes.reindex(index=pd.MultiIndex.from_product(iterables, names=['GRID_NO', 'DAY']), fill_value=0).loc[:,["magnitude"]].reset_index()
+
+    df_single_magnitudes  = pd.merge(df_single_magnitudes,df_values, on= ["GRID_NO","DAY"],how= "left")
+
     
     df_reference["month_day"] = "2001/" + df_reference["month_day"]
     df_reference["noDay"]  = pd.to_datetime(df_reference["month_day"], format='%Y/%m/%d').dt.dayofyear
 
+
     return df_single_magnitudes,df_reference.reset_index().loc[:,["GRID_NO","reference_temperature","noDay"]]
 
+# %%
 # endregion # 
 # region # Start Code Ablauf #
 try:
