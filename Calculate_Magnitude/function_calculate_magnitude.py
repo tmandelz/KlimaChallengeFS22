@@ -227,8 +227,8 @@ if __name__ == '__main__':
     app.run_server(debug=False)
 # %%
 
-step_num = 15
-
+step_num = 2020
+min_value = 1979
 
 app = DashProxy( transforms=[MultiplexerTransform()])
 
@@ -236,13 +236,15 @@ app.layout = html.Div(children=[
 dcc.Interval(id='auto-stepper',
             interval=1*1000, # in milliseconds
             n_intervals=0,
-            max_intervals=8
+            max_intervals=step_num-min_value
 ),
 dcc.Slider(
     id = "steper",
-    min=8,
+    min=min_value,
     max=step_num,
-    value=1
+    step = 1,
+    value=1,
+    marks = {i: i for i in range(1979,2021,1)}
 )])
 
 @app.callback(
@@ -250,52 +252,13 @@ dcc.Slider(
    Input('auto-stepper', 'n_intervals'),
    Input("steper","value"))
 def on_click(n_intervals,slider_stepper):
-    print("autostepper")
-    print(n_intervals )
-    print("this is slider value")
-    print(slider_stepper)
     if n_intervals is None:
         return 0
-    elif slider_stepper!=1 and slider_stepper != n_intervals+7:
+    elif slider_stepper!=1 and slider_stepper != n_intervals+min_value-1:
         return slider_stepper
     else:
-        print((n_intervals+1)%step_num)
-        return (n_intervals+8)%step_num
+        return (n_intervals+min_value)%(step_num+1)
 if __name__ == '__main__':
     app.run_server(debug=False)
+
 # %%
-step_num = 2020
-
-
-app = DashProxy( transforms=[MultiplexerTransform()])
-
-app.layout = html.Div(children=[
-dcc.Interval(id='auto-stepper',
-            interval=1*1000, # in milliseconds
-            n_intervals=1979,
-            max_intervals=8
-),
-dcc.Slider(
-    id = "steper",
-    min=1979,
-    max=step_num,
-    value=1979,
-    marks = {i: i for i in range(1979,2020,1)}
-)])
-
-@app.callback(
-   Output('steper', 'value'),
-   Input('auto-stepper', 'n_intervals'),
-   Input("steper","value"))
-def on_click(n_intervals,slider_stepper):
-    print(n_intervals +2)
-    print(slider_stepper)
-    if n_intervals is None:
-        return 0
-    elif slider_stepper != n_intervals :
-        return slider_stepper
-    else:
-        print((n_intervals+1)%step_num)
-        return (n_intervals+1)%step_num
-if __name__ == '__main__':
-    app.run_server(debug=False)
