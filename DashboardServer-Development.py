@@ -93,7 +93,7 @@ def GetDataCountry(Country,Year):
     except Exception as e:
         print(f"Error while connecting to postgres Sql Server. \n {e}")
         raise e
-#%%
+
 # %% default Figures
 data_europe = GetDataEurope()
 # %% default Figures
@@ -111,15 +111,16 @@ def create_europe_fig(year,data = data_europe):
                             )
 
     return europe_fig
+def update_europe(year,fig,data = data_europe):
+    fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
+    return fig
 
 def create_country_fig(country:str, year:int):
     data_country = GetDataCountry(country,year)
     
     gpd_country = data_europe[(data_europe.country == country) & (data_europe.year == year)]
-    print(gpd_country)
     # intersection zwischen shape und daten
     intersect_df = gpd_country.overlay(data_country, how='intersection')
-    print(intersect_df)
 
     country_fig = px.choropleth(intersect_df, geojson= intersect_df.geometry, 
                            locations=intersect_df.index,
@@ -139,13 +140,8 @@ def create_fig3(country, year, grid_no= None):
 
 
 fig_europe=create_europe_fig(2016)
-
-
-# %% update figures
-def update_europe(year,fig,data = data_europe):
-    fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
-    return fig
-
+# %%
+create_country_fig("Luxembourg",1979)
 
 
 # %% Dash 1 With europe
@@ -161,7 +157,7 @@ app.layout = html.Div([
                marks = {i: i for i in range(1979,2021,1)}
     ),
     
-    dcc.Graph(figure=create_country_fig("Luxembourg",2003), id = "country" ),
+    dcc.Graph(figure=create_country_fig("Luxembourg",2016), id = "country" ),
     ])
 @app.callback(
     Output('europe', 'figure'),
@@ -174,7 +170,7 @@ def update_output_div(year):
 
 
 if __name__ == '__main__':
-    app.run_server(host="localhost", debug=True,)
+    app.run_server(host="localhost", debug=False)
 
 # %% Dashboards
 server = flask.Flask(__name__)
@@ -238,3 +234,5 @@ def select_country(year,country,clickData):
     return fig3,grid_no
 if __name__ == '__main__':
     app.run_server(host="localhost", debug=True,)
+
+# %%

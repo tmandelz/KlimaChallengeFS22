@@ -121,7 +121,6 @@ for files in list_filenames:
     df_thresh = pd.concat((df_thresh,df_threshold))
 
 
-
 # %% Test fill Values
 df_all_files = pd.read_csv("magnitude.csv",sep = ";", parse_dates=['DAY'])#.loc[:,["magnitude","GRID_NO","DAY"]]
 df_all_files = df_all_files.loc[:,["magnitude","GRID_NO","DAY"]]
