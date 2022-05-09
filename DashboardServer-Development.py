@@ -17,7 +17,6 @@ import geopandas as gpd
 
 
 #%%
-
 dirname = os.path.dirname(__file__)
 hostname = socket.gethostname()
 # POSTGRES SQL Variables
@@ -96,6 +95,7 @@ def GetDataCountry(Country,Year):
 
 # %% default Figures
 data_europe = GetDataEurope()
+data_europe.head()
 # %% default Figures
 
 def create_europe_fig(year,data = data_europe):
@@ -140,8 +140,9 @@ def create_fig3(country, year, grid_no= None):
 
 
 fig_europe=create_europe_fig(2016)
+fig_europe.show()
 # %%
-create_country_fig("Luxembourg",1979)
+create_country_fig("Belgium",1979)
 
 
 # %% Dash 1 With europe
@@ -150,89 +151,95 @@ app = DashProxy(server=server,prevent_initial_callbacks=True,
                 transforms=[MultiplexerTransform()])
 
 app.layout = html.Div([
- dcc.Graph(figure=create_europe_fig(2016), id = "europe" ),
+ dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
     dcc.Slider(min = 1979, max = 2020, step = 1,
-               value=2016,
+               value=1979,
                id='year_slider',
                marks = {i: i for i in range(1979,2021,1)}
     ),
     
-    dcc.Graph(figure=create_country_fig("Luxembourg",2016), id = "country" ),
+    dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
+    dcc.Store(id = "year",storage_type='local',data = 1979),
+    dcc.Store(id = "country_value",storage_type='local',data = "Belgium"),
+    dcc.Store(id = "grid_no",storage_type='local',data = 54144)
     ])
 @app.callback(
     Output('europe', 'figure'),
+    Output('country', 'figure'),
     Output("year","data"),
-    Input('year_slider', 'value'),
+    Input('year_slider', 'data'),
+    State("country_value","data")
     )
-def update_output_div(year):
+def update_output_div(year,country_value):
     europe_fig = update_europe(year,fig_europe)
-    return europe_fig,year
+    country_fig = create_country_fig(year,country_value)
+    return europe_fig,country_fig,year
 
 
 if __name__ == '__main__':
-    app.run_server(host="localhost", debug=False)
+    app.run_server(host="localhost", debug=True)
 
 # %% Dashboards
-server = flask.Flask(__name__)
-app = DashProxy(server=server,prevent_initial_callbacks=True,
-                transforms=[MultiplexerTransform()])
+# server = flask.Flask(__name__)
+# app = DashProxy(server=server,prevent_initial_callbacks=True,
+#                 transforms=[MultiplexerTransform()])
 
 
 
-app.layout = html.Div([
-    dcc.Graph(figure=create_europe_fig(2016), id = "europe" ),
-    dcc.Slider(min = 1979, max = 2020, step = 1,
-               value=2016,
-               id='year_slider',
-               marks = {i: i for i in range(1979,2021,1)}
-    ),
+# app.layout = html.Div([
+#     dcc.Graph(figure=create_europe_fig(2016), id = "europe" ),
+#     dcc.Slider(min = 1979, max = 2020, step = 1,
+#                value=2016,
+#                id='year_slider',
+#                marks = {i: i for i in range(1979,2021,1)}
+#     ),
     
-    dcc.Graph(figure=create_country_fig("Luxembourg",2016), id = "country" ),
-    dcc.Graph(figure=create_fig3("Albania",2016,54144), id = "fig3" ),
-    dcc.Store(id = "year",storage_type='local',data = 2016),
-    dcc.Store(id = "country_value",storage_type='local',data = "Luxembourg"),
-    dcc.Store(id = "grid_no",storage_type='local',data = 54144)
-])
+#     dcc.Graph(figure=create_country_fig("Luxembourg",2016), id = "country" ),
+#     dcc.Graph(figure=create_fig3("Albania",2016,54144), id = "fig3" ),
+#     dcc.Store(id = "year",storage_type='local',data = 2016),
+#     dcc.Store(id = "country_value",storage_type='local',data = "Luxembourg"),
+#     dcc.Store(id = "grid_no",storage_type='local',data = 54144)
+# ])
 
 
-@app.callback(
-    Output('europe', 'figure'),
-    Output('country', 'figure'),
-    Output('fig3', 'figure'),
-    Output("year","data"),
-    Input('year_slider', 'value'),
-    Input("country_value", "data"),
-    Input("grid_no", "data")
-    )
-def update_output_div(year,country,grid_no):
-    europe_fig = update_europe(year,fig_europe)
-    country_fig = create_country_fig(year,country)
-    fig3 = create_fig3(year,country,grid_no)
-    return europe_fig,country_fig, fig3,year
+# @app.callback(
+#     Output('europe', 'figure'),
+#     Output('country', 'figure'),
+#     Output('fig3', 'figure'),
+#     Output("year","data"),
+#     Input('year_slider', 'value'),
+#     Input("country_value", "data"),
+#     Input("grid_no", "data")
+#     )
+# def update_output_div(year,country,grid_no):
+#     europe_fig = update_europe(year,fig_europe)
+#     country_fig = create_country_fig(year,country)
+#     fig3 = create_fig3(year,country,grid_no)
+#     return europe_fig,country_fig, fig3,year
 
-@app.callback(
-    Output('country', 'figure'),
-    Output('fig3', 'figure'),
-    Output("country_value","data"),
-    Input("year","data"),
-    Input('europe', 'clickData'))
-def select_country(year,clickData):
-    country = json.loads(json.dumps(clickData, indent=2))["points"][0]["location"]
-    country_fig = create_country_fig(year,country)
-    fig3 = create_fig3(year,country)
-    return country_fig,fig3,country
+# @app.callback(
+#     Output('country', 'figure'),
+#     Output('fig3', 'figure'),
+#     Output("country_value","data"),
+#     Input("year","data"),
+#     Input('europe', 'clickData'))
+# def select_country(year,clickData):
+#     country = json.loads(json.dumps(clickData, indent=2))["points"][0]["location"]
+#     country_fig = create_country_fig(year,country)
+#     fig3 = create_fig3(year,country)
+#     return country_fig,fig3,country
 
-@app.callback(
-    Output('fig3', 'figure'),
-    Output("grid_no","data"),
-    Input("year","data"),
-    Input("country_value", "data"),
-    Input('country', 'clickData'))
-def select_country(year,country,clickData):
-    grid_no = json.loads(json.dumps(clickData, indent=2))["points"][0]["location"]
-    fig3 = create_fig3(year,country,grid_no)
-    return fig3,grid_no
-if __name__ == '__main__':
-    app.run_server(host="localhost", debug=True,)
+# @app.callback(
+#     Output('fig3', 'figure'),
+#     Output("grid_no","data"),
+#     Input("year","data"),
+#     Input("country_value", "data"),
+#     Input('country', 'clickData'))
+# def select_country(year,country,clickData):
+#     grid_no = json.loads(json.dumps(clickData, indent=2))["points"][0]["location"]
+#     fig3 = create_fig3(year,country,grid_no)
+#     return fig3,grid_no
+# if __name__ == '__main__':
+#     app.run_server(host="localhost", debug=True,)
 
-# %%
+
