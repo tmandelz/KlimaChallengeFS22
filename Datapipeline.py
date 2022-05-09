@@ -89,11 +89,11 @@ gdf_new = gdf.to_crs('epsg:4326') # umwandeln in Koordinatensystem vom Temp-Date
 
 #%%
 #liest alle Rohdaten ein im Unterordner csv
-df_rawData = pd.DataFrame(columns =['GRID_NO', 'LATITUDE', 'LONGITUDE'])
+df_rawData = pd.DataFrame(columns =['GRID_NO', 'LATITUDE', 'LONGITUDE','TEMPERATURE_MAX','DAY'])
 
 # beim Read das Land (resp. Name des CSV) als Spalte anhängen
 for f in UnprocessedDataFiles:
-    frame = pd.read_csv(f, delimiter=';',usecols=['GRID_NO', 'LATITUDE', 'LONGITUDE'])
+    frame = pd.read_csv(f, delimiter=';',usecols=['GRID_NO', 'LATITUDE', 'LONGITUDE','TEMPERATURE_MAX','DAY'],parse_dates=['DAY'])
     frame = frame.drop_duplicates(subset=['GRID_NO'])
     frame['country'] = os.path.splitext(os.path.basename(f))[0]
     df_rawData = pd.concat([df_rawData, frame])
@@ -168,6 +168,7 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     reference_period: end of the reference period for the the threshold 
     """
     df_values = df_country[["GRID_NO","DAY","TEMPERATURE_MAX"]]
+    print(df_values.dtypes)
     # Referenzperiode Berechnen
     df_date_cleaned = df_values[df_values["DAY"] < reference_period]
     # 29. Februar löschen
@@ -177,34 +178,38 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
 
     # Time Series mit dem jeweiligen Datum
     ts_dates = df_date_cleaned["DAY"].dt.strftime('%m/%d')
+    print(df_date_cleaned)
     start_time = datetime(year = 2001,month = 1 , day = 1)
 
     # Referenz Data Frame erstellen
     df_reference = pd.DataFrame()
 
-    # Durch alle 365 Tage im Jahr iterieren
-    for day_loop in range(365):
+    try:
+        # Durch alle 365 Tage im Jahr iterieren
+        for day_loop in range(365):
 
-        # Start-und Enddatum berechnen (+- 15 Tage)
-        start_date = (start_time + timedelta(days = day_loop -15)).strftime('%m/%d')
-        end_date= (start_time + timedelta(days = day_loop + 15)).strftime('%m/%d')
+            # Start-und Enddatum berechnen (+- 15 Tage)
+            start_date = (start_time + timedelta(days = day_loop -15)).strftime('%m/%d')
+            end_date= (start_time + timedelta(days = day_loop + 15)).strftime('%m/%d')
 
-        # Fallunterscheidung für die Tage um den Neujahrstag
-        if start_date < "12/17" and end_date > "01/15":
-            mask = (ts_dates >= start_date) & (ts_dates <= end_date)
-        else:
-            mask = (ts_dates >= start_date) | (ts_dates <= end_date)
+            # Fallunterscheidung für die Tage um den Neujahrstag
+            if start_date < "12/17" and end_date > "01/15":
+                mask = (ts_dates >= start_date) & (ts_dates <= end_date)
+            else:
+                mask = (ts_dates >= start_date) | (ts_dates <= end_date)
 
-        # 0.9 Quantil ausrechnen von der jeweiligen Zeitperiode
-        saved_df = df_date_cleaned[mask].groupby(by= ["GRID_NO"]).quantile(q=0.9)
-        saved_df["DAY"] = (start_time + timedelta(days = day_loop)).strftime('%m/%d')
-        
-        df_reference = pd.concat([df_reference, saved_df])
+            # 0.9 Quantil ausrechnen von der jeweiligen Zeitperiode
+            saved_df = df_date_cleaned[mask].groupby(by= ["GRID_NO"]).quantile(q=0.9)
+            saved_df["DAY"] = (start_time + timedelta(days = day_loop)).strftime('%m/%d')
+            
+            df_reference = pd.concat([df_reference, saved_df])
+    except Exception as e:   
+        print(e)
     
-    
-
+    print(df_reference)
     # Neues Datumsformat hinzufügen
     df_values["month_day"] = df_values["DAY"].dt.strftime('%m/%d')
+    print(df_values)
     # Spalten umbennenen
     df_reference = df_reference.rename(columns= {"DAY":"month_day","TEMPERATURE_MAX":"reference_temperature"})
 
@@ -248,17 +253,25 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
 # endregion # 
 # region # Start Code Ablauf #
 try:
-    for files in UnprocessedDataFiles:
-        read_file = pd.read_csv(files,sep= ";", parse_dates=['DAY'])
-        df_magnitude, df_threshold = calculate_magnitude(read_file,"2010.01.01")
-        df_all_files = pd.concat((df_all_files,df_magnitude))
-        df_thresh = pd.concat((df_thresh,df_threshold))
+    # for files in UnprocessedDataFiles:
+        # read_file = pd.read_csv(files,sep= ";", parse_dates=['DAY'])
+    print(df_rawData)
+    df_rawData["DAY"] = pd.to_datetime(df_rawData['DAY'])
+    df_rawData["TEMPERATURE_MAX"] = df_rawData["TEMPERATURE_MAX"].astype(float)
+    df_rawData["GRID_NO"] = df_rawData["GRID_NO"].astype(int)
+    print(df_rawData.dtypes)
 
-        # CSV erstellen für die ausgelesenen Threshold und Magnitude  um Sie in SQL wieder einzulesen
-        df_thresh.to_csv(ThresholdDataFile, sep=';')
-        print(f"CSV für Threshold erstellt.")
-        df_magnitude.to_csv(MagnitudeDataFile, sep=';')
-        print(f"CSV für Magnitude erstellt.")
+    df_magnitude, df_threshold = calculate_magnitude(df_rawData,"2010.01.01")
+    print(df_magnitude)
+    print(df_threshold)
+        # df_all_files = pd.concat((df_all_files,df_magnitude))
+        # df_thresh = pd.concat((df_thresh,df_threshold))
+
+    # CSV erstellen für die ausgelesenen Threshold und Magnitude  um Sie in SQL wieder einzulesen
+    df_threshold.to_csv(ThresholdDataFile, sep=';')
+    print(f"CSV für Threshold erstellt.")
+    df_magnitude.to_csv(MagnitudeDataFile, sep=';')
+    print(f"CSV für Magnitude erstellt.")
 except Exception as e:
     print("couldn't calculate Magnitude/Threshold")
     raise e
