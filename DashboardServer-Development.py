@@ -1,4 +1,5 @@
 #%%
+from itertools import count
 from dash import dcc,html
 from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform, State
 import flask
@@ -20,8 +21,8 @@ import geopandas as gpd
 dirname = os.path.dirname(__file__)
 hostname = socket.gethostname()
 # POSTGRES SQL Variables
-global server
-server = "v000727.edu.ds.fhnw.ch"
+global psqlServer
+psqlServer = "10.35.4.154"
 
 global port
 port = 443
@@ -34,7 +35,7 @@ psqlUserPassword = "orDtiURVtHUHwiQDeRCv"
 def ConnectPostgresSql():
     return psycopg2.connect(
             port=port,
-            host=server,
+            host=psqlServer,
             database=database,
             user=psqlUser,
             password=psqlUserPassword)
@@ -73,18 +74,27 @@ def GetDataEurope():
         raise e
 
 
-def GetDataCountry():
+def GetDataCountry(Country,Year):
     try:
         mydb = ConnectPostgresSql()
-        queryCountry = f"select count(*)  from countrygrid left join country on country.id_Country = countrygrid.Country_id_Country left join grid on grid.id_Grid = countrygrid.Grid_id_Grid where country.Countryname = '{Country}' group by country.Countryname"
+        queryCountry = f"""select id_grid,gridshape as geom, sum(magnitude) as summagnitude  from countrygrid
+            left join country on country.id_Country = countrygrid.Country_id_Country
+            left join grid on grid.id_Grid = countrygrid.Grid_id_Grid
+            left join temperaturemagnitude on temperaturemagnitude.grid_id_grid = countrygrid.Grid_id_Grid
+            WHERE country.countryname = '{Country}' and date_part('year', temperaturemagnitude.date) ={Year}
+            group by id_grid,gridshape
+            """
         cursor = mydb.cursor()
         
         cursor.execute(queryCountry)
-        GridCountGeodf = gpd.read_postgis(queryCountry,mydb)
+        DF = gpd.read_postgis(queryCountry,mydb)
+        print(DF)
+        return DF
     except Exception as e:
         print(f"Error while connecting to postgres Sql Server. \n {e}")
         raise e
 #%%
+# %% default Figures
 data_europe = GetDataEurope()
 # %% default Figures
 
@@ -99,26 +109,28 @@ def create_europe_fig(year,data = data_europe):
                             width=960,
                             height=540
                             )
-    
 
     return europe_fig
 
+def create_country_fig(country:str, year:int):
+    data_country = GetDataCountry(country,year)
+    
+    gpd_country = data_europe[(data_europe.country == country) & (data_europe.year == year)]
+    print(gpd_country)
+    # intersection zwischen shape und daten
+    intersect_df = gpd_country.overlay(data_country, how='intersection')
+    print(intersect_df)
 
-def create_country_fig(country,year):
-
-    # country_fig = px.choropleth(newdfx, geojson=newdfx.geometry,
-    #                 locations=newdfx.index,
-    #                 color="magnitude",
-    #                 color_continuous_scale=px.colors.sequential.Blues,
-    #                 scope="europe",
-    #                 range_color=(0, 2),
-    #                 )
-    
-    
-    # country_fig.show()
-    
-    
-    country_fig = 1
+    country_fig = px.choropleth(intersect_df, geojson= intersect_df.geometry, 
+                           locations=intersect_df.index,
+                           color ="summagnitude",
+                           color_continuous_scale=px.colors.sequential.Oranges,
+                           scope = "europe",
+                           range_color=(0, 30),
+                           animation_frame= intersect_df.year
+                        #    locationmode = "country names"
+                          )
+    country_fig.update_geos(fitbounds="locations", visible=False)
     return country_fig
 
 def create_fig3(country, year, grid_no= None):
@@ -142,13 +154,14 @@ app = DashProxy(server=server,prevent_initial_callbacks=True,
                 transforms=[MultiplexerTransform()])
 
 app.layout = html.Div([
-    dcc.Graph(figure=fig_europe, id = "europe" ),
+ dcc.Graph(figure=create_europe_fig(2016), id = "europe" ),
     dcc.Slider(min = 1979, max = 2020, step = 1,
-               value=1979,
+               value=2016,
                id='year_slider',
-               marks = {i: i for i in range(1979,2021,1)}),
-
-    dcc.Store(id = "year",storage_type='local',data = 1979)
+               marks = {i: i for i in range(1979,2021,1)}
+    ),
+    
+    dcc.Graph(figure=create_country_fig("Luxembourg",2003), id = "country" ),
     ])
 @app.callback(
     Output('europe', 'figure'),
@@ -161,7 +174,8 @@ def update_output_div(year):
 
 
 if __name__ == '__main__':
-    app.run_server(host="localhost", debug=False,)
+    app.run_server(host="localhost", debug=True,)
+
 # %% Dashboards
 server = flask.Flask(__name__)
 app = DashProxy(server=server,prevent_initial_callbacks=True,
@@ -171,17 +185,16 @@ app = DashProxy(server=server,prevent_initial_callbacks=True,
 
 app.layout = html.Div([
     dcc.Graph(figure=create_europe_fig(2016), id = "europe" ),
-    dcc.Graph(figure=create_europe_fig(2016), id = "europe" ),
     dcc.Slider(min = 1979, max = 2020, step = 1,
                value=2016,
                id='year_slider',
                marks = {i: i for i in range(1979,2021,1)}
     ),
     
-    dcc.Graph(figure=create_country_fig("Albania",2016), id = "country" ),
+    dcc.Graph(figure=create_country_fig("Luxembourg",2016), id = "country" ),
     dcc.Graph(figure=create_fig3("Albania",2016,54144), id = "fig3" ),
     dcc.Store(id = "year",storage_type='local',data = 2016),
-    dcc.Store(id = "country_value",storage_type='local',data = "Albania"),
+    dcc.Store(id = "country_value",storage_type='local',data = "Luxembourg"),
     dcc.Store(id = "grid_no",storage_type='local',data = 54144)
 ])
 
@@ -225,8 +238,3 @@ def select_country(year,country,clickData):
     return fig3,grid_no
 if __name__ == '__main__':
     app.run_server(host="localhost", debug=True,)
-
-
-
-
-
