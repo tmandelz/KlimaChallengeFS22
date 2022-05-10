@@ -1,7 +1,7 @@
 FROM python:3.9-slim as base
 
 # Update base container install
-RUN apt-get update && apt-get install -y --no-install-recommends gcc && apt-get install gdal-bin -y && apt-get install nano
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && apt-get install gdal-bin -y && apt-get install nano -y && apt-get install -y procps && apt-get install cron -y && apt-get install strace -y
 RUN pip install --upgrade pip
 
 COPY requirements.txt /tmp/
@@ -30,4 +30,5 @@ COPY . .
 # CMD python Datapipeline.py
 # CMD gunicorn DashboardServer:server --bind 172.28.1.5:8050
 ENTRYPOINT ["python", "-m", "http.server"]
-CMD ["--directory", "directory", "8000"]
+CMD gunicorn DashboardServer:server --bind 172.28.1.5:8050
+
