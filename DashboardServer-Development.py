@@ -93,12 +93,13 @@ def GetDataCountry(Country,Year):
         print(f"Error while connecting to postgres Sql Server. \n {e}")
         raise e
 
+def getdatafig3():
+    x =1
+
 # %% default Figures
+
 data_europe = GetDataEurope()
-# %% default Figures
-
 def create_europe_fig(year,data = data_europe):
-
     data = data[data["year"] == year]
     data = data.set_index("country")
     europe_fig = px.choropleth(data, geojson= data.geom, locations= data.index, color ="countMagnitude",
@@ -110,6 +111,7 @@ def create_europe_fig(year,data = data_europe):
                             )
 
     return europe_fig
+fig_europe=create_europe_fig(2016)
 def update_europe(year,fig,data = data_europe):
     fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
     return fig
@@ -126,9 +128,7 @@ def create_country_fig(country:str, year:int):
                            color ="summagnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
-                           range_color=(0, 30),
-                           animation_frame= intersect_df.year
-                        #    locationmode = "country names"
+                           range_color=(0, 30)
                           )
     country_fig.update_geos(fitbounds="locations", visible=False)
     return country_fig
@@ -136,14 +136,6 @@ def create_country_fig(country:str, year:int):
 def create_fig3(country, year, grid_no= None):
     fig3 = 1
     return fig3
-
-
-fig_europe=create_europe_fig(2016)
-fig_europe.show()
-# %%
-create_country_fig("Belgium",2020)
-
-
 
 
 # %% Dashboards
@@ -221,18 +213,18 @@ app.layout = html.Div(
     
     children=[dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
     
-dcc.Interval(id='auto-stepper',
+    dcc.Interval(id='auto-stepper',
             interval=1*1500, # in milliseconds
             n_intervals=0
-),
-dcc.Slider(
-    id = "steper",
-    min=min_value,
-    max=step_num,
-    step = 1,
-    value=1,
-    marks = {i: i for i in range(1979,2021,1)}
-),
+    ),
+    dcc.Slider(
+        id = "steper",
+        min=min_value,
+        max=step_num,
+        step = 1,
+        value=1,
+        marks = {i: i for i in range(1979,2021,1)}
+    ),
     dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
     dcc.Store(id = "year",storage_type='local',data = 1979),
     dcc.Store(id = "country_value",data = "Belgium")])
@@ -300,3 +292,5 @@ def update_country(stepper_value,json_click):
     return country_value,country_fig
 if __name__ == '__main__':
      app.run_server(debug=False)
+
+# %%

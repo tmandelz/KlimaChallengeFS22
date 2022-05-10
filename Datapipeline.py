@@ -97,7 +97,7 @@ for f in UnprocessedDataFiles:
     frame['country'] = os.path.splitext(os.path.basename(f))[0]
     df_rawData = pd.concat([df_rawData, frame])
 
-df_rawdatamag = df_rawData.loc[:,["GRID_NO","TEMPERATURE_MAX","DAY"]].drop_duplicates()
+df_rawdatamag = df_rawData.copy(deep=True).loc[:,["GRID_NO","TEMPERATURE_MAX","DAY"]].drop_duplicates()
 df_rawData=df_rawData.drop_duplicates(subset=['GRID_NO'])
 #%%
 # Read Countries and put it into a list for later comparison and filtering
