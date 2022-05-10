@@ -214,9 +214,8 @@ step_num = 2020
 min_value = 1979
 
 
-server = flask.Flask(__name__)
-app = DashProxy(server=server,prevent_initial_callbacks=True,
-                transforms=[MultiplexerTransform()])
+
+app = DashProxy(transforms=[MultiplexerTransform()])
 
 app.layout = html.Div(
     
@@ -236,7 +235,7 @@ dcc.Slider(
 ),
     dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
     dcc.Store(id = "year",storage_type='local',data = 1979),
-    dcc.Store(id = "country_value",data = "Belgium"),])
+    dcc.Store(id = "country_value",data = "Belgium")])
 
 @app.callback(
     Output('auto-stepper', 'disabled'),
@@ -245,12 +244,14 @@ dcc.Slider(
    Output("europe","figure"),
    Output("country","figure"),
    Input('auto-stepper', 'n_intervals'),
-   Input("steper","value"))
-def on_click(n_intervals,slider_user):
+   Input("steper","value"),
+   Input("country_value","data"))
+def on_click(n_intervals,slider_user,country_value):
     """
     Arguments:
     n_intervals: value off the auto-stepper
     slider_user: slider value clicked by the user
+    country_value: value of the stored country (last clicked on europe map)
 
     output:
     auto_status: Enable or Disable the auto-stepper
@@ -275,11 +276,27 @@ def on_click(n_intervals,slider_user):
 
     # update Figures
     europe_fig = update_europe(stepper_value,fig_europe)
-    country_fig = create_country_fig("Belgium",stepper_value)
+    country_fig = create_country_fig(country_value,stepper_value)
     return auto_status,stepper_value,stepper_value,europe_fig,country_fig
 
+
+@app.callback(
+   Output('country_value', 'data'),
+   Output("country","figure"),
+   Input("steper","value"),
+   Input('europe', 'clickData'))
+def update_country(stepper_value,json_click):
+    """
+    Arguments:
+    stepper_value: last stored value of the year
+    json_click: input of the clicked json
+
+    output:
+    country_value: stored country value for other events
+    country_fig: update the country fig with the new country
+    """
+    country_value = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
+    country_fig = create_country_fig(country_value,stepper_value)
+    return country_value,country_fig
 if __name__ == '__main__':
-     app.run_server(host="localhost", debug=True)
-
-
-# %%
+     app.run_server(debug=False)
