@@ -8,7 +8,7 @@ import plotly as plt
 import json
 import plotly.express as px
 import pandas as pd
-
+import plotly.graph_objects as go
 import psycopg2
 import os
 import socket
@@ -93,8 +93,38 @@ def GetDataCountry(Country,Year):
         print(f"Error while connecting to postgres Sql Server. \n {e}")
         raise e
 
-def getdatafig3():
-    x =1
+def getdatafig3(year, grid):
+    try:
+        # varibles for gridno and year and definition of length of heatwave
+        # grid = 96099
+        # year = 2020
+        lengthofheatwave = 3
+
+        # built query and get data
+        queryData = f"select Threshold.date as NoDay, Threshold.threshold as reference_temperature, Threshold.Grid_id_Grid,
+        TemperatureMagnitude.date, TemperatureMagnitude.temperature_max, TemperatureMagnitude.magnitude,
+        EXTRACT(DOY FROM TemperatureMagnitude.date) as Magnitudenoday from Threshold full join
+        TemperatureMagnitude on Threshold.date = EXTRACT(DOY FROM TemperatureMagnitude.date) where
+        extract(year from TemperatureMagnitude.date) = {year} and Threshold.Grid_id_grid = {grid} and
+        TemperatureMagnitude.Grid_id_grid = {grid} order by Threshold.date"
+
+        mydb = ConnectPostgresSql()
+        cursor = mydb.cursor()
+
+        cursor.execute(queryData)
+        data = pd.read_sql(queryData,mydb)
+
+        # generate df(magni) of heatwaves
+        magni = data.loc[data["magnitude"] > 0.0]
+        magni['grp_date'] = magni["noday"].diff().ne(1).cumsum()
+        magni = magni.groupby('grp_date').agg(Start = ("noday", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'))
+        magni = magni.loc[magni['Count'] >= lengthofheatwave]
+        magni["End"] = magni["Start"] + magni["Count"] -1
+        magni = magni.reset_index(drop=True)
+        return data, magni
+    except Exception as e:
+        print(f"Error while connecting to postgres Sql Server. \n {e}")
+        raise e
 
 # %% default Figures
 
@@ -133,8 +163,44 @@ def create_country_fig(country:str, year:int):
     country_fig.update_geos(fitbounds="locations", visible=False)
     return country_fig
 
-def create_fig3(country, year, grid_no= None):
-    fig3 = 1
+# def create_fig3(country, year, grid_no= None):
+def create_fig3(year, grid):
+    data, magni = getdatafig3(year, grid)
+    # start plot
+    fig3 = go.Figure()
+
+    # plot threshold temp
+    fig3.add_trace(
+        go.Scatter(
+            x=data["noday"],
+            y=data["reference_temperature"],
+            line_color = "blue",
+            name = "Threshold Temperature"
+        ))
+
+    # add temp of day
+    fig3.add_trace(
+        go.Scatter(
+            x=data["noday"],
+            y=data["temperature_max"],
+            line_color = "red",
+            name = "Max Temperature"
+        ))
+
+    # change background color to white. perhaps needs to be changed if different background color in html
+    fig3.update_layout(plot_bgcolor = 'white')
+
+    # add heatwaves by adding vertical rectangle for each heatwave
+    for x in range(len(magni)):
+        c = magni.loc[x,"Count"]
+        fig3.add_vrect(x0=magni.loc[x,"Start"], x1=magni.loc[x, "End"], 
+                    annotation_text="Anzahl Tage: %s" %c, annotation_position="bottom",
+                    annotation=dict(font_size=15, font_family="Arial", textangle=-90),
+                fillcolor="orange", opacity=0.25, line_width=0),
+
+    # generate and save plot
+    # fig.show()
+    # fig.write_html("file.html")
     return fig3
 
 

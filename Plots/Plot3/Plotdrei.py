@@ -47,7 +47,7 @@ year = 2020
 lengthofheatwave = 3
 
 # built query and get data
-queryData = f"select Threshold.date as NoDay, Threshold.threshold as reference_temperature, Threshold.Grid_id_Grid, TemperatureMagnitude.date, TemperatureMagnitude.temperature_max, TemperatureMagnitude.magnitude, EXTRACT(DOY FROM TemperatureMagnitude.date) as Magnitudenoday from Threshold full join TemperatureMagnitude on Threshold.date = EXTRACT(DOY FROM TemperatureMagnitude.date) where extract(year from TemperatureMagnitude.date) = {year} and Threshold.Grid_id_grid = {grid} and TemperatureMagnitude.Grid_id_grid = {grid}"
+queryData = f"select Threshold.date as NoDay, Threshold.threshold as reference_temperature, Threshold.Grid_id_Grid, TemperatureMagnitude.date, TemperatureMagnitude.temperature_max, TemperatureMagnitude.magnitude, EXTRACT(DOY FROM TemperatureMagnitude.date) as Magnitudenoday from Threshold full join TemperatureMagnitude on Threshold.date = EXTRACT(DOY FROM TemperatureMagnitude.date) where extract(year from TemperatureMagnitude.date) = {year} and Threshold.Grid_id_grid = {grid} and TemperatureMagnitude.Grid_id_grid = {grid} order by Threshold.date"
 
 mydb = ConnectPostgresSql()
 cursor = mydb.cursor()
@@ -55,16 +55,14 @@ cursor = mydb.cursor()
 cursor.execute(queryData)
 data = pd.read_sql(queryData,mydb)
 
-# control of data, can be deleted
-print(data.head())
-print("Rows:", data.shape[0])
-
 # generate df(magni) of heatwaves
-data['grp_date'] = data["noday"].diff().ne(1).cumsum()
-magni = data.groupby('grp_date').agg(Start = ("noday", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'))
+magni = data.loc[data["magnitude"] > 0.0]
+magni['grp_date'] = magni["noday"].diff().ne(1).cumsum()
+magni = magni.groupby('grp_date').agg(Start = ("noday", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'))
 magni = magni.loc[magni['Count'] >= lengthofheatwave]
 magni["End"] = magni["Start"] + magni["Count"] -1
 magni = magni.reset_index(drop=True)
+print(magni)
 
 # start plot
 fig = go.Figure()
@@ -86,6 +84,9 @@ fig.add_trace(
         line_color = "red",
         name = "Max Temperature"
     ))
+
+# change background color to white. perhaps needs to be changed if different background color in html
+fig.update_layout(plot_bgcolor = 'white')
 
 # add heatwaves by adding vertical rectangle for each heatwave
 for x in range(len(magni)):
