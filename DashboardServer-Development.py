@@ -101,12 +101,12 @@ def getdatafig3(year, grid):
         lengthofheatwave = 3
 
         # built query and get data
-        queryData = f"select Threshold.date as NoDay, Threshold.threshold as reference_temperature, Threshold.Grid_id_Grid,
+        queryData = f"""select Threshold.date as NoDay, Threshold.threshold as reference_temperature, Threshold.Grid_id_Grid,
         TemperatureMagnitude.date, TemperatureMagnitude.temperature_max, TemperatureMagnitude.magnitude,
         EXTRACT(DOY FROM TemperatureMagnitude.date) as Magnitudenoday from Threshold full join
         TemperatureMagnitude on Threshold.date = EXTRACT(DOY FROM TemperatureMagnitude.date) where
         extract(year from TemperatureMagnitude.date) = {year} and Threshold.Grid_id_grid = {grid} and
-        TemperatureMagnitude.Grid_id_grid = {grid} order by Threshold.date"
+        TemperatureMagnitude.Grid_id_grid = {grid} order by Threshold.date"""
 
         mydb = ConnectPostgresSql()
         cursor = mydb.cursor()
@@ -129,6 +129,7 @@ def getdatafig3(year, grid):
 # %% default Figures
 
 data_europe = GetDataEurope()
+# %%
 def create_europe_fig(year,data = data_europe):
     data = data[data["year"] == year]
     data = data.set_index("country")
@@ -147,7 +148,8 @@ def update_europe(year,fig,data = data_europe):
     return fig
 
 def create_country_fig(country:str, year:int):
-    data_country = GetDataCountry(country,year)
+    data_country = GetDataCountry(country,year).set_index("id_grid")
+    
     
     gpd_country = data_europe[(data_europe.country == country) & (data_europe.year == year)]
     # intersection zwischen shape und daten
@@ -202,70 +204,14 @@ def create_fig3(year, grid):
     # fig.show()
     # fig.write_html("file.html")
     return fig3
+# %%
 
-
-# %% Dashboards
-# server = flask.Flask(__name__)
-# app = DashProxy(server=server,prevent_initial_callbacks=True,
-#                 transforms=[MultiplexerTransform()])
-
-
-
-# app.layout = html.Div([
-#     dcc.Graph(figure=create_europe_fig(2016), id = "europe" ),
-#     dcc.Slider(min = 1979, max = 2020, step = 1,
-#                value=2016,
-#                id='year_slider',
-#                marks = {i: i for i in range(1979,2021,1)}
-#     ),
-    
-#     dcc.Graph(figure=create_country_fig("Luxembourg",2016), id = "country" ),
-#     dcc.Graph(figure=create_fig3("Albania",2016,54144), id = "fig3" ),
-#     dcc.Store(id = "year",storage_type='local',data = 2016),
-#     dcc.Store(id = "country_value",storage_type='local',data = "Luxembourg"),
-#     dcc.Store(id = "grid_no",storage_type='local',data = 54144)
-# ])
-
-
-# @app.callback(
-#     Output('europe', 'figure'),
-#     Output('country', 'figure'),
-#     Output('fig3', 'figure'),
-#     Output("year","data"),
-#     Input('year_slider', 'value'),
-#     Input("country_value", "data"),
-#     Input("grid_no", "data")
-#     )
-# def update_output_div(year,country,grid_no):
-#     europe_fig = update_europe(year,fig_europe)
-#     country_fig = create_country_fig(year,country)
-#     fig3 = create_fig3(year,country,grid_no)
-#     return europe_fig,country_fig, fig3,year
-
-# @app.callback(
-#     Output('country', 'figure'),
-#     Output('fig3', 'figure'),
-#     Output("country_value","data"),
-#     Input("year","data"),
-#     Input('europe', 'clickData'))
-# def select_country(year,clickData):
-#     country = json.loads(json.dumps(clickData, indent=2))["points"][0]["location"]
-#     country_fig = create_country_fig(year,country)
-#     fig3 = create_fig3(year,country)
-#     return country_fig,fig3,country
-
-# @app.callback(
-#     Output('fig3', 'figure'),
-#     Output("grid_no","data"),
-#     Input("year","data"),
-#     Input("country_value", "data"),
-#     Input('country', 'clickData'))
-# def select_country(year,country,clickData):
-#     grid_no = json.loads(json.dumps(clickData, indent=2))["points"][0]["location"]
-#     fig3 = create_fig3(year,country,grid_no)
-#     return fig3,grid_no
-# if __name__ == '__main__':
-#     app.run_server(host="localhost", debug=True,)
+df = create_country_fig("Belgium",2000)
+df.show()
+# %%
+df.index
+# %%
+GetDataCountry("Belgium",2000)
 
 # %%
 step_num = 2020
@@ -279,10 +225,6 @@ app.layout = html.Div(
     
     children=[dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
     
-    dcc.Interval(id='auto-stepper',
-            interval=1*1500, # in milliseconds
-            n_intervals=0
-    ),
     dcc.Slider(
         id = "steper",
         min=min_value,
@@ -292,8 +234,13 @@ app.layout = html.Div(
         marks = {i: i for i in range(1979,2021,1)}
     ),
     dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
+    dcc.Graph(figure=create_fig3(1979,96097), id = "grid" ),
     dcc.Store(id = "year",storage_type='local',data = 1979),
-    dcc.Store(id = "country_value",data = "Belgium")])
+    dcc.Store(id = "country_value",data = "Belgium"),
+    dcc.Store(id = "grid_no",data = 96097),
+    dcc.Interval(id='auto-stepper',
+            interval=1*3000, # in milliseconds
+            n_intervals=0)])
 
 @app.callback(
     Output('auto-stepper', 'disabled'),
@@ -301,10 +248,12 @@ app.layout = html.Div(
    Output('year', 'data'),
    Output("europe","figure"),
    Output("country","figure"),
+   Output("grid","figure"),
    Input('auto-stepper', 'n_intervals'),
    Input("steper","value"),
-   Input("country_value","data"))
-def on_click(n_intervals,slider_user,country_value):
+   Input("country_value","data"),
+   State("grid_no","data"))
+def on_click(n_intervals,slider_user,country_value,grid_no):
     """
     Arguments:
     n_intervals: value off the auto-stepper
@@ -318,6 +267,7 @@ def on_click(n_intervals,slider_user,country_value):
     europe_fig: updatet europe figure with the new year
     country_fig:  updatet country figure with the new year
     """
+
     # Logic off the stepper
     # n_intervals is None if the user clicks on the stepper
     if n_intervals is None:
@@ -335,7 +285,8 @@ def on_click(n_intervals,slider_user,country_value):
     # update Figures
     europe_fig = update_europe(stepper_value,fig_europe)
     country_fig = create_country_fig(country_value,stepper_value)
-    return auto_status,stepper_value,stepper_value,europe_fig,country_fig
+    grid_fig = create_fig3(stepper_value,grid_no)
+    return auto_status,stepper_value,stepper_value,europe_fig,country_fig,grid_fig
 
 
 @app.callback(
@@ -356,6 +307,16 @@ def update_country(stepper_value,json_click):
     country_value = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
     country_fig = create_country_fig(country_value,stepper_value)
     return country_value,country_fig
+
+@app.callback(
+   Output('grid', 'data'),
+   Output("grid","figure"),
+   Input("steper","value"),
+   Input('country', 'clickData'))
+def update_fig3(year,json_click):
+    country_value = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
+    print(country_value)
+
 if __name__ == '__main__':
      app.run_server(debug=False)
 
