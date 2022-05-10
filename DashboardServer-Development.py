@@ -151,11 +151,13 @@ def create_country_fig(country:str, year:int):
     data_country = GetDataCountry(country,year)
     
     gpd_country = data_europe[(data_europe.country == country) & (data_europe.year == year)]
+
     # intersection zwischen shape und daten
     intersect_df = gpd_country.overlay(data_country, how='intersection')
+    intersect_df= intersect_df.set_index("id_grid",drop=True)
 
     country_fig = px.choropleth(intersect_df, geojson= intersect_df.geometry, 
-                           locations=intersect_df.id_grid,
+                           locations=intersect_df.index,
                            color ="summagnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
