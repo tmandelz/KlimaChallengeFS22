@@ -44,14 +44,8 @@ def ConnectPostgresSql():
 #%%
 def GetDataEurope():
     try:
-        queryGridCount = f"""select country.Countryname as country, count(*) as gridcount ,  country.countryShape  as geom  from countrygrid 
-        left join country on country.id_Country = countrygrid.Country_id_Country 
-        left join grid on grid.id_Grid = countrygrid.Grid_id_Grid group by country.Countryname,country.CountryShape"""
-        queryMagnitudeSum = f"""SELECT country.Countryname as country, date_part('year', Date) as Year, sum(temperaturemagnitude.Magnitude) as Magnitudesum  FROM countrygrid
-         left join country on country.id_Country = countrygrid.Country_id_Country 
-         left join grid on grid.id_Grid = countrygrid.Grid_id_Grid 
-         left join temperaturemagnitude on temperaturemagnitude.Grid_id_Grid = countrygrid.Grid_id_Grid 
-         group by country.CountryName, date_part('year', Date) """
+        queryGridCount = f"select country.Countryname as country, count(*) as gridcount ,  country.countryShape  as geom  from countrygrid left join country on country.id_Country = countrygrid.Country_id_Country left join grid on grid.id_Grid = countrygrid.Grid_id_Grid group by country.Countryname,country.CountryShape"
+        queryMagnitudeSum = f"SELECT country.Countryname as country, date_part('year', Date) as Year, sum(temperaturemagnitude.Magnitude) as Magnitudesum  FROM countrygrid left join country on country.id_Country = countrygrid.Country_id_Country left join grid on grid.id_Grid = countrygrid.Grid_id_Grid left join temperaturemagnitude on temperaturemagnitude.Grid_id_Grid = countrygrid.Grid_id_Grid group by country.CountryName, date_part('year', Date) "
         
 
         mydb = ConnectPostgresSql()
@@ -123,7 +117,7 @@ def update_europe(year,fig,data = data_europe):
 
 def create_country_fig(country:str, year:int):
     data_country = GetDataCountry(country,year)
-    print(data_country)
+    
     gpd_country = data_europe[(data_europe.country == country) & (data_europe.year == year)]
     # intersection zwischen shape und daten
     intersect_df = gpd_country.overlay(data_country, how='intersection')
@@ -157,46 +151,35 @@ app = DashProxy(server=server,prevent_initial_callbacks=True,
                 transforms=[MultiplexerTransform()])
 
 app.layout = html.Div([
- dcc.Graph(figure=create_europe_fig(2016), id = "europe-plot" ),
-     dcc.Slider(min = 1979, max = 2020, step = 1,
-               value=2016,
-               id='year-slider',
-                marks = {i: str(i) for i in range(1979,2021,1)}
+ dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
+    dcc.Slider(min = 1979, max = 2020, step = 1,
+               value=1979,
+               id='year_slider',
+               marks = {i: i for i in range(1979,2021,1)}
     ),
-    dcc.Graph(figure=create_country_fig("Luxembourg",2016), id = "country-plot" ),
-    # dcc.Store(id = "year",storage_type='local',data = 1979),
-    dcc.Store(id = "country-value",storage_type='local',data = "Luxembourg"),
-    # dcc.Store(id = "grid_no",storage_type='local',data = 54144)
+    
+    dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
+    dcc.Store(id = "year",storage_type='local',data = 1979),
+    dcc.Store(id = "country_value",storage_type='local',data = "Belgium"),
+    dcc.Store(id = "grid_no",storage_type='local',data = 54144)
     ])
-
 @app.callback(
-    Output('country-plot', 'figure'),
-    Input('year-slider', 'value'),
-    # Input("country_value", "data"),
-    Input('europe-plot', 'clickData')
+    Output('europe', 'figure'),
+    Output('country', 'figure'),
+    Output("year","data"),
+    Input('year_slider', 'data'),
+    State("country_value","data")
     )
-def update_output_div(year,country,):
-    print(country)
-    print(year)
-    # country = "Belgium"
-    country_fig = create_country_fig(country.location,year)
-    return country_fig
-# @app.callback(
-#     Output('europe-plot', 'figure'),
-#     Input('year-slider', 'value'))
-# def update_output_div(year):
-#     europe_fig = update_europe(year,fig_europe)
-#     return europe_fig,year
-
-
-
-
+def update_output_div(year,country_value):
+    europe_fig = update_europe(year,fig_europe)
+    country_fig = create_country_fig(year,country_value)
+    return europe_fig,country_fig,year
 
 
 if __name__ == '__main__':
     app.run_server(host="localhost", debug=True)
 
-# # %% Dashboards
+# %% Dashboards
 # server = flask.Flask(__name__)
 # app = DashProxy(server=server,prevent_initial_callbacks=True,
 #                 transforms=[MultiplexerTransform()])
@@ -259,4 +242,4 @@ if __name__ == '__main__':
 # if __name__ == '__main__':
 #     app.run_server(host="localhost", debug=True,)
 
-# %%
+
