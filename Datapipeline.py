@@ -90,15 +90,19 @@ gdf_new = gdf.to_crs('epsg:4326') # umwandeln in Koordinatensystem vom Temp-Date
 #%%
 #liest alle Rohdaten ein im Unterordner csv
 df_rawData = pd.DataFrame(columns =['GRID_NO', 'LATITUDE', 'LONGITUDE','TEMPERATURE_MAX','DAY'])
-
+df_rawdatamag = pd.DataFrame(columns=["GRID_NO","TEMPERATURE_MAX","DAY"])
 # beim Read das Land (resp. Name des CSV) als Spalte anhängen
 for f in UnprocessedDataFiles:
     frame = pd.read_csv(f, delimiter=';',usecols=['GRID_NO', 'LATITUDE', 'LONGITUDE','TEMPERATURE_MAX','DAY'],parse_dates=['DAY'])
-    frame['country'] = os.path.splitext(os.path.basename(f))[0]
-    df_rawData = pd.concat([df_rawData, frame])
+    framemag = frame.copy()
 
-df_rawdatamag = df_rawData.copy(deep=True).loc[:,["GRID_NO","TEMPERATURE_MAX","DAY"]].drop_duplicates()
-df_rawData=df_rawData.drop_duplicates(subset=['GRID_NO'])
+    frame = frame.drop_duplicates(subset=['GRID_NO'])
+    frame['country'] = os.path.splitext(os.path.basename(f))[0]
+
+    df_rawData = pd.concat([df_rawData, frame])
+    df_rawdatamag = pd.concat([df_rawdatamag, framemag])
+
+df_rawdatamag = df_rawdatamag[["GRID_NO","TEMPERATURE_MAX","DAY"]].drop_duplicates()
 #%%
 # Read Countries and put it into a list for later comparison and filtering
 Countrylist = list(df_rawData["country"].unique())
