@@ -148,15 +148,14 @@ def update_europe(year,fig,data = data_europe):
     return fig
 
 def create_country_fig(country:str, year:int):
-    data_country = GetDataCountry(country,year).set_index("id_grid")
-    
+    data_country = GetDataCountry(country,year)
     
     gpd_country = data_europe[(data_europe.country == country) & (data_europe.year == year)]
     # intersection zwischen shape und daten
     intersect_df = gpd_country.overlay(data_country, how='intersection')
 
     country_fig = px.choropleth(intersect_df, geojson= intersect_df.geometry, 
-                           locations=intersect_df.index,
+                           locations=intersect_df.id_grid,
                            color ="summagnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
@@ -205,15 +204,6 @@ def create_fig3(year, grid):
     # fig.write_html("file.html")
     return fig3
 # %%
-
-df = create_country_fig("Belgium",2000)
-df.show()
-# %%
-df.index
-# %%
-GetDataCountry("Belgium",2000)
-
-# %%
 step_num = 2020
 min_value = 1979
 
@@ -222,9 +212,7 @@ min_value = 1979
 app = DashProxy(transforms=[MultiplexerTransform()])
 
 app.layout = html.Div(
-    
     children=[dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
-    
     dcc.Slider(
         id = "steper",
         min=min_value,
@@ -235,6 +223,7 @@ app.layout = html.Div(
     ),
     dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
     dcc.Graph(figure=create_fig3(1979,96097), id = "grid" ),
+
     dcc.Store(id = "year",storage_type='local',data = 1979),
     dcc.Store(id = "country_value",data = "Belgium"),
     dcc.Store(id = "grid_no",data = 96097),
