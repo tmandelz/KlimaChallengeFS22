@@ -1,5 +1,6 @@
 #%%
 from itertools import count
+from pickle import FALSE, TRUE
 from dash import dcc,html
 from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform, State
 import flask
@@ -87,7 +88,6 @@ def GetDataCountry(Country,Year):
         
         cursor.execute(queryCountry)
         DF = gpd.read_postgis(queryCountry,mydb)
-        print(DF)
         return DF
     except Exception as e:
         print(f"Error while connecting to postgres Sql Server. \n {e}")
@@ -95,7 +95,6 @@ def GetDataCountry(Country,Year):
 
 # %% default Figures
 data_europe = GetDataEurope()
-data_europe.head()
 # %% default Figures
 
 def create_europe_fig(year,data = data_europe):
@@ -142,42 +141,10 @@ def create_fig3(country, year, grid_no= None):
 fig_europe=create_europe_fig(2016)
 fig_europe.show()
 # %%
-create_country_fig("Belgium",1979)
+create_country_fig("Belgium",2020)
 
 
-# %% Dash 1 With europe
-server = flask.Flask(__name__)
-app = DashProxy(server=server,prevent_initial_callbacks=True,
-                transforms=[MultiplexerTransform()])
 
-app.layout = html.Div([
- dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
-    dcc.Slider(min = 1979, max = 2020, step = 1,
-               value=1979,
-               id='year_slider',
-               marks = {i: i for i in range(1979,2021,1)}
-    ),
-    
-    dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
-    dcc.Store(id = "year",storage_type='local',data = 1979),
-    dcc.Store(id = "country_value",storage_type='local',data = "Belgium"),
-    dcc.Store(id = "grid_no",storage_type='local',data = 54144)
-    ])
-@app.callback(
-    Output('europe', 'figure'),
-    Output('country', 'figure'),
-    Output("year","data"),
-    Input('year_slider', 'data'),
-    State("country_value","data")
-    )
-def update_output_div(year,country_value):
-    europe_fig = update_europe(year,fig_europe)
-    country_fig = create_country_fig(year,country_value)
-    return europe_fig,country_fig,year
-
-
-if __name__ == '__main__':
-    app.run_server(host="localhost", debug=True)
 
 # %% Dashboards
 # server = flask.Flask(__name__)
@@ -242,4 +209,77 @@ if __name__ == '__main__':
 # if __name__ == '__main__':
 #     app.run_server(host="localhost", debug=True,)
 
+# %%
+step_num = 2020
+min_value = 1979
 
+
+server = flask.Flask(__name__)
+app = DashProxy(server=server,prevent_initial_callbacks=True,
+                transforms=[MultiplexerTransform()])
+
+app.layout = html.Div(
+    
+    children=[dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
+    
+dcc.Interval(id='auto-stepper',
+            interval=1*1500, # in milliseconds
+            n_intervals=0
+),
+dcc.Slider(
+    id = "steper",
+    min=min_value,
+    max=step_num,
+    step = 1,
+    value=1,
+    marks = {i: i for i in range(1979,2021,1)}
+),
+    dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
+    dcc.Store(id = "year",storage_type='local',data = 1979),
+    dcc.Store(id = "country_value",data = "Belgium"),])
+
+@app.callback(
+    Output('auto-stepper', 'disabled'),
+   Output('steper', 'value'),
+   Output('year', 'data'),
+   Output("europe","figure"),
+   Output("country","figure"),
+   Input('auto-stepper', 'n_intervals'),
+   Input("steper","value"))
+def on_click(n_intervals,slider_user):
+    """
+    Arguments:
+    n_intervals: value off the auto-stepper
+    slider_user: slider value clicked by the user
+
+    output:
+    auto_status: Enable or Disable the auto-stepper
+    stepper_value: Set the stepper to a value
+    stepper_store: Store the stepper value
+    europe_fig: updatet europe figure with the new year
+    country_fig:  updatet country figure with the new year
+    """
+    # Logic off the stepper
+    # n_intervals is None if the user clicks on the stepper
+    if n_intervals is None:
+        stepper_value =  0
+        auto_status = False
+    # if the auto stepper disabled or it just startet, use the stepper value
+    elif slider_user !=1 and slider_user != n_intervals+min_value-1:
+        stepper_value = slider_user
+        auto_status = True
+    # Value for the auto stepper
+    else:
+        stepper_value = (min_value)+ (n_intervals %(1+step_num-min_value))
+        auto_status = False
+
+    # update Figures
+    europe_fig = update_europe(stepper_value,fig_europe)
+    country_fig = create_country_fig("Belgium",stepper_value)
+    return auto_status,stepper_value,stepper_value,europe_fig,country_fig
+
+if __name__ == '__main__':
+     app.run_server(host="localhost", debug=True)
+
+
+# %%
