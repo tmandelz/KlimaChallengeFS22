@@ -23,6 +23,7 @@ dash-extensions = "*"
 nbformat = "*"
 flask = "*"
 iso3166 = "*"
+dash-daq = "*"
 
 [requires]
 python_version = "3.9"

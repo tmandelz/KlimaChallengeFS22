@@ -13,6 +13,7 @@ import psycopg2
 import os
 import socket
 import geopandas as gpd
+import dash_daq as daq
 
 
 
@@ -137,10 +138,13 @@ def create_europe_fig(year,data = data_europe):
                             color_continuous_scale=px.colors.sequential.Oranges,
                             scope = "europe",
                             range_color=(0, 30),
-                            width=960,
-                            height=540
-                            )
-
+                            width=600,
+                            height=450,
+                            labels={'countMagnitude': 'Magnitude'})
+                            
+    europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 
+    'geo': dict(bgcolor='rgba(0,0,0,0)')})
+    
     return europe_fig
 fig_europe=create_europe_fig(2016)
 def update_europe(year,fig,data = data_europe):
@@ -161,9 +165,14 @@ def create_country_fig(country:str, year:int):
                            color ="summagnitude",
                            color_continuous_scale=px.colors.sequential.Oranges,
                            scope = "europe",
-                           range_color=(0, 30)
+                           range_color=(0, 30),
+                           width=600,
+                           height=450,
+                           labels={'summagnitude': 'Magnitude'}
                           )
+
     country_fig.update_geos(fitbounds="locations", visible=False)
+    country_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     return country_fig
 
 # def create_fig3(country, year, grid_no= None):
@@ -191,7 +200,7 @@ def create_fig3(year, grid):
         ))
 
     # change background color to white. perhaps needs to be changed if different background color in html
-    fig3.update_layout(plot_bgcolor = 'white')
+    fig3.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
 
     # add heatwaves by adding vertical rectangle for each heatwave
     for x in range(len(magni)):
@@ -209,13 +218,45 @@ def create_fig3(year, grid):
 step_num = 2020
 min_value = 1979
 
-
-
 app = DashProxy(transforms=[MultiplexerTransform()])
 
-app.layout = html.Div(
-    children=[dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
-    dcc.Slider(
+# app.layout = html.Div(
+#     children=[dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
+#     dcc.Slider(
+#         id = "steper",
+#         min=min_value,
+#         max=step_num,
+#         step = 1,
+#         value=1,
+#         marks = {i: i for i in range(1979,2021,1)}
+#     ),
+#     daq.ToggleSwitch(
+#         id='my-toggle-switch',
+#         value=False),
+#     dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
+#     dcc.Graph(figure=create_fig3(1979,96097), id = "grid" ),
+
+#     dcc.Store(id = "year",storage_type='local',data = 1979),
+#     dcc.Store(id = "country_value",data = "Belgium"),
+#     dcc.Store(id = "grid_no",data = 96097),
+#     dcc.Interval(id='auto-stepper',
+#             interval=1*2300, # in milliseconds
+#             n_intervals=0)])
+
+
+app.layout = html.Div(children=[
+    html.Div([
+        html.H1(children='Klimadaten Dashboard')], className='row'),
+    html.Div([
+        html.Div([
+            dcc.Graph(figure=create_europe_fig(1979), id = "europe" )
+        ], className='six columns'),
+        html.Div([
+            dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" )
+        ], className='six columns')
+    ], className='row'),
+    html.Div([
+        dcc.Slider(
         id = "steper",
         min=min_value,
         max=step_num,
@@ -223,9 +264,12 @@ app.layout = html.Div(
         value=1,
         marks = {i: i for i in range(1979,2021,1)}
     ),
-    dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
-    dcc.Graph(figure=create_fig3(1979,96097), id = "grid" ),
-
+    daq.ToggleSwitch(
+        id='my-toggle-switch',
+        value=False)], className='row'),
+    html.Div([
+        dcc.Graph(figure=create_fig3(1979,96097), id = "grid" )
+        ], className='row'),
     dcc.Store(id = "year",storage_type='local',data = 1979),
     dcc.Store(id = "country_value",data = "Belgium"),
     dcc.Store(id = "grid_no",data = 96097),
@@ -233,18 +277,40 @@ app.layout = html.Div(
             interval=1*3000, # in milliseconds
             n_intervals=0)])
 
+
+
+@app.callback(
+   Output('steper', 'value'),
+   Input('auto-stepper', 'n_intervals')
+   )
+def on_click(n_intervals):
+    stepper_value = (min_value)+ (n_intervals %(1+step_num-min_value))
+    return stepper_value
 @app.callback(
     Output('auto-stepper', 'disabled'),
+    Output("steper","value"),
+    Output('auto-stepper', 'n_intervals'),
+    Input("my-toggle-switch","value"),
+    State("steper","value"),
+    State('auto-stepper', 'n_intervals')
+)
+def button_off(toggle,value,stepper):
+    if toggle:
+        return True,value,0
+    else:
+        return False,1979,stepper
+
+
+@app.callback(
    Output('steper', 'value'),
    Output('year', 'data'),
    Output("europe","figure"),
    Output("country","figure"),
    Output("grid","figure"),
-   Input('auto-stepper', 'n_intervals'),
    Input("steper","value"),
-   Input("country_value","data"),
+   State("country_value","data"),
    State("grid_no","data"))
-def on_click(n_intervals,slider_user,country_value,grid_no):
+def on_click(slider_user,country_value,grid_no):
     """
     Arguments:
     n_intervals: value off the auto-stepper
@@ -259,31 +325,19 @@ def on_click(n_intervals,slider_user,country_value,grid_no):
     country_fig:  updatet country figure with the new year
     """
 
-    # Logic off the stepper
-    # n_intervals is None if the user clicks on the stepper
-    if n_intervals is None:
-        stepper_value =  0
-        auto_status = False
-    # if the auto stepper disabled or it just startet, use the stepper value
-    elif slider_user !=1 and slider_user != n_intervals+min_value-1:
-        stepper_value = slider_user
-        auto_status = True
-    # Value for the auto stepper
-    else:
-        stepper_value = (min_value)+ (n_intervals %(1+step_num-min_value))
-        auto_status = False
-
     # update Figures
-    europe_fig = update_europe(stepper_value,fig_europe)
-    country_fig = create_country_fig(country_value,stepper_value)
-    grid_fig = create_fig3(stepper_value,grid_no)
-    return auto_status,stepper_value,stepper_value,europe_fig,country_fig,grid_fig
+    if slider_user == 1:
+        slider_user = 1979
+    europe_fig = update_europe(slider_user,fig_europe)
+    country_fig = create_country_fig(country_value,slider_user)
+    grid_fig = create_fig3(slider_user,grid_no)
+    return slider_user,slider_user,europe_fig,country_fig,grid_fig
 
 
 @app.callback(
    Output('country_value', 'data'),
    Output("country","figure"),
-   Input("steper","value"),
+   State("steper","value"),
    Input('europe', 'clickData'))
 def update_country(stepper_value,json_click):
     """
@@ -302,11 +356,12 @@ def update_country(stepper_value,json_click):
 @app.callback(
    Output('grid', 'data'),
    Output("grid","figure"),
-   Input("steper","value"),
+   State("steper","value"),
    Input('country', 'clickData'))
 def update_fig3(year,json_click):
-    country_value = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
-    print(country_value)
+    grid_selected = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
+    fig3=create_fig3(year,grid_selected)
+    return grid_selected,fig3
 
 if __name__ == '__main__':
      app.run_server(debug=False)
