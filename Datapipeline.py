@@ -94,7 +94,6 @@ df_rawData = pd.DataFrame(columns =['GRID_NO', 'LATITUDE', 'LONGITUDE','TEMPERAT
 # beim Read das Land (resp. Name des CSV) als Spalte anhängen
 for f in UnprocessedDataFiles:
     frame = pd.read_csv(f, delimiter=';',usecols=['GRID_NO', 'LATITUDE', 'LONGITUDE','TEMPERATURE_MAX','DAY'],parse_dates=['DAY'])
-    # frame = frame.drop_duplicates(subset=['GRID_NO'])
     frame['country'] = os.path.splitext(os.path.basename(f))[0]
     df_rawData = pd.concat([df_rawData, frame])
 
@@ -196,11 +195,9 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
                 mask = (ts_dates >= start_date) & (ts_dates <= end_date)
             else:
                 mask = (ts_dates >= start_date) | (ts_dates <= end_date)
-            print(mask)
             # 0.9 Quantil ausrechnen von der jeweiligen Zeitperiode
             saved_df = df_date_cleaned[mask].groupby(by= ["GRID_NO"]).quantile(q=0.9)
             saved_df["DAY"] = (start_time + timedelta(days = day_loop)).strftime('%m/%d')
-            print(saved_df)
             df_reference = pd.concat([df_reference, saved_df])
     except Exception as e:   
         print(e)
@@ -249,8 +246,6 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
 # region # Start Code Ablauf #
 try:
     # for files in UnprocessedDataFiles:
-        # read_file = pd.read_csv(files,sep= ";", parse_dates=['DAY'])
-    print(df_rawdatamag)
     df_rawdatamag["DAY"] = pd.to_datetime(df_rawdatamag['DAY'])
     df_rawdatamag["TEMPERATURE_MAX"] = df_rawdatamag["TEMPERATURE_MAX"].astype(float)
     df_rawdatamag["GRID_NO"] = df_rawdatamag["GRID_NO"].astype(int)
@@ -313,7 +308,6 @@ try:
         try:
             # Create Query with Parameters
             insertquery = CreateInsertCountryQuery(id_Country=row["id_Country"], CountryName=row["country"], CountryShape=row["geometry"])
-            print(insertquery)
             # Execute the query and commit
             mydb.cursor().execute(insertquery)
             mydb.commit()
@@ -364,7 +358,6 @@ try:
         try:
             # Create Query with Parameters
             insertquery = CreateInsertGridQuery(id_Grid=row["GRID_NO"], GridShape=row["geometry_y"])
-            print(insertquery)
             # Execute the query and commit
             mydb.cursor().execute(insertquery)
             mydb.commit()
@@ -415,7 +408,6 @@ try:
         try:
             # Create Query with Parameters
             insertquery = CreateInsertCountryGridQuery(Country_id_Country=row["id_Country"], Grid_id_Grid=row["GRID_NO"])
-            print(insertquery)
             # Execute the query and commit
             mydb.cursor().execute(insertquery)
             mydb.commit()
@@ -467,7 +459,6 @@ try:
         try:
             # Create Query with Parameters
             insertquery = CreateInsertTemperatureMagnitudeQuery(Date=row["DAY"],Temperature_Max=row["TEMPERATURE_MAX"], Magnitude=row["magnitude"], Grid_id_Grid=row["GRID_NO"])
-            print(insertquery)
             # Execute the query and commit
             mydb.cursor().execute(insertquery)
             mydb.commit()
@@ -516,7 +507,6 @@ try:
         try:
             # Create Query with Parameters
             insertquery = CreateInsertThresholdQuery(Date=row["noDay"], Threshold=row["reference_temperature"], Grid_id_Grid=row["GRID_NO"])
-            print(insertquery)
             # Execute the query and commit
             mydb.cursor().execute(insertquery)
             mydb.commit()
@@ -552,5 +542,5 @@ try:
 except Exception as e:
     print(e)
 # endregion # Ende Code Ablauf #
-print("Ende 4 - Cleanup - Thomas Mandelz")
+print("Ende 4 - Cleanup - Thomas Mandelz") 
 # endregion # Ende 4 - Cleanup - Thomas Mandelz #
