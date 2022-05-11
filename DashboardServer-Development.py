@@ -16,8 +16,6 @@ import geopandas as gpd
 import dash_daq as daq
 
 
-
-
 #%%
 dirname = os.path.dirname(__file__)
 hostname = socket.gethostname()
@@ -135,15 +133,14 @@ def create_europe_fig(year,data = data_europe):
     data = data[data["year"] == year]
     data = data.set_index("country")
     europe_fig = px.choropleth(data, geojson= data.geom, locations= data.index, color ="countMagnitude",
-                            color_continuous_scale=px.colors.sequential.Oranges,
+                            color_continuous_scale=px.colors.sequential.amp,
                             scope = "europe",
                             range_color=(0, 30),
                             width=600,
                             height=450,
-                            labels={'countMagnitude': 'Magnitude'})
-                            
-    europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 
-    'geo': dict(bgcolor='rgba(0,0,0,0)')})
+                            labels={'countMagnitude': 'Magnitude'},
+                            hover_data={'countMagnitude':':.2f'})
+    europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     
     return europe_fig
 fig_europe=create_europe_fig(2016)
@@ -163,16 +160,19 @@ def create_country_fig(country:str, year:int):
     country_fig = px.choropleth(intersect_df, geojson= intersect_df.geometry, 
                            locations=intersect_df.index,
                            color ="summagnitude",
-                           color_continuous_scale=px.colors.sequential.Oranges,
+                           color_continuous_scale=px.colors.sequential.amp,
                            scope = "europe",
                            range_color=(0, 30),
                            width=600,
                            height=450,
-                           labels={'summagnitude': 'Magnitude'}
+                           labels={'summagnitude': 'Magnitude'},
+                           hover_data={'summagnitude':':.2f'}
                           )
 
     country_fig.update_geos(fitbounds="locations", visible=False)
+    
     country_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
+    
     return country_fig
 
 # def create_fig3(country, year, grid_no= None):
@@ -220,30 +220,6 @@ min_value = 1979
 
 app = DashProxy(transforms=[MultiplexerTransform()])
 
-# app.layout = html.Div(
-#     children=[dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
-#     dcc.Slider(
-#         id = "steper",
-#         min=min_value,
-#         max=step_num,
-#         step = 1,
-#         value=1,
-#         marks = {i: i for i in range(1979,2021,1)}
-#     ),
-#     daq.ToggleSwitch(
-#         id='my-toggle-switch',
-#         value=False),
-#     dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" ),
-#     dcc.Graph(figure=create_fig3(1979,96097), id = "grid" ),
-
-#     dcc.Store(id = "year",storage_type='local',data = 1979),
-#     dcc.Store(id = "country_value",data = "Belgium"),
-#     dcc.Store(id = "grid_no",data = 96097),
-#     dcc.Interval(id='auto-stepper',
-#             interval=1*2300, # in milliseconds
-#             n_intervals=0)])
-
-
 app.layout = html.Div(children=[
     html.Div([
         html.H1(children='Klimadaten Dashboard')], className='row'),
@@ -276,6 +252,8 @@ app.layout = html.Div(children=[
     dcc.Interval(id='auto-stepper',
             interval=1*3000, # in milliseconds
             n_intervals=0)])
+    
+            
 
 
 
