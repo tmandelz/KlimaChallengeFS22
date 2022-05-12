@@ -16,3 +16,4 @@ nbformat
 gunicorn
 flask
 iso3166
+dash_daq
