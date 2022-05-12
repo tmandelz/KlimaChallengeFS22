@@ -1,15 +1,23 @@
 #%% 
 # region # Imports #
 import os
+import sys
 import shutil
 import socket
 import pandas as pd
-import psycopg2
+import numpy as np
 import glob
 import geopandas as gpd
 from datetime import datetime,timedelta
 import geopandas as gpd
 import iso3166
+
+import psycopg2
+from psycopg2 import errors
+from psycopg2.errorcodes import UNIQUE_VIOLATION
+from psycopg2.extensions import register_adapter,AsIs
+psycopg2.extensions.register_adapter(np.int64, psycopg2._psycopg.AsIs)
+
 import shapely.speedups
 shapely.speedups.enable()
 
@@ -36,6 +44,25 @@ global psqlUserPassword
 psqlUserPassword = "orDtiURVtHUHwiQDeRCv"
 # endregion #
 
+def obj_size_fmt(num):
+    if num<10**3:
+        return "{:.2f}{}".format(num,"B")
+    elif ((num>=10**3)&(num<10**6)):
+        return "{:.2f}{}".format(num/(1.024*10**3),"KB")
+    elif ((num>=10**6)&(num<10**9)):
+        return "{:.2f}{}".format(num/(1.024*10**6),"MB")
+    else:
+        return "{:.2f}{}".format(num/(1.024*10**9),"GB")
+
+
+def memory_usage():
+    memory_usage_by_variable=pd.DataFrame({k:sys.getsizeof(v)\
+    for (k,v) in globals().items()},index=['Size'])
+    memory_usage_by_variable=memory_usage_by_variable.T
+    memory_usage_by_variable=memory_usage_by_variable\
+    .sort_values(by='Size',ascending=False).head(10)
+    memory_usage_by_variable['Size']=memory_usage_by_variable['Size'].apply(lambda x: obj_size_fmt(x))
+    return memory_usage_by_variable
 
 #%%
 # region # Start 1.0 - "Ordner mit allen CSV's einlesen" - ( Autor/In Jan) #
@@ -66,7 +93,6 @@ ThresholdDataFile = os.path.join(dirname,'./Data/ThresholdData/threshold.csv')
 
 ArchiveDataPath = os.path.join(dirname,'./Data/ArchiveData/')
 # endregion #
-
 print("Ende 1.0 - Ordner mit allen CSV's einlesen - ( Autor/In Jan)")
 # endregion # Ende 1.0 - "Ordner mit allen CSV's einlesen" - ( Autor/In Jan) #
 
@@ -83,36 +109,30 @@ gridShapefile = os.path.join(
     dirname, './Grid/grid_25km.shx')
 # endregion
 # %%
-gdf = gpd.read_file(gridShapefile) # laden der grid definition
-gdf = gdf.set_crs(epsg=3035) # definieren des Koordinatensystems
-gdf_new = gdf.to_crs('epsg:4326') # umwandeln in Koordinatensystem vom Temp-Datensatz 
+gdf_new = gpd.read_file(gridShapefile).set_crs(epsg=3035).to_crs('epsg:4326') # laden der grid definition, definieren des Koordinatensystems, umwandeln in Koordinatensystem vom Temp-Datensatz 
 
 #%%
 #liest alle Rohdaten ein im Unterordner csv
 df_rawData = pd.DataFrame(columns =['GRID_NO', 'LATITUDE', 'LONGITUDE','TEMPERATURE_MAX','DAY'])
 df_rawdatamag = pd.DataFrame(columns=["GRID_NO","TEMPERATURE_MAX","DAY"])
 # beim Read das Land (resp. Name des CSV) als Spalte anhängen
-for f in UnprocessedDataFiles:
-    frame = pd.read_csv(f, delimiter=';',usecols=['GRID_NO', 'LATITUDE', 'LONGITUDE','TEMPERATURE_MAX','DAY'],parse_dates=['DAY'])
-    framemag = frame.copy()
 
-    frame = frame.drop_duplicates(subset=['GRID_NO'])
-    frame['country'] = os.path.splitext(os.path.basename(f))[0]
-
-    df_rawData = pd.concat([df_rawData, frame])
-    df_rawdatamag = pd.concat([df_rawdatamag, framemag])
-
+df_rawdatamag = pd.concat([pd.read_csv(f, delimiter=';',usecols=['GRID_NO','TEMPERATURE_MAX','DAY'],parse_dates=['DAY']).drop_duplicates() for f in UnprocessedDataFiles  ])
 df_rawdatamag = df_rawdatamag[["GRID_NO","TEMPERATURE_MAX","DAY"]].drop_duplicates()
+for f in UnprocessedDataFiles:
+    frame = pd.read_csv(f, delimiter=';',usecols=['GRID_NO', 'LATITUDE', 'LONGITUDE','TEMPERATURE_MAX','DAY'],parse_dates=['DAY']).drop_duplicates(subset=['GRID_NO'])
+    frame['country'] = os.path.splitext(os.path.basename(f))[0]
+    df_rawData = pd.concat([df_rawData, frame])
+
+print(f"Rohdaten eingelesen!")
 #%%
 # Read Countries and put it into a list for later comparison and filtering
-Countrylist = list(df_rawData["country"].unique())
-Countrylistpattern = '|'.join(Countrylist)
+Countrylistpattern = '|'.join(list(df_rawData["country"].unique()))
 print(f"Countries die eingelesen werden:{Countrylistpattern}")
-
 
 #%%
 #Country-shapes einlesen: Achtung, man benötigt alle 4 files, nicht nur das shx!!!
-country_shape = gpd.read_file(shapeFile).rename(columns= {"SOVEREIGNT": "country"}).loc[:,["geometry","country"]]
+country_shape = gpd.read_file(shapeFile).rename(columns= {"ADMIN": "country"}).loc[:,["geometry","country"]]
 country_shape = country_shape[country_shape.country.str.contains(Countrylistpattern)]
 countries = pd.DataFrame(country_shape)
 
@@ -132,6 +152,7 @@ countries['id_Country'] = countries.index
 countries.to_csv(CountryDataFile, sep=';')
 print(f"CSV für Countries erstellt.")
 #%%
+
 df_gdf = gpd.GeoDataFrame(
     df_rawData, geometry=gpd.points_from_xy(df_rawData.LONGITUDE, df_rawData.LATITUDE), crs='epsg:4326') #umwandeln in Geodataframe
 del df_rawData
@@ -171,6 +192,7 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     df_country: one country of the raw Data
     reference_period: end of the reference period for the the threshold 
     """
+    print(memory_usage)
     df_country = df_country[["GRID_NO","DAY","TEMPERATURE_MAX"]]
     # Referenzperiode Berechnen
     df_date_cleaned = df_country[df_country["DAY"] < reference_period]
@@ -185,7 +207,7 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
 
     # Referenz Data Frame erstellen
     df_reference = pd.DataFrame()
-
+    print(memory_usage)
     try:
         # Durch alle 365 Tage im Jahr iterieren
         for day_loop in range(365):
@@ -205,7 +227,7 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
             df_reference = pd.concat([df_reference, saved_df])
     except Exception as e:   
         print(e)
-    
+    print(memory_usage)
     # delet unused Dataframes
     del df_date_cleaned
     del saved_df
@@ -222,7 +244,7 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
 
     # Maximum pro Jahr in der Referenzperiode ausrechnen
     df_max_values = df_country[df_country["DAY"] < reference_period]
-    del df_country
+    
     df_max_values.loc[:,"DAY"]= df_max_values.loc[:,"DAY"].dt.strftime('%y')
     df_max_values = df_max_values.groupby(["GRID_NO","DAY"]).max()
     # T30y25p und T30y75p ausrechnen
@@ -244,10 +266,12 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     df_single_magnitudes = df_single_magnitudes.set_index(['GRID_NO','DAY'])
     df_single_magnitudes = df_single_magnitudes.reindex(index=pd.MultiIndex.from_product(iterables, names=['GRID_NO', 'DAY']), fill_value=0).loc[:,["magnitude"]].reset_index()
 
-    
+    df_single_magnitudes  = pd.merge(df_single_magnitudes,df_country, on= ["GRID_NO","DAY"],how= "left")
+    del df_country
+
     df_reference["month_day"] = "2001/" + df_reference["month_day"]
     df_reference["noDay"]  = pd.to_datetime(df_reference["month_day"], format='%Y/%m/%d').dt.dayofyear
-
+    print(memory_usage)
 
     return df_single_magnitudes, df_reference.reset_index().loc[:,["GRID_NO","reference_temperature","noDay"]]
 
@@ -267,13 +291,12 @@ try:
     print(f"CSV für Threshold erstellt.")
     df_magnitude.to_csv(MagnitudeDataFile, sep=';')
     print(f"CSV für Magnitude erstellt.")
+
 except Exception as e:
     print("couldn't calculate Magnitude/Threshold")
+    print(e)
     raise e
 
-
-# %%
-print(df_magnitude)
 # %%
 # endregion # Ende Code Ablauf #
 print("Ende 2.4 - Threshhold und Magnitude berechnen - ( Autor/In Jan)")
@@ -293,16 +316,6 @@ def ConnectPostgresSql():
             user=psqlUser,
             password=psqlUserPassword)
 
-def CreateInsertCountryQuery(id_Country:int, CountryName: str, CountryShape: str)-> str:
-    """
-    id_Country: ID des Landes
-    CountryName: Name des Landes
-    CountryShape: Shapefilestring für eine geometrie Umwandlung. (mit der Funktion "st_geomfromtext")
-
-    info: Erstellt ein Insert Query für ein Land
-    """
-    return f"INSERT INTO Country(id_Country, CountryName, CountryShape) VALUES ({id_Country}, '{CountryName}', ST_GeomFromText('{CountryShape}'));"
-
 # endregion #
 
 # region # Start Code Ablauf #
@@ -317,16 +330,24 @@ try:
     CountriesDF = pd.read_csv(CountryDataFile, sep=";")
     print(f"CSV für Länder eingelesen.")
     # Iterate over all Rows of the CSV
+    insertlist= []
+    q = "INSERT INTO Country(id_Country, CountryName, CountryShape) values (%s,%s,%s);"
     for index, row in CountriesDF.iterrows():
         try:
-            # Create Query with Parameters
-            insertquery = CreateInsertCountryQuery(id_Country=row["id_Country"], CountryName=row["country"], CountryShape=row["geometry"])
-            # Execute the query and commit
-            mydb.cursor().execute(insertquery)
-            mydb.commit()
+            insertlist.append((
+            row['id_Country'],
+            row['country'],
+            row['geometry'],
+            ))
         except Exception as e :
-            mydb.rollback()
-            raise e
+            print(e)
+    try:
+        # Execute the query and commit
+        mydb.cursor().executemany(q,insertlist)
+        mydb.commit()
+    except Exception as e :
+        mydb.rollback()
+        print(e)
 except Exception as e:
     print(f"Exception: {e}")
     raise e
@@ -343,18 +364,6 @@ print("Ende 3.1 - Insert SQL Countries - Thomas Mandelz")
 print("Start 3.2 - Insert SQL Grids - Thomas Mandelz")
 # Erstellt aus dem preprocessedem CSV alle Grideinträge
 
-# region # Funktions definition #
-def CreateInsertGridQuery(id_Grid:int, GridShape: str)-> str:
-    """
-    id_Grid: ID des Grids
-    GridShape: Shapefilestring für eine geometrie Umwandlung. (mit der Funktion "st_geomfromtext")
-
-    info: Erstellt ein Insert Query für ein Land
-    """
-    return f"INSERT INTO grid(id_Grid, GridShape) VALUES ({id_Grid}, st_geomfromtext('{GridShape}'));"
-
-# endregion #
-
 # region # Start Code Ablauf #
 try:
     try:
@@ -366,22 +375,33 @@ try:
     # Read Grid CSV
     GridsDF = pd.read_csv(GridDataFile, sep=";")
     print(f"CSV für Grids eingelesen.")
-    # Iterate over all Rows of the CSV
+    
+    insertlist= []
+    q = "INSERT INTO grid(id_Grid, GridShape) VALUES (%s, st_geomfromtext(%s)) ON CONFLICT DO NOTHING;"
     for index, row in GridsDF.iterrows():
         try:
-            # Create Query with Parameters
-            insertquery = CreateInsertGridQuery(id_Grid=row["GRID_NO"], GridShape=row["geometry_y"])
-            # Execute the query and commit
-            mydb.cursor().execute(insertquery)
-            mydb.commit()
+            insertlist.append((
+            row['GRID_NO'],
+            row['geometry_y'],
+            ))
         except Exception as e :
-            mydb.rollback()
-            raise e
+            print(e)
+    try:
+        # Execute the query and commit
+        mydb.cursor().executemany(q,insertlist)
+        mydb.commit()
+    except errors.lookup(UNIQUE_VIOLATION) as e:
+        print(e)
+        pass
+    except Exception as e :
+        mydb.rollback()
+        print(e)
 except Exception as e:
     print(f"Exception: {e}")
     raise e
 finally:
     mydb.close()
+
 # endregion # Ende Code Ablauf #
 print("Ende 3.2 - Insert SQL Grids - Thomas Mandelz")
 # endregion # Ende 3.2 - Insert SQL Grids - Thomas Mandelz #
@@ -391,18 +411,6 @@ print("Ende 3.2 - Insert SQL Grids - Thomas Mandelz")
 # region # Start 3.3 - Insert SQL CountryGrids - Thomas Mandelz #
 print("Start 3.3 - Insert SQL CountryGrids - Thomas Mandelz")
 # Erstellt aus dem preprocessedem CSV alle GridCountryEinträge
-
-# region # Funktions definition #
-def CreateInsertCountryGridQuery(Country_id_Country:int, Grid_id_Grid: int)-> str:
-    """
-    Country_id_Country: ID des SQL Eintrages des Landes
-    Grid_id_Grid: ID des SQL Eintrages des Grids
-
-    info: Erstellt ein Insert Query für ein CountryGrid Entry
-    """
-    return f"INSERT INTO CountryGrid(id_CountryGrid,Country_id_Country, Grid_id_Grid) VALUES (DEFAULT,{Country_id_Country}, {Grid_id_Grid});"
-
-# endregion #
 
 # region # Start Code Ablauf #
 
@@ -416,17 +424,23 @@ try:
     # Read CountryGrid CSV
     CountryGridsDF = pd.read_csv(CountryGridDataFile, sep=";")
     print(f"CSV für CountryGrids Verbindung eingelesen.")
-    # Iterate over all Rows of the CSV
+    insertlist= []
+    q = "INSERT INTO CountryGrid(Country_id_Country, Grid_id_Grid) VALUES (%s, %s);"
     for index, row in CountryGridsDF.iterrows():
         try:
-            # Create Query with Parameters
-            insertquery = CreateInsertCountryGridQuery(Country_id_Country=row["id_Country"], Grid_id_Grid=row["GRID_NO"])
-            # Execute the query and commit
-            mydb.cursor().execute(insertquery)
-            mydb.commit()
+            insertlist.append((
+            row['id_Country'],
+            row['GRID_NO'],
+            ))
         except Exception as e :
-            mydb.rollback()
-            raise e
+            print(e)
+    try:
+        # Execute the query and commit
+        mydb.cursor().executemany(q,insertlist)
+        mydb.commit()
+    except Exception as e :
+        mydb.rollback()
+        print(e)
 except Exception as e:
     print(f"Exception: {e}")
     raise e
@@ -436,25 +450,11 @@ finally:
 print("Ende 3.3 - Insert SQL CountryGrids - Thomas Mandelz")
 # endregion # Ende 3.3 - Insert SQL CountryGrids - Thomas Mandelz #
 
-
 # #%%
 #%%
 # region # Start 3.4 - Insert SQL Temperature-Magnitude - Thomas Mandelz #
 print("Start 3.4 - Insert SQL Temperature-Magnitude - Thomas Mandelz")
 # Erstellt aus dem preprocessedem CSV alle Einträge der Temperaturen pro Tag
-
-# region # Funktions definition #
-def CreateInsertTemperatureMagnitudeQuery(Date: str, Temperature_Max:float, Magnitude: float, Grid_id_Grid:int)-> str:
-    """
-    Grid_id_Grid: ID des Grids
-    Date: Jahrestag
-    Magnitude: berechnete Magnitude des Jahrestages
-    Temperature_Max: Höchsttemperatur des Tages
-
-    info: Erstellt ein Insert Query für ein Magnitude (Magnitudetabelle)
-    """    
-    return f"INSERT INTO TemperatureMagnitude(id_TemperatureMagnitude,Date,Temperature_Max,Magnitude,Grid_id_Grid) VALUES (DEFAULT,'{Date}',{Temperature_Max},{Magnitude},{Grid_id_Grid});"
-# endregion #
 
 # region # Start Code Ablauf #
 try:
@@ -468,16 +468,24 @@ try:
     TemperatureMagnitudeDF = pd.read_csv(MagnitudeDataFile, sep=";")
     print(f"CSV für TemperatureMagnitude eingelesen.")
     # Iterate over all Rows of the CSV
+    insertlist = []
+    q = "INSERT INTO TemperatureMagnitude(Date,Temperature_Max,Magnitude,Grid_id_Grid) values (%s,%s,%s,%s);"
     for index, row in TemperatureMagnitudeDF.iterrows():
         try:
-            # Create Query with Parameters
-            insertquery = CreateInsertTemperatureMagnitudeQuery(Date=row["DAY"],Temperature_Max=row["TEMPERATURE_MAX"], Magnitude=row["magnitude"], Grid_id_Grid=row["GRID_NO"])
-            # Execute the query and commit
-            mydb.cursor().execute(insertquery)
-            mydb.commit()
+            insertlist.append((
+            row['DAY'],
+            row["TEMPERATURE_MAX"],
+            row['magnitude'],
+            row['GRID_NO']
+            )) #append data
         except Exception as e :
-            mydb.rollback()
-            raise e
+            print(e)
+    try:
+        mydb.cursor().executemany(q,insertlist)
+        mydb.commit()
+    except Exception as e :
+        mydb.rollback()
+        print(e)
 except Exception as e:
     print(f"Exception: {e}")
     raise e
@@ -491,19 +499,6 @@ print("Ende 3.4 - Insert SQL Temperature-Magnitude - Thomas Mandelz")
 print("Start 3.5 - Insert SQL Threshhold - Thomas Mandelz")
 # Erstellt aus dem preprocessedem CSV alle Einträge der Temperaturen pro Tag
 
-# region # Funktions definition #
-def CreateInsertThresholdQuery(Date: int, Threshold: float, Grid_id_Grid:int)-> str:
-    """
-    id_Threshold: ID des Thresholds
-    Date: Jahrestag
-    Threshold: berechneter Threshold des Jahrestages
-    Grid_id_Grid: Id des Grids
-
-    info: Erstellt ein Insert Query für ein Threshold (Thresholdtabelle)
-    """
-    return f"INSERT INTO Threshold(id_Threshold,Date,Threshold,Grid_id_Grid) VALUES (DEFAULT,{Date},{Threshold},{Grid_id_Grid});"
-# endregion #
-
 # region # Start Code Ablauf #
 try:
     try:
@@ -515,17 +510,25 @@ try:
     # Read Threshold CSV
     ThresholdDF = pd.read_csv(ThresholdDataFile, sep=";")
     print(f"CSV für Threshold eingelesen.")
-    # Iterate over all Rows of the CSV
+
+    insertlist= []
+    q = "INSERT INTO Threshold(Date,Threshold,Grid_id_Grid) values (%s,%s,%s);"
     for index, row in ThresholdDF.iterrows():
         try:
-            # Create Query with Parameters
-            insertquery = CreateInsertThresholdQuery(Date=row["noDay"], Threshold=row["reference_temperature"], Grid_id_Grid=row["GRID_NO"])
-            # Execute the query and commit
-            mydb.cursor().execute(insertquery)
-            mydb.commit()
+            insertlist.append((
+            row['noDay'],
+            row['reference_temperature'],
+            row['GRID_NO'],
+            ))
         except Exception as e :
-            mydb.rollback()
-            raise e
+            print(e)
+    try:
+        # Execute the query and commit
+        mydb.cursor().executemany(q,insertlist)
+        mydb.commit()
+    except Exception as e :
+        mydb.rollback()
+        print(e)
 except Exception as e:
     print(f"Exception: {e}")
     raise e
