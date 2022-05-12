@@ -134,7 +134,7 @@ print(f"CSV für Countries erstellt.")
 #%%
 df_gdf = gpd.GeoDataFrame(
     df_rawData, geometry=gpd.points_from_xy(df_rawData.LONGITUDE, df_rawData.LATITUDE), crs='epsg:4326') #umwandeln in Geodataframe
-
+del df_rawData
 # %%
 join = df_gdf.sjoin(gdf_new, how='inner', predicate='intersects')
 # %%
@@ -171,11 +171,11 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     df_country: one country of the raw Data
     reference_period: end of the reference period for the the threshold 
     """
-    df_values = df_country[["GRID_NO","DAY","TEMPERATURE_MAX"]]
+    df_country = df_country[["GRID_NO","DAY","TEMPERATURE_MAX"]]
     # Referenzperiode Berechnen
-    df_date_cleaned = df_values[df_values["DAY"] < reference_period]
+    df_date_cleaned = df_country[df_country["DAY"] < reference_period]
     # 29. Februar löschen
-    df_date_cleaned = df_values[df_values["DAY"].dt.strftime('%m/%d') != "02/29"]
+    df_date_cleaned = df_country[df_country["DAY"].dt.strftime('%m/%d') != "02/29"]
     # Alle Jahre auf 2001 setzen
     df_date_cleaned["DAY"]= df_date_cleaned["DAY"].apply(lambda x: x.replace(year = 2001))
 
@@ -205,18 +205,24 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
             df_reference = pd.concat([df_reference, saved_df])
     except Exception as e:   
         print(e)
+    
+    # delet unused Dataframes
+    del df_date_cleaned
+    del saved_df
+    del ts_dates
     # Neues Datumsformat hinzufügen
-    df_values["month_day"] = df_values["DAY"].dt.strftime('%m/%d')
+    df_country["month_day"] = df_country["DAY"].dt.strftime('%m/%d')
     # Spalten umbennenen
     df_reference = df_reference.rename(columns= {"DAY":"month_day","TEMPERATURE_MAX":"reference_temperature"})
 
     # Werte löschen die kleiner sind als die Referenzwerte.
-    df_values_reference= pd.merge(df_values,df_reference,on=["GRID_NO","month_day"],how='left')
+    df_values_reference= pd.merge(df_country,df_reference,on=["GRID_NO","month_day"],how='left')
     df_values_reference = df_values_reference[df_values_reference["TEMPERATURE_MAX"] > df_values_reference["reference_temperature"]].drop("month_day",axis=1)
 
 
     # Maximum pro Jahr in der Referenzperiode ausrechnen
-    df_max_values = df_values[df_values["DAY"] < reference_period]
+    df_max_values = df_country[df_country["DAY"] < reference_period]
+    del df_country
     df_max_values.loc[:,"DAY"]= df_max_values.loc[:,"DAY"].dt.strftime('%y')
     df_max_values = df_max_values.groupby(["GRID_NO","DAY"]).max()
     # T30y25p und T30y75p ausrechnen
@@ -225,6 +231,7 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
 
     # Magnitude ausrechnen
     df_single_magnitudes = pd.merge(df_values_reference,df_max_values,on=["GRID_NO"],how='left')
+    del df_max_values
     df_single_magnitudes.loc[:,"magnitude"] = (df_single_magnitudes.loc[:,"TEMPERATURE_MAX"] - df_single_magnitudes.loc[:,0.25])/ (df_single_magnitudes.loc[:,0.75]-df_single_magnitudes.loc[:,0.25])
     # Werte löschen die kleiner sind als T30y25p
     df_single_magnitudes = df_single_magnitudes[df_single_magnitudes["TEMPERATURE_MAX"]>df_single_magnitudes[0.25]]
@@ -237,14 +244,14 @@ def calculate_magnitude(df_country:pd.DataFrame,reference_period: str) -> pd.Dat
     df_single_magnitudes = df_single_magnitudes.set_index(['GRID_NO','DAY'])
     df_single_magnitudes = df_single_magnitudes.reindex(index=pd.MultiIndex.from_product(iterables, names=['GRID_NO', 'DAY']), fill_value=0).loc[:,["magnitude"]].reset_index()
 
-    df_single_magnitudes  = pd.merge(df_single_magnitudes,df_values, on= ["GRID_NO","DAY"],how= "left")
-
     
     df_reference["month_day"] = "2001/" + df_reference["month_day"]
     df_reference["noDay"]  = pd.to_datetime(df_reference["month_day"], format='%Y/%m/%d').dt.dayofyear
 
 
-    return df_single_magnitudes,df_reference.reset_index().loc[:,["GRID_NO","reference_temperature","noDay"]]
+    return df_single_magnitudes, df_reference.reset_index().loc[:,["GRID_NO","reference_temperature","noDay"]]
+
+
 # %%
 # endregion # 
 # region # Start Code Ablauf #
@@ -264,6 +271,9 @@ except Exception as e:
     print("couldn't calculate Magnitude/Threshold")
     raise e
 
+
+# %%
+print(df_magnitude)
 # %%
 # endregion # Ende Code Ablauf #
 print("Ende 2.4 - Threshhold und Magnitude berechnen - ( Autor/In Jan)")
