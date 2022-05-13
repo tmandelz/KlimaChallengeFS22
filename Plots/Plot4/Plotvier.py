@@ -40,7 +40,7 @@ mag["Year"] = mag['Date'].dt.year
 
 # mag = mag.loc[mag['Year']==year]
 mag["NoDay"]= pd.to_datetime(mag["Date"]).dt.strftime("%Y%m%d").astype(int)
-
+print(mag.head())
 # ####
 
 mag['grp_date'] = mag["NoDay"].diff().ne(1).cumsum()
@@ -129,7 +129,7 @@ fig = px.bar(
     y="Sum",
     color='Sum',
     # color_continuous_scale='Bluered'
-    color_continuous_scale=["blue", "white", "red"]
+    color_continuous_scale=[(0, "blue"), (0.3, "white"), ( 1, "red")]
     )
 fig.update_layout(plot_bgcolor = 'white')
 fig.update_traces(marker_line_color='rgb(8,48,107)',
