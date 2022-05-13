@@ -76,21 +76,6 @@ print(data.head())
 print("Rows:", data.shape[0])
 
 #%%
-
-# mag = pd.read_csv(magnitudePath, sep=";")
-# threshold = pd.read_csv(threshholdPath, sep = ";")
-# data = pd.read_csv(LuxembourgPath, sep =";")
-
-# mag = mag.loc[mag['GRID_NO']==grid]
-
-# print(mag.dtypes)
-# print(threshold.dtypes)
-
-# data["Date"] = pd.to_datetime(data["DAY"])
-# data["Year"] = data['Date'].dt.year
-
-# perYear = mag
-
 data["NoDay"]= pd.to_datetime(data["date"]).dt.strftime("%Y%m%d").astype(int)
 print(data.head())
 
@@ -106,7 +91,6 @@ magniperyear = magni.groupby([magni["Date"].dt.year])["Sum", "Count"].agg("sum")
 
 print(data)
 print(magni)
-# print(magniperyear)
 
 #%%
 
@@ -115,7 +99,7 @@ fig = px.bar(
     x=magniperyear.index,
     y="Sum",
     color='Sum',
-    color_continuous_scale=["blue", "white", "red"]
+    color_continuous_scale=[(0, "blue"), (0.25, "white"), ( 1, "red")]
     )
 fig.update_layout(plot_bgcolor = 'white')
 fig.update_traces(marker_line_color='rgb(8,48,107)',

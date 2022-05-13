@@ -45,14 +45,14 @@ print(mag.head())
 
 mag['grp_date'] = mag["NoDay"].diff().ne(1).cumsum()
 magni = mag.groupby('grp_date').agg(Start = ("NoDay", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'))
+print(magni.head())
 magni = magni.loc[magni['Count'] >= 3]
-# magni["End"] = magni["Start"] + magni["Count"]
 magni = magni.reset_index(drop=True)
 magni["Date"] = pd.to_datetime(magni["Start"], format='%Y%m%d')
 magni["Year"] = magni['Date'].dt.year
-print(magni)
+# print(magni)
 magniperyear = magni.groupby([magni["Date"].dt.year])["Sum", "Count"].agg("sum")
-print(magniperyear)
+# print(magniperyear)
 
 # ####
 
@@ -150,5 +150,5 @@ fig.update_traces(marker_line_color='rgb(8,48,107)',
 
 
 
-fig.show()
-fig.write_html("file.html")
+# fig.show()
+# fig.write_html("file.html")

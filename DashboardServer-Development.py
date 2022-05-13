@@ -125,6 +125,38 @@ def getdatafig3(year, grid):
         print(f"Error while connecting to postgres Sql Server. \n {e}")
         raise e
 
+def getdatafig4():
+    try:
+        # definition of length heatwave
+        lengthofheatwave = 3
+
+        # built query and get data
+        queryData = f"""select date, magnitude, grid_id_grid from TemperatureMagnitude order by grid_id_grid, date"""
+
+        mydb = ConnectPostgresSql()
+        cursor = mydb.cursor()
+
+        cursor.execute(queryData)
+        data = pd.read_sql(queryData,mydb)
+
+        # get date as to calc length of heatwaves
+        data["NoDay"]= pd.to_datetime(data["date"]).dt.strftime("%Y%m%d").astype(int)
+
+        # calc heatwaves
+        data['grp_date'] = data["NoDay"].diff().ne(1).cumsum()
+        magni = data.groupby('grp_date').agg(Start = ("NoDay", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'))
+        # keep heatwaves that are longer than "lengthofheatwave" no. days
+        magni = magni.loc[magni['Count'] >= lengthofheatwave]
+        magni = magni.reset_index(drop=True)
+        # convert string of date back to pandas datetime and group by year
+        magni["Date"] = pd.to_datetime(magni["Start"], format='%Y%m%d')
+        magniperyear = magni.groupby([magni["Date"].dt.year])["Sum", "Count"].agg("sum")
+        return magniperyear
+    except Exception as e:
+        print(f"Error while connecting to postgres Sql Server. \n {e}")
+        raise e
+
+
 # %% default Figures
 
 data_europe = GetDataEurope()
@@ -175,7 +207,6 @@ def create_country_fig(country:str, year:int):
     
     return country_fig
 
-# def create_fig3(country, year, grid_no= None):
 def create_fig3(year, grid):
     data, magni = getdatafig3(year, grid)
     # start plot
@@ -209,11 +240,23 @@ def create_fig3(year, grid):
                     annotation_text="Anzahl Tage: %s" %c, annotation_position="bottom",
                     annotation=dict(font_size=15, font_family="Arial", textangle=-90),
                 fillcolor="orange", opacity=0.25, line_width=0),
-
-    # generate and save plot
-    # fig.show()
-    # fig.write_html("file.html")
     return fig3
+
+def create_fig4():
+    magniperyear = getdatafig4()
+    fig = px.bar(
+        magniperyear,
+        x=magniperyear.index,
+        y="Sum",
+        color='Sum',
+        color_continuous_scale=[(0, "blue"), (0.25, "white"), ( 1, "red")]
+        )
+    fig.update_layout(plot_bgcolor = 'white')
+    fig.update_traces(marker_line_color='rgb(8,48,107)',
+                  marker_line_width=0.5, opacity=1)
+    return fig
+
+
 # %%
 step_num = 2020
 min_value = 1979
