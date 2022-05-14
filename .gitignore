@@ -1,2 +1,9 @@
 *__pycache__/*
 Docker/~$Networking_Ports.drawio.bkp
+Data/ArchiveData/*
+Data/CountryData/*
+Data/CountryGridData/*
+Data/GridData/*
+Data/MagnitudeData/*
+Data/ThresholdData/*
+Data/UnprocessedData/*
