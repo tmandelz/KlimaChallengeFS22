@@ -1,6 +1,8 @@
 #%%
+from ast import Global
 from itertools import count
 from pickle import FALSE, TRUE
+from pkgutil import get_data
 from dash import dcc,html
 from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform, State
 import flask
@@ -133,7 +135,7 @@ def getdatafig4():
     try:
         # definition of length heatwave
         lengthofheatwave = 3
-
+        
         # built query and get data
         queryData = f"""select date, magnitude, grid_id_grid from TemperatureMagnitude order by grid_id_grid, date"""
 
@@ -142,7 +144,7 @@ def getdatafig4():
 
         cursor.execute(queryData)
         data = pd.read_sql(queryData,mydb)
-
+        
         # get date as to calc length of heatwaves
         data["NoDay"]= pd.to_datetime(data["date"]).dt.strftime("%Y%m%d").astype(int)
 
@@ -159,7 +161,6 @@ def getdatafig4():
     except Exception as e:
         print(f"Error while connecting to postgres Sql Server. \n {e}")
         raise e
-
 
 # %% default Figures
 
@@ -179,7 +180,7 @@ def create_europe_fig(year,data = data_europe):
     europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     
     return europe_fig
-fig_europe=create_europe_fig(2016)
+fig_europe=create_europe_fig(1979)
 def update_europe(year,fig,data = data_europe):
     fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
     return fig
@@ -258,7 +259,14 @@ def create_fig4():
     fig4.update_layout(plot_bgcolor = 'white')
     fig4.update_traces(marker_line_color='rgb(8,48,107)',
                   marker_line_width=0.5, opacity=1)
+<<<<<<< Updated upstream
     return fig4
+=======
+    return fig
+# %%
+# only for the tests
+figure = create_fig4()
+>>>>>>> Stashed changes
 # %%
 step_num = 2020
 min_value = 1979
@@ -269,8 +277,13 @@ app.layout = html.Div(children=[
     html.Div([
         html.H1(children='Klimadaten Dashboard')], className='row'),
     html.Div([
+    html.Div([
+            dcc.Graph(figure=figure, id = "europe_sum"  ),
+            
+        ], className='row'),
         html.Div([
-            dcc.Graph(figure=create_europe_fig(1979), id = "europe" )
+            dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
+            
         ], className='six columns'),
         html.Div([
             dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" )
@@ -339,7 +352,6 @@ def on_click(slider_user,country_value,grid_no):
     n_intervals: value off the auto-stepper
     slider_user: slider value clicked by the user
     country_value: value of the stored country (last clicked on europe map)
-
     output:
     auto_status: Enable or Disable the auto-stepper
     stepper_value: Set the stepper to a value
@@ -367,7 +379,6 @@ def update_country(stepper_value,json_click):
     Arguments:
     stepper_value: last stored value of the year
     json_click: input of the clicked json
-
     output:
     country_value: stored country value for other events
     country_fig: update the country fig with the new country
