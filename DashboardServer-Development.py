@@ -76,13 +76,17 @@ def GetDataEurope():
 def GetDataCountry(Country,Year):
     try:
         mydb = ConnectPostgresSql()
-        queryCountry = f"""select id_grid,gridshape as geom, sum(magnitude) as summagnitude  from countrygrid
-            left join country on country.id_Country = countrygrid.Country_id_Country
-            left join grid on grid.id_Grid = countrygrid.Grid_id_Grid
-            left join temperaturemagnitude on temperaturemagnitude.grid_id_grid = countrygrid.Grid_id_Grid
-            WHERE country.countryname = '{Country}' and date_part('year', temperaturemagnitude.date) ={Year}
-            group by id_grid,gridshape
-            """
+
+        queryCountry = f"""select id_grid,geom,country,year,summagnitude from materialized_view_summagnitudecountrygridyear
+                            where country = '{Country}' and year ={Year}"""
+
+        # queryCountry = f"""select id_grid,gridshape as geom, sum(magnitude) as summagnitude  from countrygrid
+        #     left join country on country.id_Country = countrygrid.Country_id_Country
+        #     left join grid on grid.id_Grid = countrygrid.Grid_id_Grid
+        #     left join temperaturemagnitude on temperaturemagnitude.grid_id_grid = countrygrid.Grid_id_Grid
+        #     WHERE country.countryname = '{Country}' and date_part('year', temperaturemagnitude.date) ={Year}
+        #     group by id_grid,gridshape
+        #     """
         cursor = mydb.cursor()
         
         cursor.execute(queryCountry)
@@ -241,22 +245,20 @@ def create_fig3(year, grid):
                     annotation=dict(font_size=15, font_family="Arial", textangle=-90),
                 fillcolor="orange", opacity=0.25, line_width=0),
     return fig3
-
+    
 def create_fig4():
     magniperyear = getdatafig4()
-    fig = px.bar(
+    fig4 = px.bar(
         magniperyear,
         x=magniperyear.index,
         y="Sum",
         color='Sum',
         color_continuous_scale=[(0, "blue"), (0.25, "white"), ( 1, "red")]
         )
-    fig.update_layout(plot_bgcolor = 'white')
-    fig.update_traces(marker_line_color='rgb(8,48,107)',
+    fig4.update_layout(plot_bgcolor = 'white')
+    fig4.update_traces(marker_line_color='rgb(8,48,107)',
                   marker_line_width=0.5, opacity=1)
-    return fig
-
-
+    return fig4
 # %%
 step_num = 2020
 min_value = 1979
