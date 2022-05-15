@@ -177,9 +177,9 @@ def create_europe_fig(year,data = data_europe):
                             color_continuous_scale=px.colors.sequential.amp,
                             scope = "europe",
                             range_color=(0, 30),
-                            width=600,
+                            width=700,
                             height=450,
-                            labels={'countMagnitude': 'Magnitude'},
+                            labels={'countMagnitude': 'normalisierte Magnitude'},
                             hover_data={'countMagnitude':':.2f'})
     europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     
@@ -204,9 +204,9 @@ def create_country_fig(country:str, year:int):
                            color_continuous_scale=px.colors.sequential.amp,
                            scope = "europe",
                            range_color=(0, 30),
-                           width=600,
+                           width=700,
                            height=450,
-                           labels={'summagnitude': 'Magnitude'},
+                           labels={'summagnitude': 'Jahres-Magnitude'},
                            hover_data={'summagnitude':':.2f'}
                           )
 
@@ -227,7 +227,7 @@ def create_fig3(year, grid):
             x=data["noday"],
             y=data["reference_temperature"],
             line_color = "blue",
-            name = "Threshold Temperature"
+            name = "Threshold"
         ))
 
     # add temp of day
@@ -236,11 +236,11 @@ def create_fig3(year, grid):
             x=data["noday"],
             y=data["temperature_max"],
             line_color = "red",
-            name = "Max Temperature"
+            name = "Daily Max"
         ))
 
     # change background color to white. perhaps needs to be changed if different background color in html
-    fig3.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
+    fig3.update_layout({'title': 'Temperature','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
 
     # add heatwaves by adding vertical rectangle for each heatwave
     for x in range(len(magni)):
@@ -277,18 +277,18 @@ app = DashProxy(transforms=[MultiplexerTransform()])
 
 app.layout = html.Div(children=[
     html.Div([
-        html.H1(children='Klimadaten Dashboard')], className='row'),
-    html.Div([
-    html.Div([
-            # dcc.Graph(figure=figure, id = "europe_sum"  ),
+        html.H1(children='Klimadaten Dashboard'),
+        html.Img(src=app.get_asset_url('fig_head.png'), style={'width':'50%'})
+            # dcc.Graph(figure=figure, id = "europe_sum", config = {'displayModeBar': False}),
             
         ], className='row'),
+    html.Div([
         html.Div([
-            dcc.Graph(figure=create_europe_fig(1979), id = "europe" ),
+            dcc.Graph(figure=create_europe_fig(1979), id = "europe", config = {'displayModeBar': False}),
             
         ], className='six columns'),
         html.Div([
-            dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country" )
+            dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country", config = {'displayModeBar': False} )
         ], className='six columns')
     ], className='row'),
     html.Div([
@@ -304,7 +304,7 @@ app.layout = html.Div(children=[
         id='my-toggle-switch',
         value=False)], className='row'),
     html.Div([
-        dcc.Graph(figure=create_fig3(1979,96097), id = "grid" )
+        dcc.Graph(figure=create_fig3(1979,96097), id = "grid", config = {'displayModeBar': False} )
         ], className='row'),
     dcc.Store(id = "year",storage_type='local',data = 1979),
     dcc.Store(id = "country_value",data = "Belgium"),
