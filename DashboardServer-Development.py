@@ -46,9 +46,12 @@ def ConnectPostgresSql():
 #%%
 def GetDataEurope():
     try:
-        queryGridCount = f"select country.Countryname as country, count(*) as gridcount ,  country.countryShape  as geom  from countrygrid left join country on country.id_Country = countrygrid.Country_id_Country left join grid on grid.id_Grid = countrygrid.Grid_id_Grid group by country.Countryname,country.CountryShape"
-        queryMagnitudeSum = f"SELECT country.Countryname as country, date_part('year', Date) as Year, sum(temperaturemagnitude.Magnitude) as Magnitudesum  FROM countrygrid left join country on country.id_Country = countrygrid.Country_id_Country left join grid on grid.id_Grid = countrygrid.Grid_id_Grid left join temperaturemagnitude on temperaturemagnitude.Grid_id_Grid = countrygrid.Grid_id_Grid group by country.CountryName, date_part('year', Date) "
-        
+        queryGridCount = f"""select country.Countryname as country, count(*) as gridcount ,country.countryShape  as geom  from countrygrid
+        left join country on country.id_Country = countrygrid.Country_id_Country 
+        left join grid on grid.id_Grid = countrygrid.Grid_id_Grid 
+        group by country.Countryname,country.CountryShape"""
+        # queryMagnitudeSum = f"SELECT country.Countryname as country, date_part('year', Date) as Year, sum(temperaturemagnitude.Magnitude) as Magnitudesum  FROM countrygrid left join country on country.id_Country = countrygrid.Country_id_Country left join grid on grid.id_Grid = countrygrid.Grid_id_Grid left join temperaturemagnitude on temperaturemagnitude.Grid_id_Grid = countrygrid.Grid_id_Grid group by country.CountryName, date_part('year', Date) "
+        queryMagnitudeSum = """select country, Year, Magnitudesum from  materialized_view_summagnitudecountryyear"""
 
         mydb = ConnectPostgresSql()
         cursor = mydb.cursor()
@@ -137,7 +140,8 @@ def getdatafig4():
         lengthofheatwave = 3
         
         # built query and get data
-        queryData = f"""select date, magnitude, grid_id_grid from TemperatureMagnitude order by grid_id_grid, date"""
+        # queryData = f"""select date, magnitude, grid_id_grid from TemperatureMagnitude order by grid_id_grid, date"""
+        queryData= """select date,magnitude,grid_id_grid from  materialized_view_summagnitudegrid"""
 
         mydb = ConnectPostgresSql()
         cursor = mydb.cursor()
@@ -259,14 +263,12 @@ def create_fig4():
     fig4.update_layout(plot_bgcolor = 'white')
     fig4.update_traces(marker_line_color='rgb(8,48,107)',
                   marker_line_width=0.5, opacity=1)
-<<<<<<< Updated upstream
+
     return fig4
-=======
-    return fig
+
 # %%
 # only for the tests
-figure = create_fig4()
->>>>>>> Stashed changes
+# figure = create_fig4()
 # %%
 step_num = 2020
 min_value = 1979
@@ -278,7 +280,7 @@ app.layout = html.Div(children=[
         html.H1(children='Klimadaten Dashboard')], className='row'),
     html.Div([
     html.Div([
-            dcc.Graph(figure=figure, id = "europe_sum"  ),
+            # dcc.Graph(figure=figure, id = "europe_sum"  ),
             
         ], className='row'),
         html.Div([
