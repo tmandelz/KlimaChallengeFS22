@@ -16,4 +16,5 @@ nbformat
 gunicorn
 flask
 iso3166
+pycountry
 dash_daq

@@ -24,6 +24,7 @@ nbformat = "*"
 flask = "*"
 iso3166 = "*"
 dash-daq = "*"
+pycountry = "*"
 
 [requires]
 python_version = "3.9"

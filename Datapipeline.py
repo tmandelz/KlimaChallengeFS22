@@ -11,6 +11,7 @@ import geopandas as gpd
 from datetime import datetime,timedelta
 import geopandas as gpd
 import iso3166
+import pycountry
 
 import psycopg2
 from psycopg2 import errors
@@ -140,7 +141,13 @@ countries = pd.DataFrame(country_shape)
 try:
     for index,row in countries.iterrows():
         CountryName = row["country"]
-        CountryCode = iso3166.countries.get(row["country"])[3]
+        print(CountryName)
+        try:
+            CountryCode = iso3166.countries.get(CountryName)[3]
+        except KeyError as e:
+            CountryCode = pycountry.countries.search_fuzzy(CountryName)[0].numeric
+        except Exception as ex:
+            raise e
         countries.loc[countries["country"] == CountryName, "id_Country"] = CountryCode
         print(f"Für {CountryName} wurde der Ländercode ausgelesen: {CountryCode}")
 except Exception as e:
