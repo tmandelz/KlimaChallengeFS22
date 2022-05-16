@@ -297,16 +297,15 @@ app.layout = html.Div(children=[
         min=min_value,
         max=step_num,
         step = 1,
-        value=1,
+        value=1979,
         marks = {i: i for i in range(1979,2021,1)}
     ),
-    daq.ToggleSwitch(
-        id='my-toggle-switch',
-        value=False)], className='row'),
+    html.Button("Start",id = "start_button",n_clicks= 0),
+    html.Button("Stopp",id = "stopp_button",n_clicks= 0)], className='row'),
     html.Div([
         dcc.Graph(figure=create_fig3(1979,96097), id = "grid", config = {'displayModeBar': False} )
         ], className='row'),
-    dcc.Store(id = "year",storage_type='local',data = 1979),
+    dcc.Store(id = "year",storage_type='local',data = 1980),
     dcc.Store(id = "country_value",data = "Belgium"),
     dcc.Store(id = "grid_no",data = 96097),
     dcc.Interval(id='auto-stepper',
@@ -316,27 +315,42 @@ app.layout = html.Div(children=[
             
 
 
-
-@app.callback(
-   Output('steper', 'value'),
-   Input('auto-stepper', 'n_intervals')
-   )
-def on_click(n_intervals):
-    stepper_value = (min_value)+ (n_intervals %(1+step_num-min_value))
-    return stepper_value
 @app.callback(
     Output('auto-stepper', 'disabled'),
-    Output("steper","value"),
-    Output('auto-stepper', 'n_intervals'),
-    Input("my-toggle-switch","value"),
-    State("steper","value"),
-    State('auto-stepper', 'n_intervals')
+    Input('stopp_button', 'n_clicks'),
 )
-def button_off(toggle,value,stepper):
-    if toggle:
-        return True,value,0
-    else:
-        return False,1979,stepper
+def update_output(n_click):
+    return True
+@app.callback(
+    Output('auto-stepper', 'disabled'),
+    Output('steper', 'value'),
+    Output("year","data"),
+    State("steper","value"),
+    Input('start_button', 'n_clicks')
+)
+def update_output(stepper,n_click):
+    if stepper == 2020:
+        return False,1979,1979
+    return False,stepper +1,stepper + 1
+@app.callback(
+    Output('auto-stepper', 'disabled'),
+    State("year","data"),
+    Input("steper","value"))
+def update_output(year_store,year_data):
+    return year_store != year_data
+        
+@app.callback(
+    Output('steper', 'value'),
+    Output("year","data"),
+    State("steper","value"),
+    Input('auto-stepper', 'n_intervals')
+)
+def update_output(stepper,n_intervals):
+    print(stepper)
+    if stepper == 2020:
+        return 1979,1979
+    return stepper +1,stepper + 1
+
 
 
 @app.callback(
@@ -401,5 +415,6 @@ def update_fig3(year,json_click):
 
 if __name__ == '__main__':
      app.run_server(debug=False)
+
 
 # %%
