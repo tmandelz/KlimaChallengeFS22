@@ -313,7 +313,12 @@ app.layout = html.Div(children=[
             n_intervals=0)])
     
             
-
+@app.callback(
+    Output('auto-stepper', 'disabled'),
+    Input("steper","drag_value"),
+    State("steper","value"))
+def update_output(year_store,year_data):
+    return year_store != year_data
 
 @app.callback(
     Output('auto-stepper', 'disabled'),
@@ -329,15 +334,11 @@ def update_output(n_click):
     Input('start_button', 'n_clicks')
 )
 def update_output(stepper,n_click):
+
     if stepper == 2020:
         return False,1979,1979
     return False,stepper +1,stepper + 1
-@app.callback(
-    Output('auto-stepper', 'disabled'),
-    State("year","data"),
-    Input("steper","value"))
-def update_output(year_store,year_data):
-    return year_store != year_data
+
         
 @app.callback(
     Output('steper', 'value'),
@@ -346,10 +347,10 @@ def update_output(year_store,year_data):
     Input('auto-stepper', 'n_intervals')
 )
 def update_output(stepper,n_intervals):
-    print(stepper)
     if stepper == 2020:
         return 1979,1979
     return stepper +1,stepper + 1
+
 
 
 
