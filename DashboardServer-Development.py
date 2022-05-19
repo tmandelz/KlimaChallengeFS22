@@ -161,14 +161,16 @@ def create_europe_fig(year,data = data_europe):
     data = data[data["year"] == year]
     data = data.set_index("country")
     europe_fig = px.choropleth(data, geojson= data.geom, locations= data.index, color ="countMagnitude",
-                            color_continuous_scale=px.colors.sequential.amp,
+                            color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'],
                             scope = "europe",
-                            range_color=(0, 30),
+                            range_color=(0, 50),
                             width=700,
                             height=450,
                             labels={'countMagnitude': 'normalisierte Magnitude'},
                             hover_data={'countMagnitude':':.2f'})
+                            #hover_name funktioniert nicht, da nicht in dataframe enthalten
     europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
+    
     
     return europe_fig
 fig_europe=create_europe_fig(1979)
@@ -188,13 +190,14 @@ def create_country_fig(country:str, year:int):
     country_fig = px.choropleth(intersect_df, geojson= intersect_df.geometry, 
                            locations=intersect_df.index,
                            color ="summagnitude",
-                           color_continuous_scale=px.colors.sequential.amp,
+                           color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'],
                            scope = "europe",
-                           range_color=(0, 30),
+                           range_color=(0, 50),
                            width=700,
                            height=450,
                            labels={'summagnitude': 'Jahres-Magnitude'},
-                           hover_data={'summagnitude':':.2f'}
+                           hover_data={'summagnitude':':.2f'},
+                           hover_name='country_1'
                           )
 
     country_fig.update_geos(fitbounds="locations", visible=False)
@@ -213,8 +216,9 @@ def create_fig3(year, grid):
         go.Scatter(
             x=data["noday"],
             y=data["reference_temperature"],
-            line_color = "blue",
-            name = "Threshold"
+            line_color = "black",
+            name = "Threshold",
+            line = {'dash': 'dot'}
         ))
 
     # add temp of day
@@ -222,12 +226,12 @@ def create_fig3(year, grid):
         go.Scatter(
             x=data["noday"],
             y=data["temperature_max"],
-            line_color = "red",
-            name = "Daily Max"
+            line_color = '#993300',
+            name = "Tages-Maximum [°C]"
         ))
 
     # change background color to white. perhaps needs to be changed if different background color in html
-    fig3.update_layout({'title': 'Temperature','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
+    fig3.update_layout({'height': 250,'yaxis_title':'Temperatur [°C]','xaxis_title':'Jahrestag','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
 
     # add heatwaves by adding vertical rectangle for each heatwave
     for x in range(len(magni)):
@@ -242,12 +246,17 @@ def create_fig4():
     data = getdatafig4()
     fig4 = px.bar(
         data,
-        x= "year",
+        x='year',
         y="summe_magnitude",
         color='summe_magnitude',
-        color_continuous_scale=[(0, "blue"), (0.25, "white"), ( 1, "red")] #Höhe der Mitte (resp. weisses Farbe) lässt sich mit der Zahl (aktuell 0.25) ändern, Mitte wäre 0.5
+        color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'], #Höhe der Mitte (resp. weisses Farbe) lässt sich mit der Zahl (aktuell 0.25) ändern, Mitte wäre 0.5
+        height = 250,
+        hover_name='year',
+        hover_data= {'year': False,'summe_magnitude': ':d'}
         )
-    fig4.update_layout(plot_bgcolor = 'white')
+    
+    fig4.update_layout({'yaxis_title':'Jahres-Magnitude','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': None})
+    
     fig4.update_traces(marker_line_color='rgb(8,48,107)',
                   marker_line_width=0.5, opacity=1)
     fig4.update_coloraxes(showscale=False)
@@ -266,18 +275,17 @@ app = DashProxy(transforms=[MultiplexerTransform()])
 
 app.layout = html.Div(children=[
     html.Div([
-        html.H1(children='Klimadaten Dashboard'),
-        html.Img(src=app.get_asset_url('fig_head.png'), style={'width':'50%'})
-            # dcc.Graph(figure=figure, id = "europe_sum", config = {'displayModeBar': False}),
-            
+        html.H1(children='Klimadaten Dashboard', style={'text-align': 'center'})],style={'color': '#993300'}, className='row'),
+    html.Div([
+        
+        dcc.Graph(figure=create_fig4(), id = "europe_sum", config = {'displayModeBar': False}),            
         ], className='row'),
     html.Div([
         html.Div([
-            dcc.Graph(figure=create_europe_fig(1979), id = "europe", config = {'displayModeBar': False}),
-            
+            dcc.Graph(figure=create_europe_fig(1979), id = "europe", config = {'displayModeBar': False}),            
         ], className='six columns'),
         html.Div([
-            dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country", config = {'displayModeBar': False} )
+            dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country", config = {'displayModeBar': False})
         ], className='six columns')
     ], className='row'),
     html.Div([
@@ -288,12 +296,25 @@ app.layout = html.Div(children=[
         step = 1,
         value=1979,
         marks = {i: i for i in range(1979,2021,1)}
-    ),
-    html.Button("Start",id = "start_button",n_clicks= 0),
-    html.Button("Stopp",id = "stopp_button",n_clicks= 0)], className='row'),
+    )], className='row'),
+    html.Div([
+        html.Div([html.Button("Start",id = "start_button",n_clicks= 0, className="button button-primary", style={'float':'right'})], className= 'six columns'),
+        html.Div([html.Button("Stopp",id = "stopp_button",n_clicks= 0, className="button button-primary")], className= 'six columns'),     
+    ], className='row'),
     html.Div([
         dcc.Graph(figure=create_fig3(1979,96097), id = "grid", config = {'displayModeBar': False} )
         ], className='row'),
+    html.Div([
+        html.Div([
+            html.H5(children='Was ist eine Magnitude?'),
+            html.Plaintext('Definition einer Magnitude blablabla lorem ipsum')            
+        ], className='six columns'),
+        html.Div([
+            html.H5(children='Was ist eine Jahres-Magnitude?'),
+            html.Plaintext('Definition einer Jahres-Magnitude blablabla lorem ipsum') 
+        ], className='six columns')
+    ], className='row'),
+
     dcc.Store(id = "year",storage_type='local',data = 1980),
     dcc.Store(id = "country_value",data = "Belgium"),
     dcc.Store(id = "grid_no",data = 96097),
