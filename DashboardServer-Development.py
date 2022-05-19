@@ -140,10 +140,7 @@ def getdatafig4():
         lengthofheatwave = 3
         
         # built query and get data
-        # queryData = f"""select date, magnitude, grid_id_grid from TemperatureMagnitude order by grid_id_grid, date"""
-        # queryData= """select date,magnitude,grid_id_grid from  materialized_view_summagnitudegrid"""
-        queryData = f"""SELECT extract(year from date) AS year, SUM(magnitude) AS summe_magnitude FROM TemperatureMagnitude GROUP BY extract(year from date) order by year"""
-
+        queryData= """select year, summe_magnitude from  materialized_view_summagnitudegrid"""
 
         mydb = ConnectPostgresSql()
         cursor = mydb.cursor()
@@ -257,10 +254,11 @@ def create_fig4():
 
 
     return fig4
+
 # %%
 # only for the tests
 # figure = create_fig4()
-%%
+# %%
 step_num = 2020
 min_value = 1979
 
