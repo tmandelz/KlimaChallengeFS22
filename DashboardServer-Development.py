@@ -6,6 +6,7 @@ from pkgutil import get_data
 from dash import dcc,html
 from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform, State
 import flask
+from matplotlib.pyplot import grid
 import plotly as plt
 import json
 import plotly.express as px
@@ -106,7 +107,7 @@ def getdatafig3(year, grid):
         # varibles for gridno and year and definition of length of heatwave
         # grid = 96099
         # year = 2020
-        lengthofheatwave = 3
+        lengthofheatwave = 1
 
         # built query and get data
         queryData = f"""select Threshold.date as NoDay, Threshold.threshold as reference_temperature, Threshold.Grid_id_Grid,
@@ -137,7 +138,7 @@ def getdatafig3(year, grid):
 def getdatafig4():
     try:
         # definition of length heatwave
-        lengthofheatwave = 3
+        lengthofheatwave = 1
         
         # built query and get data
         queryData= """select year, summe_magnitude from  materialized_view_summagnitudegrid"""
@@ -268,9 +269,6 @@ def create_fig4():
     return fig4
 
 # %%
-# only for the tests
-# figure = create_fig4()
-# %%
 step_num = 2020
 min_value = 1979
 
@@ -322,7 +320,7 @@ app.layout = html.Div(children=[
     dcc.Store(id = "country_value",data = "Belgium"),
     dcc.Store(id = "grid_no",data = 96097),
     dcc.Interval(id='auto-stepper',
-            interval=1*3000, # in milliseconds
+            interval=1*2000, # in milliseconds
             n_intervals=0)])    
             
 @app.callback(
@@ -371,7 +369,7 @@ def update_output(stepper,n_intervals):
    Output('year', 'data'),
    Output("europe","figure"),
    Output("country","figure"),
-   Output("grid","figure"),
+   Output("grid1","figure"),
    Input("steper","value"),
    State("country_value","data"),
    State("grid_no","data"))
@@ -417,12 +415,13 @@ def update_country(stepper_value,json_click):
     return country_value,country_fig
 
 @app.callback(
-   Output('grid', 'data'),
-   Output("grid","figure"),
+   Output('grid_no', 'data'),
+   Output("grid1","figure"),
    State("steper","value"),
    Input('country', 'clickData'))
 def update_fig3(year,json_click):
     grid_selected = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
+    print(grid_selected)
     fig3=create_fig3(year,grid_selected)
     return grid_selected,fig3
 
