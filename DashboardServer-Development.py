@@ -164,8 +164,8 @@ def create_europe_fig(year,data = data_europe):
                             color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'],
                             scope = "europe",
                             range_color=(0, 50),
-                            width=700,
-                            height=450,
+                            #width=600,
+                            height=700,
                             labels={'countMagnitude': 'normalisierte Magnitude'},
                             hover_data={'countMagnitude':':.2f'})
                             #hover_name funktioniert nicht, da nicht in dataframe enthalten
@@ -193,8 +193,8 @@ def create_country_fig(country:str, year:int):
                            color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'],
                            scope = "europe",
                            range_color=(0, 50),
-                           width=700,
-                           height=450,
+                           #width=600,
+                           #height=450,
                            labels={'summagnitude': 'Jahres-Magnitude'},
                            hover_data={'summagnitude':':.2f'},
                            hover_name='country_1'
@@ -202,7 +202,7 @@ def create_country_fig(country:str, year:int):
 
     country_fig.update_geos(fitbounds="locations", visible=False)
     
-    country_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
+    country_fig.update_layout({'autosize':True,'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     
     return country_fig
 
@@ -231,7 +231,10 @@ def create_fig3(year, grid):
         ))
 
     # change background color to white. perhaps needs to be changed if different background color in html
-    fig3.update_layout({'height': 250,'yaxis_title':'Temperatur [°C]','xaxis_title':'Jahrestag','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
+    fig3.update_layout({
+        'height': 250,
+        #'width':600,
+        'yaxis_title':'Temperatur [°C]','xaxis_title':'Jahrestag','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
 
     # add heatwaves by adding vertical rectangle for each heatwave
     for x in range(len(magni)):
@@ -273,20 +276,22 @@ min_value = 1979
 
 app = DashProxy(transforms=[MultiplexerTransform()])
 
+
+
 app.layout = html.Div(children=[
     html.Div([
         html.H1(children='Klimadaten Dashboard', style={'text-align': 'center'})],style={'color': '#993300'}, className='row'),
-    html.Div([
-        
+    html.Div([        
         dcc.Graph(figure=create_fig4(), id = "europe_sum", config = {'displayModeBar': False}),            
         ], className='row'),
     html.Div([
         html.Div([
             dcc.Graph(figure=create_europe_fig(1979), id = "europe", config = {'displayModeBar': False}),            
-        ], className='six columns'),
+        ], className='seven columns'),
         html.Div([
-            dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country", config = {'displayModeBar': False})
-        ], className='six columns')
+            dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country", config = {'displayModeBar': False}),
+            dcc.Graph(figure=create_fig3(1979,96097), id = "grid1", config = {'displayModeBar': False} )
+        ], className='five columns')
     ], className='row'),
     html.Div([
         dcc.Slider(
@@ -301,9 +306,7 @@ app.layout = html.Div(children=[
         html.Div([html.Button("Start",id = "start_button",n_clicks= 0, className="button button-primary", style={'float':'right'})], className= 'six columns'),
         html.Div([html.Button("Stopp",id = "stopp_button",n_clicks= 0, className="button button-primary")], className= 'six columns'),     
     ], className='row'),
-    html.Div([
-        dcc.Graph(figure=create_fig3(1979,96097), id = "grid", config = {'displayModeBar': False} )
-        ], className='row'),
+
     html.Div([
         html.Div([
             html.H5(children='Was ist eine Magnitude?'),
@@ -311,7 +314,7 @@ app.layout = html.Div(children=[
         ], className='six columns'),
         html.Div([
             html.H5(children='Was ist eine Jahres-Magnitude?'),
-            html.Plaintext('Definition einer Jahres-Magnitude blablabla lorem ipsum') 
+            html.Plaintext('Definition einer JahresMagnitude blablabla lorem ipsum') 
         ], className='six columns')
     ], className='row'),
 
@@ -320,8 +323,7 @@ app.layout = html.Div(children=[
     dcc.Store(id = "grid_no",data = 96097),
     dcc.Interval(id='auto-stepper',
             interval=1*3000, # in milliseconds
-            n_intervals=0)])
-    
+            n_intervals=0)])    
             
 @app.callback(
     Output('auto-stepper', 'disabled'),
