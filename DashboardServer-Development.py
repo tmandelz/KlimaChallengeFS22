@@ -333,8 +333,7 @@ page_DashBoard_layout = html.Div(
     ], className='row'),
     html.Div([
         dcc.Graph(figure=create_fig3(1979,96097), id = "grid1", config = {'displayModeBar': False}),
-        dcc.Markdown('''<p>Die Datengrundlagen blabla <a href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d">Datengrundlage</a></p>'''),  
-        
+        html.P(children=[html.Span("Die Datengrundlagen blabla"),html.A("google.com",href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d")])
         ], className='row'), 
 
     html.Div([
