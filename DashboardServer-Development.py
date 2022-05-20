@@ -166,10 +166,11 @@ def create_europe_fig(year,data = data_europe):
                             scope = "europe",
                             range_color=(0, 50),
                             #width=600,
-                            height=700,
+                            height=600,
                             labels={'countMagnitude': 'normalisierte Magnitude'},
                             hover_data={'countMagnitude':':.2f'})
                             #hover_name funktioniert nicht, da nicht in dataframe enthalten
+    #europe_fig.update_geos(fitbounds="locations", visible=False)
     europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     
     
@@ -195,7 +196,7 @@ def create_country_fig(country:str, year:int):
                            scope = "europe",
                            range_color=(0, 50),
                            #width=600,
-                           #height=450,
+                           height=600,
                            labels={'summagnitude': 'Jahres-Magnitude'},
                            hover_data={'summagnitude':':.2f'},
                            hover_name='country_1'
@@ -233,14 +234,15 @@ def create_fig3(year, grid):
 
     # change background color to white. perhaps needs to be changed if different background color in html
     fig3.update_layout({
-        'height': 250,
+        'height': 400,
         #'width':600,
         'yaxis_title':'Temperatur [°C]','xaxis_title':'Jahrestag','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
+    fig3.update_layout(legend=dict(x=0.02, y=0.95))
 
     # add heatwaves by adding vertical rectangle for each heatwave
     for x in range(len(magni)):
         c = magni.loc[x,"Count"]
-        fig3.add_vrect(x0=magni.loc[x,"Start"], x1=magni.loc[x, "End"], 
+        fig3.add_vrect(x0=magni.loc[x,"Start"]-0.5, x1=magni.loc[x, "End"]+0.5, 
                     annotation_text="Anzahl Tage: %s" %c, annotation_position="bottom",
                     annotation=dict(font_size=15, font_family="Arial", textangle=-90),
                 fillcolor="orange", opacity=0.25, line_width=0),
@@ -272,24 +274,27 @@ def create_fig4():
 step_num = 2020
 min_value = 1979
 
-app = DashProxy(transforms=[MultiplexerTransform()])
+app = DashProxy(transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
 
 
 
 app.layout = html.Div(children=[
     html.Div([
-        html.H1(children='Klimadaten Dashboard', style={'text-align': 'center'})],style={'color': '#993300'}, className='row'),
+        html.H1(children='Hitzewellen in Europa von 1979 - 2020', style={'text-align': 'center'})],style={'color': '#993300'}, className='row'),
+    html.Div([
+        html.P('Das Klima ändert sich und damit die Temperatur. Hitzewellen kommen vermehrt vor und werden nicht nur länger sonder auch stärker. Dieses Dashboard zeigt die Entwicklung in Europa seit 1980 auf der Ebene von Ländern bis hin zu einzelnen 25 x 25km Quadrate. Als Datengrundlage dienen die maximalen Tagestemperaturen von Agri4Cast.'),        
+        html.P('Die erste Grafik zeigt die Zunahme der Magnitude der Hitzewellen in Europa. Auf der Europakarte ist die Stärke für jedes europäische Land ersichtlich. Via Slider lassen sich die Jahre ansteuern. Mit einem Klick auf ein Land erscheint dieses rechts vergrössert. Darin lässt sich die Stärke der Hitzewellen verteilt über das Land ablesen. Die über das Land verteilte Felder lassen sich ebenfalls auswählen. Für die Wahl des Jahres und des Feldes erscheint in der vierten Grafik die Jahresübersicht. Darin werden nicht nur Temperatur und Schwellen dargestellt, sondern auch die Hitzewellen als vertikale Balken eingetragen. ')
+    ], className='row'),
     html.Div([        
         dcc.Graph(figure=create_fig4(), id = "europe_sum", config = {'displayModeBar': False}),            
         ], className='row'),
     html.Div([
         html.Div([
             dcc.Graph(figure=create_europe_fig(1979), id = "europe", config = {'displayModeBar': False}),            
-        ], className='seven columns'),
+        ], className='six columns'),
         html.Div([
-            dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country", config = {'displayModeBar': False}),
-            dcc.Graph(figure=create_fig3(1979,96097), id = "grid1", config = {'displayModeBar': False} )
-        ], className='five columns')
+            dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country", config = {'displayModeBar': False})            
+        ], className='six columns')
     ], className='row'),
     html.Div([
         dcc.Slider(
@@ -304,15 +309,22 @@ app.layout = html.Div(children=[
         html.Div([html.Button("Start",id = "start_button",n_clicks= 0, className="button button-primary", style={'float':'right'})], className= 'six columns'),
         html.Div([html.Button("Stopp",id = "stopp_button",n_clicks= 0, className="button button-primary")], className= 'six columns'),     
     ], className='row'),
+    html.Div([
+        dcc.Graph(figure=create_fig3(1979,96097), id = "grid1", config = {'displayModeBar': False})], className='row'), 
 
     html.Div([
         html.Div([
-            html.H5(children='Was ist eine Magnitude?'),
-            html.Plaintext('Definition einer Magnitude blablabla lorem ipsum')            
+            html.H5(children='Was ist eine Hitzewelle?'),
+            html.P('Eine Hitzewelle wird durch ein überschreiten eines Threshold definiert. Dieser Threshold wird für jedes 25 x 25km Grid berechnet, damit lokale Gegebenheiten berücksichtigt werden können. Sobald eine tägliche Maximaltemperatur diesen Threshold um einen bestimmten Wert gemäss Formel xy übersteigt, spricht man von einer Hitzewelle.'),
+            html.H5(children='Wie ist ein Threshold definiert?'),
+            html.P('Der Threshold wird anhand einer Referenzperiode von 30 Jahren berechnet. In unserem Fall ist dies die Periode von 1979 - 2009. Der Threshold von einem Tag x ist das 90 Prozent Percentil von allen maximalen Tagestemperaturen in der Referenzperiode an den Tagen x-15 bis x+15.'),
+            dcc.Link(html.A('Datengrundlage'), href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d")           
         ], className='six columns'),
         html.Div([
             html.H5(children='Was ist eine Jahres-Magnitude?'),
-            html.Plaintext('Definition einer JahresMagnitude blablabla lorem ipsum') 
+            html.P('Die Summe aller Magnituden über alle Grids definiert die Jahres - Magnitude. Dies kann pro Land oder über einen gesamten Kontinent berechnet werden.'),
+            html.H5(children='Was ist eine normalisierte Magnitude?'),
+            html.P('Die Summer aller Magnituden über alle Grids pro Land, dividiert durch die Anzahl Grids pro Land. Dies ist erforderlich um einen Vergleich zwischen verschieden grossen Ländern zu ermöglichen.'),           
         ], className='six columns')
     ], className='row'),
 
