@@ -154,6 +154,7 @@ def getdatafig4():
         print(f"Error while connecting to postgres Sql Server. \n {e}")
         raise e
 
+
 # %% default Figures
 
 data_europe = GetDataEurope()
@@ -196,7 +197,7 @@ def create_country_fig(country:str, year:int):
                            color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'],
                            scope = "europe",
                            range_color=(0, 50),
-                           title= "country_1<br><sup>Magnitude pro 25 x 25km Grid pro Jahr</sup>",
+                           title= country +"<br><sup>Magnitude pro 25 x 25km Grid pro Jahr</sup>",
                            #width=600,
                            height=600,
                            labels={'summagnitude': 'Magnitude'},
@@ -240,7 +241,7 @@ def create_fig3(year, grid):
     fig3.update_layout({
         'height': 400,
         #'width':600,
-        'title': "Temperaturverlauf über das Jahr im Land country_1<br><sup>Hitzewellen werden orange dargestellt</sup>",
+        'title': "Temperaturverlauf über das Jahr im ausgewählten Grid<br><sup>Hitzewellen werden orange dargestellt</sup>",
         'yaxis_title':'Temperatur [°C]','xaxis_title':'Jahrestag','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
     fig3.update_layout(legend=dict(x=0.02, y=1.1))
     fig3.update_yaxes(range = [-20,40])
