@@ -1,0 +1,17 @@
+Wissenschaftliche Abgabe
+Teilstory Spanien: welche Grafik?
+Wo Quellen für Datengrundlage angeben? Quellen angeben, an einem einzelnen Ort, zB unter der letzten Grafik
+Layout allgemein
+Salomon Performance
+
+Einführung: Was für eine Arbeit, was wurde gemacht, wer?
+unterschiedliche Beschriftung der Magnituden
+Beschreibungen in eigene Seite? Formel zeigen, wissenschaftliche Abgabe könnte dort hin passen
+
+Datenstory
+Grafik zu den Daten, z.B. Sterblichkeit
+Farbenlayout (Fabenblindheit)
+Feedback zum Text von Simon (E-Mail an ihn)
+
+Bericht
+Ausblick, was wir noch gemacht hätten (Borkenkäfer, GML)
