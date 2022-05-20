@@ -17,6 +17,7 @@ import os
 import socket
 import geopandas as gpd
 import dash_daq as daq
+import dash_bootstrap_components as dbc
 
 
 #%%
@@ -283,11 +284,25 @@ def create_fig4():
 step_num = 2020
 min_value = 1979
 
-app = DashProxy(transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
+# app = DashProxy(transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
+server = flask.Flask(__name__)
+app = DashProxy(server=server,prevent_initial_callbacks=True,suppress_callback_exceptions=True,
+                transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
 
+header = html.Nav(className = "navbar navbar-expand-lg navbar-light bg-light", children=[
+    html.Div(children=[
+        dcc.Link('DashBoard', href='/DashBoard',className="nav-item nav-link btn"),
+        dcc.Link('Datastory', href='/Datastory',className="nav-item nav-link btn"),
+        dcc.Link('BackgroundInformation', href='/BackgroundInformation',className="nav-item nav-link btn"),
+        ])])
+    
+app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+    html.Div(id='page-content')
+])
 
-
-app.layout = html.Div(children=[
+page_DashBoard_layout = html.Div(
+    [header, html.Div(children=[
     html.Div([
         html.H1(children='Hitzewellen in Europa von 1979 - 2020', style={'text-align': 'center'})],style={'color': '#993300'}, className='row'),
     html.Div([
@@ -345,7 +360,7 @@ app.layout = html.Div(children=[
     dcc.Interval(id='auto-stepper',
             interval=1*2000, # in milliseconds
             n_intervals=0)])    
-            
+])
 @app.callback(
     Output('auto-stepper', 'disabled'),
     Input("steper","drag_value"),
@@ -448,8 +463,33 @@ def update_fig3(year,json_click):
     fig3=create_fig3(year,grid_selected)
     return grid_selected,fig3
 
+
+page_Datastory_layout = html.Div([header,html.Div([
+    html.Div(id='Datastory-content'),
+    html.H5(children='Was ist eine Datastory?'),
+])])
+
+page_BackgroundInfo_layout = html.Div([header,html.Div([
+    html.Div(id='Datastory-content'),
+    html.H5(children='Was ist eine Background?'),
+])])
+
+
+# Update the index
+@app.callback(Output('page-content', 'children'),
+              [Input('url', 'pathname')])
+def display_page(pathname):
+    if pathname == '/DashBoard':
+        return page_DashBoard_layout
+    elif pathname == '/Datastory':
+        return page_Datastory_layout
+    elif pathname == '/BackgroundInformation':
+        return page_BackgroundInfo_layout
+    else:
+        return page_DashBoard_layout
+
 if __name__ == '__main__':
-     app.run_server(debug=False)
+    app.run_server(debug=False)
 
 
 # %%
