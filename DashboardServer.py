@@ -276,8 +276,8 @@ min_value = 1979
 
 
 server = flask.Flask(__name__)
-app = DashProxy(transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
-
+app = DashProxy(server=server,prevent_initial_callbacks=True,
+                transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
 
 
 app.layout = html.Div(children=[
@@ -440,4 +440,5 @@ def update_fig3(year,json_click):
     return grid_selected,fig3
     
 if __name__ == '__main__':
-    app.run_server(host="172.28.1.5", debug=True, port=8050)
+    app.run_server(host="127.0.0.1", debug=True, port=8050)
+    print("Started Server")
