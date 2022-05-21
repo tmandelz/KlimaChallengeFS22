@@ -172,7 +172,7 @@ def create_europe_fig(year,data = data_europe):
                             labels={'countMagnitude': 'Magnitude'},
                             hover_data={'countMagnitude':':.2f'})
                             #hover_name funktioniert nicht, da nicht in dataframe enthalten
-    #europe_fig.update_geos(fitbounds="locations", visible=False)
+    europe_fig.update_geos(fitbounds="locations", visible=False)
     europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     
     
