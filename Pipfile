@@ -25,6 +25,9 @@ flask = "*"
 iso3166 = "*"
 dash-daq = "*"
 pycountry = "*"
+diskcache = "*"
+multiprocess = "*"
+psutil = "*"
 
 [requires]
 python_version = "3.9"
