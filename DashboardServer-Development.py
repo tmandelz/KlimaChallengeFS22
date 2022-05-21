@@ -357,15 +357,17 @@ page_DashBoard_layout = html.Div(
     dcc.Store(id = "country_value",data = "Belgium"),
     dcc.Store(id = "grid_no",data = 96097),
     dcc.Interval(id='auto-stepper',
-            interval=1*2000, # in milliseconds
+            interval=1*3000, # in milliseconds
             n_intervals=0)])    
 ])
 @app.callback(
     Output('auto-stepper', 'disabled'),
     Input("steper","drag_value"),
-    State("steper","value"))
-def update_output(year_store,year_data):
-    return year_store != year_data
+    State("steper","value"),
+    State('auto-stepper', 'disabled')
+    )
+def update_output(year_store,year_data,auto_state):
+    return (year_store != year_data) or auto_state
 
 @app.callback(
     Output('auto-stepper', 'disabled'),
