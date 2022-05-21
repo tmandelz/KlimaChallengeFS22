@@ -467,12 +467,12 @@ def update_fig3(year,json_click):
 
 page_Datastory_layout = html.Div([header,html.Div([
     html.Div(id='Datastory-content'),
-    html.H5(children='Was ist eine Datastory?'),
+    html.H5(children='Hier kommt die Datenstory hin.'),
 ])])
 
 page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.Div(id='Datastory-content'),
-    html.H5(children='Was ist eine Background?'),
+    html.H5(children='Hier kommen die Hintergrundinformationen hin.'),
 ])])
 
 

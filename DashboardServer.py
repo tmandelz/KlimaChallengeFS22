@@ -154,6 +154,7 @@ def getdatafig4():
         print(f"Error while connecting to postgres Sql Server. \n {e}")
         raise e
 
+
 # %% default Figures
 
 data_europe = GetDataEurope()
@@ -167,10 +168,11 @@ def create_europe_fig(year,data = data_europe):
                             range_color=(0, 50),
                             #width=600,
                             height=600,
-                            labels={'countMagnitude': 'normalisierte Magnitude'},
+                            title="Stärke der Hitzewellen in Europa pro Jahr<br><sup>Summe der Magnituden pro Jahr (normalisierte Werte durch Anzahl Grids)</sup>",
+                            labels={'countMagnitude': 'Magnitude'},
                             hover_data={'countMagnitude':':.2f'})
                             #hover_name funktioniert nicht, da nicht in dataframe enthalten
-    #europe_fig.update_geos(fitbounds="locations", visible=False)
+    europe_fig.update_geos(fitbounds="locations", visible=False)
     europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     
     
@@ -195,9 +197,10 @@ def create_country_fig(country:str, year:int):
                            color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'],
                            scope = "europe",
                            range_color=(0, 50),
+                           title= country +"<br><sup>Magnitude pro 25 x 25km Grid pro Jahr</sup>",
                            #width=600,
                            height=600,
-                           labels={'summagnitude': 'Jahres-Magnitude'},
+                           labels={'summagnitude': 'Magnitude'},
                            hover_data={'summagnitude':':.2f'},
                            hover_name='country_1'
                           )
@@ -220,7 +223,9 @@ def create_fig3(year, grid):
             y=data["reference_temperature"],
             line_color = "black",
             name = "Threshold",
-            line = {'dash': 'dot'}
+            line = {'dash': 'dot'},
+            text=["test"],
+            textposition=["bottom center"]
         ))
 
     # add temp of day
@@ -229,15 +234,17 @@ def create_fig3(year, grid):
             x=data["noday"],
             y=data["temperature_max"],
             line_color = '#993300',
-            name = "Tages-Maximum [°C]"
+            name = "Tages-Maximum"
         ))
 
     # change background color to white. perhaps needs to be changed if different background color in html
     fig3.update_layout({
         'height': 400,
         #'width':600,
+        'title': "Temperaturverlauf über das Jahr im ausgewählten Grid<br><sup>Hitzewellen werden orange dargestellt</sup>",
         'yaxis_title':'Temperatur [°C]','xaxis_title':'Jahrestag','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
-    fig3.update_layout(legend=dict(x=0.02, y=0.95))
+    fig3.update_layout(legend=dict(x=0.02, y=1.1))
+    fig3.update_yaxes(range = [-20,40])
 
     # add heatwaves by adding vertical rectangle for each heatwave
     for x in range(len(magni)):
@@ -256,12 +263,15 @@ def create_fig4():
         y="summe_magnitude",
         color='summe_magnitude',
         color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'], #Höhe der Mitte (resp. weisses Farbe) lässt sich mit der Zahl (aktuell 0.25) ändern, Mitte wäre 0.5
-        height = 250,
+        height = 300,
+        title = "Entwicklung der Hitzewellen in Europa<br><sup>Lesebeispiel: 1994 betrug die Summe aller Hitzewellenmagnituden pro 25 x 25km Grid in Europa 43'768.</sup>",
+        labels={'summe_magnitude': 'Magnitude'},
         hover_name='year',
         hover_data= {'year': False,'summe_magnitude': ':d'}
         )
     
-    fig4.update_layout({'yaxis_title':'Jahres-Magnitude','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': None})
+    fig4.update_layout({'yaxis_title':'Magnitude','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jahr'})
+    #fig4.add_annotation({'text': 'testblskjfdkjfd'})
     
     fig4.update_traces(marker_line_color='rgb(8,48,107)',
                   marker_line_width=0.5, opacity=1)
@@ -274,18 +284,29 @@ def create_fig4():
 step_num = 2020
 min_value = 1979
 
-
 server = flask.Flask(__name__)
-app = DashProxy(server=server,prevent_initial_callbacks=True,
+app = DashProxy(server=server,prevent_initial_callbacks=True,suppress_callback_exceptions=True,
                 transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
 
 
-app.layout = html.Div(children=[
+header = html.Nav(className = "navbar navbar-expand-lg navbar-light bg-light", children=[
+    html.Div(children=[
+        dcc.Link('DashBoard', href='/DashBoard',className="nav-item nav-link btn"),
+        dcc.Link('Datastory', href='/Datastory',className="nav-item nav-link btn"),
+        dcc.Link('BackgroundInformation', href='/BackgroundInformation',className="nav-item nav-link btn"),
+        ])])
+    
+app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+    html.Div(id='page-content')
+])
+
+page_DashBoard_layout = html.Div(
+    [header, html.Div(children=[
     html.Div([
         html.H1(children='Hitzewellen in Europa von 1979 - 2020', style={'text-align': 'center'})],style={'color': '#993300'}, className='row'),
     html.Div([
-        html.P('Das Klima ändert sich und damit die Temperatur. Hitzewellen kommen vermehrt vor und werden nicht nur länger sonder auch stärker. Dieses Dashboard zeigt die Entwicklung in Europa seit 1980 auf der Ebene von Ländern bis hin zu einzelnen 25 x 25km Quadrate. Als Datengrundlage dienen die maximalen Tagestemperaturen von Agri4Cast.'),        
-        html.P('Die erste Grafik zeigt die Zunahme der Magnitude der Hitzewellen in Europa. Auf der Europakarte ist die Stärke für jedes europäische Land ersichtlich. Via Slider lassen sich die Jahre ansteuern. Mit einem Klick auf ein Land erscheint dieses rechts vergrössert. Darin lässt sich die Stärke der Hitzewellen verteilt über das Land ablesen. Die über das Land verteilte Felder lassen sich ebenfalls auswählen. Für die Wahl des Jahres und des Feldes erscheint in der vierten Grafik die Jahresübersicht. Darin werden nicht nur Temperatur und Schwellen dargestellt, sondern auch die Hitzewellen als vertikale Balken eingetragen. ')
+        html.P('Das Klima hat sich in den letzten Jahrzehnten stark verändert. Die Erwärmung zeigt sich nicht nur in den erhöhten Durchschnittstemperaturen sondern auch durch Hitzewellen. Diese treten nicht nur öfters auf, sondern werden auch immer stärker. Dieses Dashboard zeigt die Entwicklung von Hitzewellen in Europa seit 1979 auf der Ebene von Ländern bis hin zu einzelnen 25 x 25km Quadrate auf. Dieses Dashboard ist im Rahmen einer Challenge des Studiengangs Data Science an der FHNW entstanden. Bearbeitet wurde diese Arbeit durch Daniela Herzig, Manjavi Kirupa, Thomas Mandelz, Patrick Schürmann, Jan Zwicky.'),   
     ], className='row'),
     html.Div([        
         dcc.Graph(figure=create_fig4(), id = "europe_sum", config = {'displayModeBar': False}),            
@@ -312,15 +333,17 @@ app.layout = html.Div(children=[
         html.Div([html.Button("Stopp",id = "stopp_button",n_clicks= 0, className="button button-primary")], className= 'six columns'),     
     ], className='row'),
     html.Div([
-        dcc.Graph(figure=create_fig3(1979,96097), id = "grid1", config = {'displayModeBar': False})], className='row'), 
+        dcc.Graph(figure=create_fig3(1979,96097), id = "grid1", config = {'displayModeBar': False}),
+        html.P(children=[html.Span("Die Datengrundlagen blabla"),html.A("google.com",href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d")])
+        ], className='row'), 
 
     html.Div([
         html.Div([
             html.H5(children='Was ist eine Hitzewelle?'),
             html.P('Eine Hitzewelle wird durch ein überschreiten eines Threshold definiert. Dieser Threshold wird für jedes 25 x 25km Grid berechnet, damit lokale Gegebenheiten berücksichtigt werden können. Sobald eine tägliche Maximaltemperatur diesen Threshold um einen bestimmten Wert gemäss Formel xy übersteigt, spricht man von einer Hitzewelle.'),
             html.H5(children='Wie ist ein Threshold definiert?'),
-            html.P('Der Threshold wird anhand einer Referenzperiode von 30 Jahren berechnet. In unserem Fall ist dies die Periode von 1979 - 2009. Der Threshold von einem Tag x ist das 90 Prozent Percentil von allen maximalen Tagestemperaturen in der Referenzperiode an den Tagen x-15 bis x+15.'),
-            dcc.Link(html.A('Datengrundlage'), href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d")           
+            html.P('Der Threshold wird anhand einer Referenzperiode von 30 Jahren berechnet. In unserem Fall ist dies die Periode von 1979 - 2009. Der Threshold von einem Tag x ist das 90 Prozent Percentil von allen maximalen Tagestemperaturen in der Referenzperiode an den Tagen x-15 bis x+15.')
+                     
         ], className='six columns'),
         html.Div([
             html.H5(children='Was ist eine Jahres-Magnitude?'),
@@ -334,15 +357,17 @@ app.layout = html.Div(children=[
     dcc.Store(id = "country_value",data = "Belgium"),
     dcc.Store(id = "grid_no",data = 96097),
     dcc.Interval(id='auto-stepper',
-            interval=1*2000, # in milliseconds
+            interval=1*3000, # in milliseconds
             n_intervals=0)])    
-            
+])
 @app.callback(
     Output('auto-stepper', 'disabled'),
     Input("steper","drag_value"),
-    State("steper","value"))
-def update_output(year_store,year_data):
-    return year_store != year_data
+    State("steper","value"),
+    State('auto-stepper', 'disabled')
+    )
+def update_output(year_store,year_data,auto_state):
+    return (year_store != year_data) or auto_state
 
 @app.callback(
     Output('auto-stepper', 'disabled'),
@@ -438,7 +463,32 @@ def update_fig3(year,json_click):
     print(grid_selected)
     fig3=create_fig3(year,grid_selected)
     return grid_selected,fig3
-    
+
+
+page_Datastory_layout = html.Div([header,html.Div([
+    html.Div(id='Datastory-content'),
+    html.H5(children='Hier kommt die Datenstory hin.'),
+])])
+
+page_BackgroundInfo_layout = html.Div([header,html.Div([
+    html.Div(id='Datastory-content'),
+    html.H5(children='Hier kommen die Hintergrundinformationen hin.'),
+])])
+
+
+# Update the index
+@app.callback(Output('page-content', 'children'),
+              [Input('url', 'pathname')])
+def display_page(pathname):
+    if pathname == '/DashBoard':
+        return page_DashBoard_layout
+    elif pathname == '/Datastory':
+        return page_Datastory_layout
+    elif pathname == '/BackgroundInformation':
+        return page_BackgroundInfo_layout
+    else:
+        return page_DashBoard_layout
+
 if __name__ == '__main__':
     app.run_server(host="127.0.0.1", debug=True, port=8050)
     print("Started Server")
