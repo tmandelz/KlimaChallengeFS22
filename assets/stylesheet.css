@@ -129,7 +129,7 @@
   html {
     font-size: 62.5%; }
   body {
-    background-color: #CFC3BD;
+    background-color:#CFC3BD ;
     font-size: 1.5em; /* currently ems cause chrome bug misinterpreting rems on body element */
     line-height: 1.6;
     font-weight: 400;
@@ -137,7 +137,7 @@
     color: rgb(50, 50, 50);
     margin: 20px }
   
-  
+    
   /* Typography
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   h1, h2, h3, h4, h5, h6 {
@@ -168,13 +168,33 @@
   
   /* Links
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
+  .a,
+
   a {
     color: #1EAEDB; 
     text-decoration: underline;
     cursor: pointer;}
   a:hover {
     color: #0FA0CE; }
-  
+    
+  .a.a-nav,
+  a.a-nav {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    float: left;
+  }
+
+  .nav,
+  nav {
+    list-style-type: none;
+    margin-bottom: 50;
+    padding: 0;
+    overflow: hidden;
+    background-color: #bba9a0;
+  }
   
   /* Buttons
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
@@ -416,3 +436,4 @@
   
   /* Larger than Desktop HD */
   @media (min-width: 1200px) {}
+

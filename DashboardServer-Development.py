@@ -168,10 +168,10 @@ def create_europe_fig(year,data = data_europe):
                             range_color=(0, 50),
                             #width=600,
                             height=600,
-                            title="Stärke der Hitzewellen in Europa pro Jahr<br><sup>Summe der Magnituden pro Jahr (normalisierte Werte durch Anzahl Grids)</sup>",
+                            title="Stärke der Hitzewellen in Europa pro Jahr<br><sup>Summe der Magnituden pro Jahr (durch Anzahl Grids normalisierte Werte)</sup>",
                             labels={'countMagnitude': 'Magnitude'},
                             hover_data={'countMagnitude':':.2f'})
-                            #hover_name funktioniert nicht, da nicht in dataframe enthalten
+                            #hover_frame=country)
     europe_fig.update_geos(fitbounds="locations", visible=False)
     europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     
@@ -289,11 +289,11 @@ server = flask.Flask(__name__)
 app = DashProxy(server=server,prevent_initial_callbacks=True,suppress_callback_exceptions=True,
                 transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
 
-header = html.Nav(className = "navbar navbar-expand-lg navbar-light bg-light", children=[
-    html.Div(children=[
-        dcc.Link('DashBoard', href='/DashBoard',className="nav-item nav-link btn"),
-        dcc.Link('Datastory', href='/Datastory',className="nav-item nav-link btn"),
-        dcc.Link('BackgroundInformation', href='/BackgroundInformation',className="nav-item nav-link btn"),
+header = html.Nav(className = "nav",style={'backgroundColor':'#bba9a0', 'height': 50, 'vertical-align': 'middle'}, children=[
+    html.Div(className="li", children=[
+        dcc.Link('Dashboard', href='/DashBoard',className="a a-nav"),
+        dcc.Link('Datenstory', href='/Datastory',className="a a-nav"),
+        dcc.Link('Hintergrundwissen', href='/BackgroundInformation',className="a a-nav"),
         ])])
     
 app.layout = html.Div([
@@ -304,9 +304,9 @@ app.layout = html.Div([
 page_DashBoard_layout = html.Div(
     [header, html.Div(children=[
     html.Div([
-        html.H1(children='Hitzewellen in Europa von 1979 - 2020', style={'text-align': 'center'})],style={'color': '#993300'}, className='row'),
+        html.H1(children='Hitzewellen in Europa von 1979 - 2020', style={'text-align': 'center'})],style={'color': '#993300', 'margin-top': 30}, className='row'),
     html.Div([
-        html.P('Das Klima hat sich in den letzten Jahrzehnten stark verändert. Die Erwärmung zeigt sich nicht nur in den erhöhten Durchschnittstemperaturen sondern auch durch Hitzewellen. Diese treten nicht nur öfters auf, sondern werden auch immer stärker. Dieses Dashboard zeigt die Entwicklung von Hitzewellen in Europa seit 1979 auf der Ebene von Ländern bis hin zu einzelnen 25 x 25km Quadrate auf. Dieses Dashboard ist im Rahmen einer Challenge des Studiengangs Data Science an der FHNW entstanden. Bearbeitet wurde diese Arbeit durch Daniela Herzig, Manjavi Kirupa, Thomas Mandelz, Patrick Schürmann, Jan Zwicky.'),   
+        html.P('Das Klima hat sich in den letzten Jahrzehnten stark verändert. Die Erwärmung zeigt sich nicht nur in den erhöhten Durchschnittstemperaturen sondern auch durch Hitzewellen. Diese treten nicht nur öfters auf, sondern werden auch immer stärker. Dieses Dashboard zeigt die Entwicklung von Hitzewellen in Europa seit 1979 auf der Ebene von Ländern bis hin zu einzelnen 25 x 25km Quadrate auf. Dieses Dashboard ist im Rahmen einer Challenge des Studiengangs Data Science an der FHNW entstanden. Bearbeitet wurde diese Arbeit durch Daniela Herzig, Manjavi Kirupa, Thomas Mandelz, Patrick Schürmann und Jan Zwicky.'),   
     ], className='row'),
     html.Div([        
         dcc.Graph(figure=create_fig4(), id = "europe_sum", config = {'displayModeBar': False}),            
@@ -334,19 +334,19 @@ page_DashBoard_layout = html.Div(
     ], className='row'),
     html.Div([
         dcc.Graph(figure=create_fig3(1979,96097), id = "grid1", config = {'displayModeBar': False}),
-        html.P(children=[html.Span("Die Datengrundlagen blabla"),html.A("google.com",href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d")])
+        html.P(children=[html.Span("Als Datengrundlage dient der Datensatz vom Joint Research centre agri4cast, das dem Science Hub der EU unterstellt ist: "),html.A("agri4cast, gridded agro-meteorological data",href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d")])
         ], className='row'), 
 
     html.Div([
         html.Div([
             html.H5(children='Was ist eine Hitzewelle?'),
-            html.P('Eine Hitzewelle wird durch ein überschreiten eines Threshold definiert. Dieser Threshold wird für jedes 25 x 25km Grid berechnet, damit lokale Gegebenheiten berücksichtigt werden können. Sobald eine tägliche Maximaltemperatur diesen Threshold um einen bestimmten Wert gemäss Formel xy übersteigt, spricht man von einer Hitzewelle.'),
+            html.P('Eine Hitzewelle wird durch ein überschreiten eines Threshold definiert. Dieser Threshold wird für jedes 25 x 25km Grid berechnet, damit lokale Gegebenheiten berücksichtigt werden können. Sobald eine tägliche Maximaltemperatur diesen Threshold um einen bestimmten Wert  übersteigt, spricht man von einer Hitzewelle.'),
             html.H5(children='Wie ist ein Threshold definiert?'),
             html.P('Der Threshold wird anhand einer Referenzperiode von 30 Jahren berechnet. In unserem Fall ist dies die Periode von 1979 - 2009. Der Threshold von einem Tag x ist das 90 Prozent Percentil von allen maximalen Tagestemperaturen in der Referenzperiode an den Tagen x-15 bis x+15.')
                      
         ], className='six columns'),
         html.Div([
-            html.H5(children='Was ist eine Jahres-Magnitude?'),
+            html.H5(children='Was sagt eine Magnitude aus?'),
             html.P('Die Summe aller Magnituden über alle Grids definiert die Jahres - Magnitude. Dies kann pro Land oder über einen gesamten Kontinent berechnet werden.'),
             html.H5(children='Was ist eine normalisierte Magnitude?'),
             html.P('Die Summer aller Magnituden über alle Grids pro Land, dividiert durch die Anzahl Grids pro Land. Dies ist erforderlich um einen Vergleich zwischen verschieden grossen Ländern zu ermöglichen.'),           
