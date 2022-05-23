@@ -362,6 +362,8 @@ page_DashBoard_layout = html.Div(
             interval=1*3000, # in milliseconds
             n_intervals=0)])    
 ])
+
+
 @app.callback(
     Output('auto-stepper', 'disabled'),
     Input("steper","drag_value"),
@@ -462,7 +464,6 @@ def update_country(stepper_value,json_click):
    Input('country', 'clickData'))
 def update_fig3(year,json_click):
     grid_selected = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
-    print(grid_selected)
     fig3=create_fig3(year,grid_selected)
     return grid_selected,fig3
 
