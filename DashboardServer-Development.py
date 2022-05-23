@@ -17,6 +17,7 @@ import os
 import socket
 import geopandas as gpd
 import dash_daq as daq
+import dash
 
 
 #%%
@@ -168,7 +169,7 @@ def create_europe_fig(year,data = data_europe):
                             range_color=(0, 50),
                             #width=600,
                             height=600,
-                            title="Stärke der Hitzewellen in Europa pro Jahr<br><sup>Summe der Magnituden pro Jahr (durch Anzahl Grids normalisierte Werte)</sup>",
+                            title="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr (durch Anzahl Grids normalisierte Werte)</sup>",
                             labels={'countMagnitude': 'Magnitude'},
                             hover_data={'countMagnitude':':.2f'})
                             #hover_frame=country)
@@ -180,6 +181,7 @@ def create_europe_fig(year,data = data_europe):
 fig_europe=create_europe_fig(1979)
 def update_europe(year,fig,data = data_europe):
     fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
+    fig.update_layout(title_text="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr (durch Anzahl Grids normalisierte Werte)</sup>")
     return fig
 
 def create_country_fig(country:str, year:int):
@@ -284,10 +286,10 @@ def create_fig4():
 step_num = 2020
 min_value = 1979
 
-# app = DashProxy(transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
-server = flask.Flask(__name__)
-app = DashProxy(server=server,prevent_initial_callbacks=True,suppress_callback_exceptions=True,
-                transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
+app = DashProxy(transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
+# server = flask.Flask(__name__)
+# app = DashProxy(server=server,prevent_initial_callbacks=True,suppress_callback_exceptions=True,
+#                 transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
 
 header = html.Nav(className = "nav",style={'backgroundColor':'#bba9a0', 'height': 50, 'vertical-align': 'middle'}, children=[
     html.Div(className="li", children=[
@@ -492,5 +494,4 @@ def display_page(pathname):
 if __name__ == '__main__':
     app.run_server(debug=False)
 
-
-# %%
+#%%
