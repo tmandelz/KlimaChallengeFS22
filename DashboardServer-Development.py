@@ -188,6 +188,7 @@ def create_europe_fig(year,data = data_europe):
     return europe_fig
 
 fig_europe=create_europe_fig(1979)
+
 def update_europe(year,fig,data = data_europe):
     fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
     fig.update_traces(text = data["country"],z=data["countMagnitude"], hovertemplate="<b>%{text}</b><br><br>" + "Magnitude: %{z:.2f}")
@@ -209,7 +210,7 @@ def create_country_fig(country:str, year:int):
                            color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'],
                            scope = "europe",
                            range_color=(0, 50),
-                           title= country +"<br><sup>Magnitude pro 25 x 25km Feld pro Jahr</sup>",
+                           title= country +"<br><sup>Magnitude pro 25 x 25km Feld im Jahr"+str(year) +"</sup>",
                            #width=600,
                            height=600,
                         #    labels={'summagnitude': 'Magnitude'},
@@ -253,7 +254,7 @@ def create_fig3(year, grid):
     fig3.update_layout({
         'height': 400,
         #'width':600,
-        'title': "Temperaturverlauf über das Jahr im ausgewählten Grid<br><sup>Hitzewellen werden orange dargestellt</sup>",
+        'title': "Temperaturverlauf über das Jahr "+str(year) +" im ausgewählten Grid<br><sup>Hitzewellen werden orange dargestellt</sup>",
         'yaxis_title':'Temperatur [°C]','xaxis_title':'Jahrestag','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
     fig3.update_layout(legend=dict(x=0.02, y=1.1))
     fig3.update_yaxes(range = [-20,40])
@@ -389,9 +390,28 @@ page_DashBoard_layout = html.Div(
     dcc.Store(id = "country_value",data = "Belgien"),
     dcc.Store(id = "grid_no",data = 96097),
     dcc.Interval(id='auto-stepper',
-            interval=1*3200, # in milliseconds
+            interval=1*5000, # in milliseconds
             n_intervals=0)])    
 ])
+
+@app.callback(
+    Output('auto-stepper', 'disabled'),
+    Input('stopp_button', 'n_clicks'),
+)
+def update_output(n_click):
+    return n_click != 0
+@app.callback(
+    Output('steper', 'value'),
+    Output("year","data"),
+    State("steper","value"),
+    Input('auto-stepper', 'n_intervals')
+)
+def update_output(stepper,n_intervals):
+    if stepper == 1:
+        stepper = 1979
+    if stepper == 2020:
+        return 1979,1979
+    return stepper +1,stepper + 1
 
 @app.callback(
     Output('auto-stepper', 'disabled'),
@@ -400,14 +420,10 @@ page_DashBoard_layout = html.Div(
     State('auto-stepper', 'disabled')
     )
 def update_output(year_store,year_data,auto_state):
+    print(year_data)
     return (year_store != year_data) or auto_state
 
-@app.callback(
-    Output('auto-stepper', 'disabled'),
-    Input('stopp_button', 'n_clicks'),
-)
-def update_output(n_click):
-    return True
+
 @app.callback(
     Output('auto-stepper', 'disabled'),
     Output('steper', 'value'),
@@ -416,24 +432,11 @@ def update_output(n_click):
     Input('start_button', 'n_clicks')
 )
 def update_output(stepper,n_click):
-
+    if stepper == 1:
+        stepper = 1979
     if stepper == 2020:
         return False,1979,1979
     return False,stepper +1,stepper + 1
-
-        
-@app.callback(
-    Output('steper', 'value'),
-    Output("year","data"),
-    State("steper","value"),
-    Input('auto-stepper', 'n_intervals')
-)
-def update_output(stepper,n_intervals):
-    if stepper == 2020:
-        return 1979,1979
-    return stepper +1,stepper + 1
-
-
 
 
 
@@ -461,8 +464,6 @@ def on_click(slider_user,country_value,grid_no):
     """
 
     # update Figures
-    if slider_user == 1:
-        slider_user = 1979
     europe_fig = update_europe(slider_user,fig_europe)
     country_fig = create_country_fig(country_value,slider_user)
     grid_fig = create_fig3(slider_user,grid_no)
