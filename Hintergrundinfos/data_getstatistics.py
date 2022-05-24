@@ -1,15 +1,21 @@
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
+# from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
-from scipy.stats import norm
+# from scipy.stats import norm
+import os
+import plotly.express as px
 
-data = pd.read_csv("data_statistics.csv")
+
+
+dirname = os.path.dirname(__file__)
+dataPath = os.path.join(
+    dirname, 'data_statistics.csv')
+
+data = pd.read_csv(dataPath)
 data["sum_mag_norm"] = data["summe_magnitude"] / 4202.013625 * 1
 
 def dostats(data):
-    # data = pd.read_csv("data_statistics.csv")
-    # data["sum_mag_norm"] = data["summe_magnitude"] / 4202.013625 * 1
     data["Mean5y"] = data["sum_mag_norm"].rolling(5).mean()
     data["Sum5y"] = data["sum_mag_norm"].rolling(5).sum()
     data["Std10y"] = data["sum_mag_norm"].rolling(10).std()
@@ -19,13 +25,44 @@ def dostats(data):
     print(data["sum_mag_norm"].describe())
     print(data)
 
-# dostats(data)
+dostats(data)
 
+# def showhist(data):
+#     fig = px.histogram(
+#         data,
+#         x= "sum_mag_norm",
+#         nbins=15
+#         )
+#     fig.show()
 
-plt.hist(data["summe_magnitude"], bins = 20)
-plt.show()
+def showhist(data):
+    plt.style.use('ggplot')
+    plt.hist(data["sum_mag_norm"], bins = 15)
+    plt.show()
 
+showhist(data)
 
+def showrollingmean(data):
+    data["Mean5y"] = data["sum_mag_norm"].rolling(5).mean()
+    fig = px.line(
+        data,
+        x = "year",
+        y = "Mean5y"
+        )
+    fig.show()
+
+# showrollingmean(data)
+
+def showrollingstd(data):
+    data["Std10y"] = data["sum_mag_norm"].rolling(10).std()
+    fig = px.line(
+        data,
+        x = "year",
+        y = "Std10y"
+        )
+    fig.show()
+
+# showrollingstd(data)
 
 def linReg(data):
     plt.scatter(data["year"], data["sum_mag_norm"])

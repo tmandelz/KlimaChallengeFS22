@@ -18,6 +18,8 @@ import socket
 import geopandas as gpd
 import dash_daq as daq
 import dash
+import matplotlib.pyplot as mplt
+from plotly import tools as tls
 
 
 #%%
@@ -155,6 +157,14 @@ def getdatafig4():
         print(f"Error while connecting to postgres Sql Server. \n {e}")
         raise e
 
+def getdatastats():
+    try:
+        data = getdatafig4()
+        data["sum_mag_norm"] = data["summe_magnitude"] / 4202.013625 * 1
+        return data
+    except Exception as e:
+        print(f"Error while connecting to postgres Sql Server. \n {e}")
+        raise e
 
 # %% default Figures
 
@@ -278,9 +288,24 @@ def create_fig4():
     fig4.update_traces(marker_line_color='rgb(8,48,107)',
                   marker_line_width=0.5, opacity=1)
     fig4.update_coloraxes(showscale=False)
-
-
     return fig4
+
+def showhist():
+    data = getdatastats()
+    fighist = mplt.figure()
+    mplt.style.use('ggplot')
+    mplt.hist(data["sum_mag_norm"], bins = 15, figure = fighist)
+    # ax = fighist.add_subplot(1, 1, 1)
+    # ax.set_facecolor(color="#bba9a0")
+    fighist.patch.set_facecolor('black')
+    fighist = tls.mpl_to_plotly(fighist)
+    # fighist = px.histogram(
+    # data,
+    # x= "sum_mag_norm",
+    # nbins=15
+    # )
+    return fighist
+# showhist()
 
 # %%
 step_num = 2020
@@ -480,7 +505,41 @@ page_Datastory_layout = html.Div([header,html.Div([
 
 page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.Div(id='Datastory-content'),
-    html.H5(children='Hier kommen die Hintergrundinformationen hin.'),
+    html.H5(children='Quelle unserer Daten'),
+    html.P('In Europa besitzt jedes einzelne Land einen nationalen Wetterdienst. Diese führen eigene Messungen, teilweise nach eigenen Standards, aus und speichern sie an unterschiedlichen Orten. Wir verwenden deshalb die Daten vom AGRI4CAST Resources Portal der Europäischen Kommission. Diese Datenbank besteht aus täglichen meteorologischen Daten seit 1979. Die Messwerte werden für die ganze EU und umliegende Länder auf 25x25 km Grids/Felder dargestellt und erfüllen somit unsere Anforderungen für dieses Dashboard und die Datenstory.'),
+    html.H5(children='Was ist eine Hitzewelle und was sagt die Magnitude aus?'),
+    html.P('Eine Hitzewelle ist eine überdurchschnittliche heisse Periode. Es existiert eine Vielzahl von Definitionen, die WMO (World Meteorological Organization) definiert eine Hitzewelle als mindestens fünf aufeinanderfolgende Tage, an denen die maximale Tagestemperatur 5°C über der maximalen Durchschnittstemperatur liegt.'),
+    html.P('Russo hat 2014 eine Definition eines Heatwave-Magnitude-Index herausgegeben: diese definiert durch eine einzelne Zahl – der Magnitude – die Länge und Stärke von Hitzewellen. Sie hat aber auch ihre Schwächen, insbesondere im Rahmen des sich erwärmenden Klimas und führt zu einer Unterschätzung von Hitzewellen-Magnituden. Sie wurde darum 2015 durch Russo ersetzt mit der täglichen Magnitude, die auf Messungen in einem regelmässigen geographischen Raster anwendbar ist.'),
+    html.P('Gemäss Russo ist eine Hitzewelle definiert durch drei aufeinanderfolgende Tage, die über einer Schwelle in einer 30-jährigen Referenzperiode liegen. Die Schwelle (oder Threshold) berechnet sich durch das 90 Prozent Perzentil von täglichen Maximaltemperaturen in einem 31-Tage Fenster, für einen Tag x also die Tage x-15 bis x+15. Die Magnitude, also die Stärke (abhängig von Länge und Temperatur) einer Hitzewelle, wiederum berechnet sich aus der Summe von aufeinanderfolgenden Tagen einer Hitzewelle gemäss folgender Formel:'),
+#
+    html.P(r'$\[ M_d (T_d) = \begin{cases}\frac{T_D – T_{30y25p}}{T_{30y75p} – T_{30y25p}} \quad \text{if } T_d > T_{30y25p} \\ 0 \quad \text{if} T_D \llT_{30y25p}\end{cases}]\]$'),
+#
+    html.P('Wobei Td die tägliche Maximaltemperatur der Hitzewelle ist und T30y75p/25p die 25 bzw. 75 Prozent Perzentil der jährlichen Maximaltemperaturen der Referenzperiode. In der vorhandenen Literatur ist nicht eindeutig definiert, ob die T30y75p/25p sich auf die jährlichen Maximaltemperaturen oder auf alle Temperaturen der Referenzperiode bezieht.'),
+    html.H6(children='Wie wurde die Magnitude abgegrenzt für diese Arbeit?'),
+    html.P('Wir haben uns im Rahmen dieser Arbeit an die Definition von der täglichen Magnitude-Index von Russo angelehnt. Folgende Abgrenzungen haben wir jedoch gemacht:'),
+    html.Li('Eine Hitzewelle muss nicht drei Tage lang sein. Ein ausserordentlicher Hitzetag wird als Hitzewelle aufgenommen und die Magnitude berechnet.'),
+    html.Li('Wir haben T30y75p/25p als jährliche Maximaltemperatur der Referenzperiode interpretiert. Damit treten Hitzewellen bei uns nur in den Sommermonaten auf und ausserordentlich warme Tage im Winter werden damit vernachlässigt.'),
+    html.Li('Wir haben nicht einzelne Hitzewellen miteinander verglichen, sondern immer die aufsummierten Magnituden pro Jahr, je nach Grafik pro Grid, pro Land oder in Europa.'),
+    html.Li('Unsere Referenzperiode ist definiert von 1979 – 2008. Wir werten jedoch nicht nur Temperaturen ausserhalb der Referenzperiode aus, sondern auch innerhalb der Referenzperiode. Damit können wir den gesamten Datensatz im dashboard darstellen. Uns ist aber bewusst, dass dies von der Idee einer Referenzperiode abweicht.'),
+    html.H6(children='Was ist eine Jahresmagnitude?'),
+    html.P('Alle auftretenden Hitzewellen und deren Magnitude, die gemäss obiger Formel berechnet wurde, summiert über das Jahr.'),
+    html.H6(children='Was ist eine normalisierte Magnitude?'),
+    html.P('Um einen Vergleich zwischen den Ländern machen zu können, haben wir die Summe aller Magnituden pro Jahr pro Land aufsummiert und durch die Anzahl Grids geteilt. Somit kann ein Vergleich zwischen allen Ländern gemacht werden.'),
+    html.H6(children='Quelle:'),
+    html.P(children=[html.Span("Russo, Simone, Jana Sillmann, und Erich M Fischer. „Top Ten European Heatwaves since 1950 and Their Occurrence in the Coming Decades“. Environmental Research Letters 10, Nr. 12 (1. Dezember 2015): 124003. "),html.A("https://doi.org/10.1088/1748-9326/10/12/124003",href="https://doi.org/10.1088/1748-9326/10/12/124003")]),
+    html.H5(children='Statistische Auswertung'),
+    html.P('Um einen Überblick über die zunehmende Stärke von Hitzewellen zu erhalten, zeigen wir im Dashboard eine Grafik der jährlichen Stärken der Hitzewellen in Europa. Um die Daten nicht nur visuelle darzustellen, haben wir sie statistisch untersucht. Für die Verständlichkeit haben wir die Daten normalisiert. Dabei wurde die Stärke des ersten Jahres auf 1 gesetzt und die restlichen Jahre dazu standardisiert. Folgende Erkenntnisse konnten wir dadurch erzielen.'),
+    html.H6(children='Mittelwert'),
+    html.P('Die Stärke der Magnituden betrug im Durchschnitt 6.9 und Median lag bei 5.3. Es gibt also ein paar Ausreisser, die den Mittelwert nach oben ziehen.'),
+    html.H6(children='Summen und Mittelwerte über Fünfjahresperioden'),
+    html.P('Für die ersten fünf Jahre unserer Beobachtungsperiode betrug der jährliche Mittelwert 2.7 und die Summe 13.7. Im Kontrast dazu wurde für die letzten fünf Jahre einen Mittelwert von 11.8 und eine Summe 59.0 und verzeichnet. Hier haben wir einen Anstieg von jeweils etwa 330% festgestellt. Die fünf Jahre mit dem höchsten Mittelwert waren von 2015 bis 2019 mit 13.3.'),
+    html.Div([        
+        dcc.Graph(figure=showhist(), id = "hist_europe", config = {'displayModeBar': False}),            
+        ], className='row'),
+    html.H6(children='Standardabweichung'),
+    html.P('Für die Standardabweichung haben wir eine rollierende Standardabweichung über 10 Jahre angeschaut. Zu Beginn der Zeitreihe wurde eine Standardabweichung von 1.6 verzeichnet. Diese stieg bis zum Ende auf 3.9 an. Der höchste Wert von 5.7 wurde für die Periode von 2001 bis 2012 beobachtet.'),
+    html.H6(children='Regressionsanalyse'),
+    html.P('Um festzustellen, ob eine Steigung erkennbar ist, haben wir eine lineare Regressionsanalyse durchgeführt. Anhand der Residuenanalyse wurde erkennbar, dass der starke Anstieg der Magnituden die Analyse stark verzerrt. Für die Regression müssten die Summen mit dem Logarithmus zur Basis 2 transformiert werden. Die Analyse ergibt so eine Steigung von 0.07 und ein Ordinatenabschnitt von -138.3. Aufgrund der geringen Anzahl Jahre, der starken Transformation und weiterhin starken Streuung der Residuen taugt dieses lineare Modell nicht für Prognosen. Möglicherweise können sophistiziertere Transformationen genauere Resultate liefern.'),
 ])])
 
 
