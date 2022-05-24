@@ -169,19 +169,19 @@ def create_europe_fig(year,data = data_europe):
                             range_color=(0, 50),
                             #width=600,
                             height=600,
-                            title="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr (durch Anzahl Grids normalisierte Werte)</sup>",
-                            labels={'countMagnitude': 'Magnitude'},
-                            hover_data={'countMagnitude':':.2f'})
+                            title="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr </sup>")
+                            #labels={'countMagnitude': ''},
+                            #hover_data={'countMagnitude':':.2f'})
                             #hover_frame=country)
     europe_fig.update_geos(fitbounds="locations", visible=False)
-    europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
-    
-    
+    europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})  
     return europe_fig
+
 fig_europe=create_europe_fig(1979)
 def update_europe(year,fig,data = data_europe):
     fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
-    fig.update_layout(title_text="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr (durch Anzahl Grids normalisierte Werte)</sup>")
+    fig.update_traces(text = data["country"],z=data["countMagnitude"], hovertemplate="<b>%{text}</b><br><br>" + "Magnitude: %{z:.2f}")
+    fig.update_layout(title_text="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr </sup>")
     return fig
 
 def create_country_fig(country:str, year:int):
@@ -199,16 +199,16 @@ def create_country_fig(country:str, year:int):
                            color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'],
                            scope = "europe",
                            range_color=(0, 50),
-                           title= country +"<br><sup>Magnitude pro 25 x 25km Grid pro Jahr</sup>",
+                           title= country +"<br><sup>Magnitude pro 25 x 25km Feld pro Jahr</sup>",
                            #width=600,
                            height=600,
-                           labels={'summagnitude': 'Magnitude'},
-                           hover_data={'summagnitude':':.2f'},
-                           hover_name='country_1'
+                        #    labels={'summagnitude': 'Magnitude'},
+                        #    hover_data={'summagnitude':':.2f'},
+                        #    hover_name='country_1'
                           )
 
     country_fig.update_geos(fitbounds="locations", visible=False)
-    
+    country_fig.update_traces(z=intersect_df["summagnitude"], hovertemplate="<b>"+ country +"</b><br><br>" + "Magnitude: %{z:.2f}")
     country_fig.update_layout({'autosize':True,'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     
     return country_fig
@@ -224,7 +224,7 @@ def create_fig3(year, grid):
             x=data["noday"],
             y=data["reference_temperature"],
             line_color = "black",
-            name = "Threshold",
+            name = "Schwellenwert",
             line = {'dash': 'dot'},
             text=["test"],
             textposition=["bottom center"]
@@ -265,15 +265,15 @@ def create_fig4():
         y="summe_magnitude",
         color='summe_magnitude',
         color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'], #Höhe der Mitte (resp. weisses Farbe) lässt sich mit der Zahl (aktuell 0.25) ändern, Mitte wäre 0.5
-        height = 300,
-        title = "Entwicklung der Hitzewellen in Europa<br><sup>Lesebeispiel: 1994 betrug die Summe aller Hitzewellenmagnituden pro 25 x 25km Grid in Europa 43'768.</sup>",
+        height = 350,
+        title = "Entwicklung der Hitzewellen in Europa",
         labels={'summe_magnitude': 'Magnitude'},
         hover_name='year',
         hover_data= {'year': False,'summe_magnitude': ':d'}
         )
-    
-    fig4.update_layout({'yaxis_title':'Magnitude','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jahr'})
-    #fig4.add_annotation({'text': 'testblskjfdkjfd'})
+   
+    fig4.update_layout({'yaxis_title':'Magnitude','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jahr '})
+    fig4.add_annotation(x=0, y=-0.25, text="Lesebeispiel: 1994 betrug die Summe aller Hitzewellenmagnituden pro 25 x 25km Grid in Europa 43768.", showarrow=False,  xref='paper', yref='paper')
     
     fig4.update_traces(marker_line_color='rgb(8,48,107)',
                   marker_line_width=0.5, opacity=1)
@@ -308,17 +308,22 @@ page_DashBoard_layout = html.Div(
     html.Div([
         html.H1(children='Hitzewellen in Europa von 1979 - 2020', style={'text-align': 'center'})],style={'color': '#993300', 'margin-top': 30}, className='row'),
     html.Div([
-        html.P('Das Klima hat sich in den letzten Jahrzehnten stark verändert. Die Erwärmung zeigt sich nicht nur in den erhöhten Durchschnittstemperaturen sondern auch durch Hitzewellen. Diese treten nicht nur öfters auf, sondern werden auch immer stärker. Dieses Dashboard zeigt die Entwicklung von Hitzewellen in Europa seit 1979 auf der Ebene von Ländern bis hin zu einzelnen 25 x 25km Quadrate auf. Dieses Dashboard ist im Rahmen einer Challenge des Studiengangs Data Science an der FHNW entstanden. Bearbeitet wurde diese Arbeit durch Daniela Herzig, Manjavi Kirupa, Thomas Mandelz, Patrick Schürmann und Jan Zwicky.'),   
+        html.P('Das Klima hat sich in den letzten Jahrzehnten stark verändert. Die Erwärmung zeigt sich in den erhöhten Durchschnittstemperaturen und durch Hitzewellen. Diese treten nicht nur öfters auf, sondern werden auch immer stärker. Dieses Dashboard zeigt die Entwicklung von Hitzewellen in Europa seit 1979 auf der Ebene von Ländern bis hin zu einzelnen 25 x 25km Feldern auf.'), 
+        html.P('Die vorliegende Webseite ist im Rahmen einer Challenge des Studiengangs Data Science an der FHNW entstanden. Bearbeitet wurde diese Arbeit durch Daniela Herzig, Manjavi Kirupa, Thomas Mandelz, Patrick Schürmann und Jan Zwicky.'),   
     ], className='row'),
     html.Div([        
         dcc.Graph(figure=create_fig4(), id = "europe_sum", config = {'displayModeBar': False}),            
+        ], className='row'),
+    html.Div([        
+        html.H5(children='Was ist eine Magnitude?'),
+        html.P('Die Magnitude zeigt die Stärke bzw. Intensität einer Hitzewelle. Je höher die Magnitude ist, desto stärker ist die Hitzewelle.'),          
         ], className='row'),
     html.Div([
         html.Div([
             dcc.Graph(figure=create_europe_fig(1979), id = "europe", config = {'displayModeBar': False}),            
         ], className='six columns'),
         html.Div([
-            dcc.Graph(figure=create_country_fig("Belgium",1979), id = "country", config = {'displayModeBar': False})            
+            dcc.Graph(figure=create_country_fig("Belgien",1979), id = "country", config = {'displayModeBar': False})            
         ], className='six columns')
     ], className='row'),
     html.Div([
@@ -342,9 +347,9 @@ page_DashBoard_layout = html.Div(
     html.Div([
         html.Div([
             html.H5(children='Was ist eine Hitzewelle?'),
-            html.P('Eine Hitzewelle wird durch ein überschreiten eines Threshold definiert. Dieser Threshold wird für jedes 25 x 25km Grid berechnet, damit lokale Gegebenheiten berücksichtigt werden können. Sobald eine tägliche Maximaltemperatur diesen Threshold um einen bestimmten Wert  übersteigt, spricht man von einer Hitzewelle.'),
-            html.H5(children='Wie ist ein Threshold definiert?'),
-            html.P('Der Threshold wird anhand einer Referenzperiode von 30 Jahren berechnet. In unserem Fall ist dies die Periode von 1979 - 2009. Der Threshold von einem Tag x ist das 90 Prozent Percentil von allen maximalen Tagestemperaturen in der Referenzperiode an den Tagen x-15 bis x+15.')
+            html.P('Eine Hitzewelle wird durch ein überschreiten eines Schwellenwerts definiert. Dieser Wert wird für jedes 25 x 25km Feld berechnet, damit lokale Gegebenheiten berücksichtigt werden können. Sobald eine tägliche Maximaltemperatur diesen Schwellenwert um einen bestimmten Wert  übersteigt, spricht man von einer Hitzewelle.'),
+            html.H5(children='Wie ist dieser Schwellenwert definiert?'),
+            html.P('Der Schwellenwert wird anhand einer Referenzperiode von 30 Jahren berechnet. In unserem Fall ist dies die Periode von 1979 - 2009. Der Wert an einem Tag x ist das 90 Prozent Percentil von allen maximalen Tagestemperaturen in der Referenzperiode an den Tagen x-15 bis x+15.')
                      
         ], className='six columns'),
         html.Div([
@@ -356,7 +361,7 @@ page_DashBoard_layout = html.Div(
     ], className='row'),
 
     dcc.Store(id = "year",storage_type='local',data = 1980),
-    dcc.Store(id = "country_value",data = "Belgium"),
+    dcc.Store(id = "country_value",data = "Belgien"),
     dcc.Store(id = "grid_no",data = 96097),
     dcc.Interval(id='auto-stepper',
             interval=1*3200, # in milliseconds
