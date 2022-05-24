@@ -6,6 +6,7 @@ from pkgutil import get_data
 from dash import dcc,html
 from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform, State
 import flask
+from matplotlib.axis import XAxis
 from matplotlib.pyplot import grid
 import plotly as plt
 import json
@@ -179,12 +180,13 @@ def create_europe_fig(year,data = data_europe):
                             range_color=(0, 50),
                             #width=600,
                             height=600,
+                            
                             title="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr </sup>")
                             #labels={'countMagnitude': ''},
                             #hover_data={'countMagnitude':':.2f'})
                             #hover_frame=country)
     europe_fig.update_geos(fitbounds="locations", visible=False)
-    europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})  
+    europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)'),"dragmode":False})
     return europe_fig
 
 fig_europe=create_europe_fig(1979)
