@@ -13,7 +13,7 @@ dataPath = os.path.join(
     dirname, 'data_statistics.csv')
 
 data = pd.read_csv(dataPath)
-data["sum_mag_norm"] = data["summe_magnitude"] / 4202.013625 * 1
+data["sum_mag_norm"] = data["summe_magnitude"] / df['data'].iloc[summe_magnitude]
 
 def dostats(data):
     data["Mean5y"] = data["sum_mag_norm"].rolling(5).mean()

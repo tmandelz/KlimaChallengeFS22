@@ -31,8 +31,17 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
 ])])
 
 
-@app.route("/")
-def hello():
-    return page_BackgroundInfo_layout
+@app.callback(Output('page-content', 'children'),
+              [Input('url', 'pathname')])
+def display_page(pathname):
+    if pathname == '/DashBoard':
+        return page_DashBoard_layout
+    elif pathname == '/Datastory':
+        return page_Datastory_layout
+    elif pathname == '/BackgroundInformation':
+        return page_BackgroundInfo_layout
+    else:
+        return page_DashBoard_layout
 
-app.run()
+if __name__ == '__main__':
+    app.run_server(debug=False)

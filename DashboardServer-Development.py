@@ -163,7 +163,9 @@ def getdatafig4():
 def getdatastats():
     try:
         data = getdatafig4()
-        data["sum_mag_norm"] = data["summe_magnitude"] / 4202.013625 * 1
+        data["sum_mag_norm"] = data["summe_magnitude"] / data['summe_magnitude'].iloc[0]
+        data["Std10y"] = data["sum_mag_norm"].rolling(10).std()
+        data = data.round({'sum_mag_norm': 2, 'Std10y': 2})
         return data
     except Exception as e:
         print(f"Error while connecting to postgres Sql Server. \n {e}")
@@ -313,7 +315,10 @@ def showhist():
     data = getdatastats()
     fighist = mplt.figure()
     mplt.style.use('ggplot')
-    mplt.hist(data["sum_mag_norm"], bins = 15, figure = fighist)
+    mplt.hist(data["sum_mag_norm"], bins = 19, range = (1, 20), figure = fighist)
+    mplt.xlabel("Jährliche Summen")
+    mplt.ylabel("Anzahl Aufzeichnungen")
+    mplt.title("Verteilung der jährlichen Summen")
     # ax = fighist.add_subplot(1, 1, 1)
     # ax.set_facecolor(color="#bba9a0")
     fighist.patch.set_facecolor('black')
@@ -325,6 +330,33 @@ def showhist():
     # )
     return fighist
 # showhist()
+
+def showstd():
+    data = getdatastats()
+    figstd = mplt.figure()
+    mplt.style.use('ggplot')
+    mplt.plot(data["year"], data['Std10y'])
+    mplt.xlabel("Jahr")
+    mplt.ylabel("Standardabweichung")
+    mplt.title("Rollierende 10-Jahres Standardabweichung")
+    # mplt.boxplot(data['Std10y'])
+    # # ax = fighist.add_subplot(1, 1, 1)
+    # # ax.set_facecolor(color="#bba9a0")
+    # figstd.patch.set_facecolor('black')
+    figstd = tls.mpl_to_plotly(figstd)
+    # figstd = px.line(
+    #     data,
+    #     x = "year",
+    #     y = "Std10y",
+    #     line_shape = "spline"
+    #     )
+    # figstd = px.box(
+    #     data,
+    #     y = "Std10y",
+    #     )
+    # figstd.show()
+    return figstd
+# showstd()
 
 # %%
 step_num = 2020
@@ -566,6 +598,9 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
         ], className='row'),
     html.H6(children='Standardabweichung'),
     html.P('Für die Standardabweichung haben wir eine rollierende Standardabweichung über 10 Jahre angeschaut. Zu Beginn der Zeitreihe wurde eine Standardabweichung von 1.6 verzeichnet. Diese stieg bis zum Ende auf 3.9 an. Der höchste Wert von 5.7 wurde für die Periode von 2001 bis 2012 beobachtet.'),
+    html.Div([        
+        dcc.Graph(figure=showstd(), id = "std_europe", config = {'displayModeBar': False}),            
+        ], className='row'),
     html.H6(children='Regressionsanalyse'),
     html.P('Um festzustellen, ob eine Steigung erkennbar ist, haben wir eine lineare Regressionsanalyse durchgeführt. Anhand der Residuenanalyse wurde erkennbar, dass der starke Anstieg der Magnituden die Analyse stark verzerrt. Für die Regression müssten die Summen mit dem Logarithmus zur Basis 2 transformiert werden. Die Analyse ergibt so eine Steigung von 0.07 und ein Ordinatenabschnitt von -138.3. Aufgrund der geringen Anzahl Jahre, der starken Transformation und weiterhin starken Streuung der Residuen taugt dieses lineare Modell nicht für Prognosen. Möglicherweise können sophistiziertere Transformationen genauere Resultate liefern.'),
 ])])
