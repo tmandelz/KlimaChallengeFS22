@@ -170,7 +170,9 @@ def getdatastats():
 
 # %% default Figures
 
+#%%
 data_europe = GetDataEurope()
+
 # %%
 def create_europe_fig(year,data = data_europe):
     data = data[data["year"] == year]
@@ -396,7 +398,8 @@ page_DashBoard_layout = html.Div(
     dcc.Store(id = "grid_no",data = 96097),
     dcc.Interval(id='auto-stepper',
             interval=1*3000, # in milliseconds
-            n_intervals=0)])    
+            n_intervals=0),
+    dcc.Store(id ="special_year",data = 0)])    
 ])
 
 @app.callback(
@@ -405,18 +408,7 @@ page_DashBoard_layout = html.Div(
 )
 def update_output(n_click):
     return n_click != 0
-@app.callback(
-    Output('steper', 'value'),
-    Output("year","data"),
-    State("steper","value"),
-    Input('auto-stepper', 'n_intervals')
-)
-def update_output(stepper,n_intervals):
-    if stepper == 1:
-        stepper = 1979
-    if stepper == 2020:
-        return 1979,1979
-    return stepper +1,stepper + 1
+
 
 @app.callback(
     Output('auto-stepper', 'disabled'),
@@ -450,10 +442,12 @@ def update_output(stepper,n_click):
    Output("europe","figure"),
    Output("country","figure"),
    Output("grid1","figure"),
+   Output("special_year","data"),
    Input("steper","value"),
    State("country_value","data"),
-   State("grid_no","data"))
-def on_click(slider_user,country_value,grid_no):
+   State("grid_no","data"),
+   State("special_year","data"))
+def on_click(slider_user,country_value,grid_no,special_year):
     """
     Arguments:
     n_intervals: value off the auto-stepper
@@ -466,14 +460,27 @@ def on_click(slider_user,country_value,grid_no):
     europe_fig: updatet europe figure with the new year
     country_fig:  updatet country figure with the new year
     """
-
+    if special_year == 0:
+        slider_user = 1980
+        special_year +=1
     # update Figures
     europe_fig = update_europe(slider_user,fig_europe)
     country_fig = create_country_fig(country_value,slider_user)
     grid_fig = create_fig3(slider_user,grid_no)
-    return slider_user,slider_user,europe_fig,country_fig,grid_fig
+    return slider_user,slider_user,europe_fig,country_fig,grid_fig,special_year
 
-
+@app.callback(
+    Output('steper', 'value'),
+    Output("year","data"),
+    State("steper","value"),
+    Input('auto-stepper', 'n_intervals')
+)
+def update_output(stepper,n_intervals):
+    if stepper == 1:
+        stepper = 1979
+    if stepper == 2020:
+        return 1979,1979
+    return stepper +1,stepper + 1
 @app.callback(
    Output('country_value', 'data'),
    Output("country","figure"),
