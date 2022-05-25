@@ -1,6 +1,7 @@
 #%%
 from ast import Global
 from itertools import count
+from operator import index
 from pickle import FALSE, TRUE
 from pkgutil import get_data
 from dash import dcc,html
@@ -181,9 +182,10 @@ def create_europe_fig(year,data = data_europe):
                             #width=600,
                             height=600,
                             title="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr </sup>",
-                            labels={'countMagnitude': 'Magnitude'})
+                            labels={'countMagnitude': 'Magnitude'},
                             #hover_data={'countMagnitude':':.2f'})
-                            #hover_frame=country)
+                            hover_name=data.index
+                            )
     europe_fig.update_geos(fitbounds="locations", visible=False)
     europe_fig.update_layout({'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)'),"dragmode":False})
     return europe_fig
@@ -192,9 +194,11 @@ fig_europe=create_europe_fig(1979)
 
 def update_europe(year,fig,data = data_europe):
     fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
-    fig.update_traces(text = data["country"],z=data["countMagnitude"], hovertemplate="<b>%{text}</b><br><br>" + "Magnitude: %{z:.2f}")
+    fig.update_traces(text = data[data["year"] == year]["country"], hovertemplate="<b>%{text}</b><br><br>" + "Magnitude: %{z:.2f}")
     fig.update_layout(title_text="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr </sup>")
     return fig
+
+fig_europe = update_europe(1979,fig_europe)
 
 def create_country_fig(country:str, year:int):
     data_country = GetDataCountry(country,year)
