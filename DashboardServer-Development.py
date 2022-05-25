@@ -180,9 +180,8 @@ def create_europe_fig(year,data = data_europe):
                             range_color=(0, 50),
                             #width=600,
                             height=600,
-                            
-                            title="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr </sup>")
-                            #labels={'countMagnitude': ''},
+                            title="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr </sup>",
+                            labels={'countMagnitude': 'Magnitude'})
                             #hover_data={'countMagnitude':':.2f'})
                             #hover_frame=country)
     europe_fig.update_geos(fitbounds="locations", visible=False)
@@ -215,7 +214,7 @@ def create_country_fig(country:str, year:int):
                            title= country +"<br><sup>Magnitude pro 25 x 25km Feld im Jahr"+str(year) +"</sup>",
                            #width=600,
                            height=600,
-                        #    labels={'summagnitude': 'Magnitude'},
+                           labels={'summagnitude': 'Magnitude'},
                         #    hover_data={'summagnitude':':.2f'},
                         #    hover_name='country_1'
                           )
