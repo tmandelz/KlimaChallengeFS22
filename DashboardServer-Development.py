@@ -22,6 +22,7 @@ import dash_daq as daq
 import dash
 import matplotlib.pyplot as mplt
 from plotly import tools as tls
+import numpy as np
 
 
 #%%
@@ -202,7 +203,7 @@ def update_europe(year,fig,data = data_europe):
 
 fig_europe = update_europe(1979,fig_europe)
 
-def create_country_fig(country:str, year:int):
+def create_country_fig(country:str, year:int,grid_no:int):
     data_country = GetDataCountry(country,year)
     
     gpd_country = data_europe[(data_europe.country == country) & (data_europe.year == year)]
@@ -229,6 +230,16 @@ def create_country_fig(country:str, year:int):
     country_fig.update_traces(z=intersect_df["summagnitude"], hovertemplate="<b>"+ country +"</b><br><br>" + "Magnitude: %{z:.2f}")
     country_fig.update_layout({'autosize':True,'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     
+    if grid_no in intersect_df.index:
+        lats = [] 
+        lons = []
+        for linestring in intersect_df.loc[grid_no,"geometry"].exterior.coords:
+    
+            x, y = linestring[0],linestring[1]
+            lats = np.append(lats, y)
+            lons = np.append(lons, x)
+        fig = px.line_geo(lat=lats, lon=lons)
+        country_fig.add_trace(fig.data[0] )
     return country_fig
 
 def create_fig3(year, grid):
@@ -356,7 +367,7 @@ page_DashBoard_layout = html.Div(
             dcc.Graph(figure=create_europe_fig(1979), id = "europe", config = {'displayModeBar': False}),            
         ], className='six columns'),
         html.Div([
-            dcc.Graph(figure=create_country_fig("Belgien",1979), id = "country", config = {'displayModeBar': False})            
+            dcc.Graph(figure=create_country_fig("Belgien",1979,96097), id = "country", config = {'displayModeBar': False})            
         ], className='six columns')
     ], className='row'),
     html.Div([
@@ -465,7 +476,7 @@ def on_click(slider_user,country_value,grid_no,special_year):
         special_year +=1
     # update Figures
     europe_fig = update_europe(slider_user,fig_europe)
-    country_fig = create_country_fig(country_value,slider_user)
+    country_fig = create_country_fig(country_value,slider_user,grid_no)
     grid_fig = create_fig3(slider_user,grid_no)
     return slider_user,slider_user,europe_fig,country_fig,grid_fig,special_year
 
@@ -481,12 +492,14 @@ def update_output(stepper,n_intervals):
     if stepper == 2020:
         return 1979,1979
     return stepper +1,stepper + 1
+
 @app.callback(
    Output('country_value', 'data'),
    Output("country","figure"),
    State("steper","value"),
-   Input('europe', 'clickData'))
-def update_country(stepper_value,json_click):
+   Input('europe', 'clickData'),
+   State("grid_no","data"))
+def update_country(stepper_value,json_click,grid_no):
     """
     Arguments:
     stepper_value: last stored value of the year
@@ -496,18 +509,21 @@ def update_country(stepper_value,json_click):
     country_fig: update the country fig with the new country
     """
     country_value = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
-    country_fig = create_country_fig(country_value,stepper_value)
+    country_fig = create_country_fig(country_value,stepper_value,grid_no)
     return country_value,country_fig
 
 @app.callback(
    Output('grid_no', 'data'),
    Output("grid1","figure"),
+   Output("country","figure"),
    State("steper","value"),
-   Input('country', 'clickData'))
-def update_fig3(year,json_click):
+   Input('country', 'clickData'),
+   State('country_value', 'data'),)
+def update_fig3(year,json_click,country_value):
     grid_selected = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
     fig3=create_fig3(year,grid_selected)
-    return grid_selected,fig3
+    country_fig = create_country_fig(country_value,year,grid_selected)
+    return grid_selected,fig3,country_fig
 
 
 page_Datastory_layout = html.Div([header,html.Div([
