@@ -313,43 +313,55 @@ def create_fig4():
 
 def showhist():
     data = getdatastats()
-    fighist = mplt.figure()
-    mplt.style.use('ggplot')
-    mplt.hist(data["sum_mag_norm"], bins = 19, range = (1, 20), figure = fighist)
-    mplt.xlabel("Jährliche Summen")
-    mplt.ylabel("Anzahl Aufzeichnungen")
-    mplt.title("Verteilung der jährlichen Summen")
+    # fighist = mplt.figure()
+    # mplt.style.use('ggplot')
+    # mplt.hist(data["sum_mag_norm"], bins = 19, range = (1, 20), figure = fighist)
+    # mplt.xlabel("Jährliche Summen")
+    # mplt.ylabel("Anzahl Aufzeichnungen")
+    # mplt.title("Verteilung der jährlichen Summen")
     # ax = fighist.add_subplot(1, 1, 1)
     # ax.set_facecolor(color="#bba9a0")
-    fighist.patch.set_facecolor('black')
-    fighist = tls.mpl_to_plotly(fighist)
-    # fighist = px.histogram(
-    # data,
-    # x= "sum_mag_norm",
-    # nbins=15
-    # )
+    # fighist.patch.set_facecolor('black')
+    # fighist = tls.mpl_to_plotly(fighist)
+    fighist = px.histogram(
+        data,
+        x= "sum_mag_norm",
+        nbins=15,
+        title= "Verteilung der jährlichen Summen",
+        labels={'sum_mag_norm': 'Bereich Summe', 'count': 'Anzahl'}
+        )
+    fighist.update_layout({'yaxis_title':'Anzahl Aufzeichnungen','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jährliche Summen'})
+    fighist.update_layout(width=800, height=400)
+    fighist.update_traces(marker_line_width=1,marker_line_color="white")
+    fighist.add_annotation(x=0, y=-0.3, text="Lesebeispiel: Fünf Jahre wiesen eine Summe zwischen 14 und 15.9 aus.", showarrow=False,  xref='paper', yref='paper')
     return fighist
 # showhist()
 
 def showstd():
     data = getdatastats()
-    figstd = mplt.figure()
-    mplt.style.use('ggplot')
-    mplt.plot(data["year"], data['Std10y'])
-    mplt.xlabel("Jahr")
-    mplt.ylabel("Standardabweichung")
-    mplt.title("Rollierende 10-Jahres Standardabweichung")
+    # figstd = mplt.figure()
+    # mplt.style.use('ggplot')
+    # mplt.plot(data["year"], data['Std10y'])
+    # mplt.xlabel("Jahr")
+    # mplt.ylabel("Standardabweichung")
+    # mplt.title("Rollierende 10-Jahres Standardabweichung")
     # mplt.boxplot(data['Std10y'])
     # # ax = fighist.add_subplot(1, 1, 1)
     # # ax.set_facecolor(color="#bba9a0")
     # figstd.patch.set_facecolor('black')
-    figstd = tls.mpl_to_plotly(figstd)
-    # figstd = px.line(
-    #     data,
-    #     x = "year",
-    #     y = "Std10y",
-    #     line_shape = "spline"
-    #     )
+    # figstd = tls.mpl_to_plotly(figstd)
+    figstd = px.line(
+        data,
+        x = "year",
+        y = "Std10y",
+        line_shape = "spline",
+        width=800, height=400,
+        title="Rollierende 10-Jahres Standardabweichung"
+        )
+    figstd.update_layout({'yaxis_title':'Standardabweichung','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jahr'})
+    figstd.add_annotation(x=0, y=-0.3, text="Lesebeispiel: 2015 betrug die Standardabweichung 4.76.", showarrow=False,  xref='paper', yref='paper')
+ 
+    # figstd.update_layout(margin=dict(l=20, r=20, t=20, b=20),
     # figstd = px.box(
     #     data,
     #     y = "Std10y",
@@ -585,8 +597,6 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.P('Alle auftretenden Hitzewellen und deren Magnitude, die gemäss obiger Formel berechnet wurde, summiert über das Jahr.'),
     html.H6(children='Was ist eine normalisierte Magnitude?'),
     html.P('Um einen Vergleich zwischen den Ländern machen zu können, haben wir die Summe aller Magnituden pro Jahr pro Land aufsummiert und durch die Anzahl Grids geteilt. Somit kann ein Vergleich zwischen allen Ländern gemacht werden.'),
-    html.H6(children='Quelle:'),
-    html.P(children=[html.Span("Russo, Simone, Jana Sillmann, und Erich M Fischer. „Top Ten European Heatwaves since 1950 and Their Occurrence in the Coming Decades“. Environmental Research Letters 10, Nr. 12 (1. Dezember 2015): 124003. "),html.A("https://doi.org/10.1088/1748-9326/10/12/124003",href="https://doi.org/10.1088/1748-9326/10/12/124003")]),
     html.H5(children='Statistische Auswertung'),
     html.P('Um einen Überblick über die zunehmende Stärke von Hitzewellen zu erhalten, zeigen wir im Dashboard eine Grafik der jährlichen Stärken der Hitzewellen in Europa. Um die Daten nicht nur visuelle darzustellen, haben wir sie statistisch untersucht. Für die Verständlichkeit haben wir die Daten normalisiert. Dabei wurde die Stärke des ersten Jahres auf 1 gesetzt und die restlichen Jahre dazu standardisiert. Folgende Erkenntnisse konnten wir dadurch erzielen.'),
     html.H6(children='Mittelwert'),
@@ -603,6 +613,8 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
         ], className='row'),
     html.H6(children='Regressionsanalyse'),
     html.P('Um festzustellen, ob eine Steigung erkennbar ist, haben wir eine lineare Regressionsanalyse durchgeführt. Anhand der Residuenanalyse wurde erkennbar, dass der starke Anstieg der Magnituden die Analyse stark verzerrt. Für die Regression müssten die Summen mit dem Logarithmus zur Basis 2 transformiert werden. Die Analyse ergibt so eine Steigung von 0.07 und ein Ordinatenabschnitt von -138.3. Aufgrund der geringen Anzahl Jahre, der starken Transformation und weiterhin starken Streuung der Residuen taugt dieses lineare Modell nicht für Prognosen. Möglicherweise können sophistiziertere Transformationen genauere Resultate liefern.'),
+    html.H6(children='Quelle:'),
+    html.P(children=[html.Span("Russo, Simone, Jana Sillmann, und Erich M Fischer. „Top Ten European Heatwaves since 1950 and Their Occurrence in the Coming Decades“. Environmental Research Letters 10, Nr. 12 (1. Dezember 2015): 124003. "),html.A("https://doi.org/10.1088/1748-9326/10/12/124003",href="https://doi.org/10.1088/1748-9326/10/12/124003")]),
 ])])
 
 
