@@ -313,43 +313,22 @@ def create_fig4():
 
 def showhist():
     data = getdatastats()
-    # fighist = mplt.figure()
-    # mplt.style.use('ggplot')
-    # mplt.hist(data["sum_mag_norm"], bins = 19, range = (1, 20), figure = fighist)
-    # mplt.xlabel("Jährliche Summen")
-    # mplt.ylabel("Anzahl Aufzeichnungen")
-    # mplt.title("Verteilung der jährlichen Summen")
-    # ax = fighist.add_subplot(1, 1, 1)
-    # ax.set_facecolor(color="#bba9a0")
-    # fighist.patch.set_facecolor('black')
-    # fighist = tls.mpl_to_plotly(fighist)
     fighist = px.histogram(
         data,
         x= "sum_mag_norm",
         nbins=15,
-        title= "Verteilung der jährlichen Summen",
-        labels={'sum_mag_norm': 'Bereich Summe', 'count': 'Anzahl'}
+        title= "Verteilung der jährlichen Magnituden"
         )
-    fighist.update_layout({'yaxis_title':'Anzahl Aufzeichnungen','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jährliche Summen'})
+    fighist.update_layout({'yaxis_title':'Anzahl Aufzeichnungen','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jährliche Magnituden'})
     fighist.update_layout(width=800, height=400)
     fighist.update_traces(marker_line_width=1,marker_line_color="white")
-    fighist.add_annotation(x=0, y=-0.3, text="Lesebeispiel: Fünf Jahre wiesen eine Summe zwischen 14 und 15.9 aus.", showarrow=False,  xref='paper', yref='paper')
+    fighist.update_traces(hovertemplate ='Bereich:' + ' %{x}' + '<br>Anzahl:' +  ' %{y}', selector=dict(type="histogram"))
+    fighist.add_annotation(x=0, y=-0.3, text="Lesebeispiel: Fünf Jahre weisen eine Magnitude zwischen 14 und 15.9 aus.", showarrow=False,  xref='paper', yref='paper')
     return fighist
 # showhist()
 
 def showstd():
     data = getdatastats()
-    # figstd = mplt.figure()
-    # mplt.style.use('ggplot')
-    # mplt.plot(data["year"], data['Std10y'])
-    # mplt.xlabel("Jahr")
-    # mplt.ylabel("Standardabweichung")
-    # mplt.title("Rollierende 10-Jahres Standardabweichung")
-    # mplt.boxplot(data['Std10y'])
-    # # ax = fighist.add_subplot(1, 1, 1)
-    # # ax.set_facecolor(color="#bba9a0")
-    # figstd.patch.set_facecolor('black')
-    # figstd = tls.mpl_to_plotly(figstd)
     figstd = px.line(
         data,
         x = "year",
@@ -358,15 +337,10 @@ def showstd():
         width=800, height=400,
         title="Rollierende 10-Jahres Standardabweichung"
         )
-    figstd.update_layout({'yaxis_title':'Standardabweichung','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jahr'})
+    figstd.update_layout({'yaxis_title':'Standardabweichung (Std)','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jahr'})
     figstd.add_annotation(x=0, y=-0.3, text="Lesebeispiel: 2015 betrug die Standardabweichung 4.76.", showarrow=False,  xref='paper', yref='paper')
- 
-    # figstd.update_layout(margin=dict(l=20, r=20, t=20, b=20),
-    # figstd = px.box(
-    #     data,
-    #     y = "Std10y",
-    #     )
-    # figstd.show()
+    figstd.update_traces(hovertemplate ='Jahr:' + ' %{x}' + '<br>Std:' +  ' %{y}')
+    figstd.update_layout(xaxis={'range':[1988,2020]})
     return figstd
 # showstd()
 
@@ -602,7 +576,7 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.H6(children='Mittelwert'),
     html.P('Die Stärke der Magnituden betrug im Durchschnitt 6.9 und Median lag bei 5.3. Es gibt also ein paar Ausreisser, die den Mittelwert nach oben ziehen.'),
     html.H6(children='Summen und Mittelwerte über Fünfjahresperioden'),
-    html.P('Für die ersten fünf Jahre unserer Beobachtungsperiode betrug der jährliche Mittelwert 2.7 und die Summe 13.7. Im Kontrast dazu wurde für die letzten fünf Jahre einen Mittelwert von 11.8 und eine Summe 59.0 und verzeichnet. Hier haben wir einen Anstieg von jeweils etwa 330% festgestellt. Die fünf Jahre mit dem höchsten Mittelwert waren von 2015 bis 2019 mit 13.3.'),
+    html.P('Während der ersten fünf Jahre unserer Beobachtungsperiode betrug der jährliche Mittelwert der Magnituden 2.7 und die Summe 13.7. Im Kontrast dazu wurde für die Magnituden für die letzten fünf Jahre einen Mittelwert von 11.8 und eine Summe 59.0 verzeichnet. Es wurde somit ein Anstieg von jeweils rund 330% festgestellt. Die fünf Jahre mit dem höchsten Mittelwert waren von 2015 bis 2019 mit 13.3. Die folgende Grafik zeigt die Verteilung der jährlichen Magnituden.'),
     html.Div([        
         dcc.Graph(figure=showhist(), id = "hist_europe", config = {'displayModeBar': False}),            
         ], className='row'),
