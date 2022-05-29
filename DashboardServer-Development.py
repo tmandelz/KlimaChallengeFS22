@@ -290,6 +290,7 @@ def create_fig3(year, grid):
     
 def create_fig4():
     data = getdatafig4()
+    #start plot
     fig4 = px.bar(
         data,
         x='year',
@@ -302,10 +303,10 @@ def create_fig4():
         hover_name='year',
         hover_data= {'year': False,'summe_magnitude': ':d'}
         )
-   
-    fig4.update_layout({'yaxis_title':'Magnitude','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jahr '})
-    fig4.add_annotation(x=0, y=-0.25, text="Lesebeispiel: 1994 betrug die Summe aller Hitzewellenmagnituden pro 25 x 25km Grid in Europa 43768.", showarrow=False,  xref='paper', yref='paper')
     
+    #update plot layout
+    fig4.update_layout({'yaxis_title':'Magnitude','xaxis_title': 'Jahr ','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
+    fig4.add_annotation(x=0, y=-0.25, text="Lesebeispiel: 1994 betrug die Summe aller Hitzewellenmagnituden pro 25 x 25km Grid in Europa 43768.", showarrow=False,  xref='paper', yref='paper')
     fig4.update_traces(marker_line_color='rgb(8,48,107)',
                   marker_line_width=0.5, opacity=1)
     fig4.update_coloraxes(showscale=False)
@@ -313,13 +314,18 @@ def create_fig4():
 
 def showhist():
     data = getdatastats()
+    #start plot
     fighist = px.histogram(
         data,
         x= "sum_mag_norm",
         nbins=15,
         title= "Verteilung der jährlichen Magnituden"
         )
-    fighist.update_layout({'yaxis_title':'Anzahl Aufzeichnungen','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jährliche Magnituden'})
+
+    #update plot layout
+    fighist.update_layout({'yaxis_title':'Anzahl Aufzeichnungen','xaxis_title': 'Jährliche Magnituden','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
+    fighist.update_layout(yaxis = dict(tickmode = 'array', tickvals = [1, 3, 5, 7, 9, 11]))
+    fighist.update_yaxes(minor_ticks="inside", minor_tickmode = 'array', minor_tickvals = [1, 3, 5, 7, 9, 11], minor_tickcolor = "white", minor_tickwidth=1)
     fighist.update_layout(width=800, height=400)
     fighist.update_traces(marker_line_width=1,marker_line_color="white")
     fighist.update_traces(hovertemplate ='Bereich:' + ' %{x}' + '<br>Anzahl:' +  ' %{y}', selector=dict(type="histogram"))
@@ -329,6 +335,7 @@ def showhist():
 
 def showstd():
     data = getdatastats()
+    #start plot
     figstd = px.line(
         data,
         x = "year",
@@ -337,7 +344,9 @@ def showstd():
         width=800, height=400,
         title="Rollierende 10-Jahres Standardabweichung"
         )
-    figstd.update_layout({'yaxis_title':'Standardabweichung (Std)','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jahr'})
+
+    #update plot layout
+    figstd.update_layout({'yaxis_title':'Standardabweichung (Std)','xaxis_title': 'Jahr','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
     figstd.add_annotation(x=0, y=-0.3, text="Lesebeispiel: 2015 betrug die Standardabweichung 4.76.", showarrow=False,  xref='paper', yref='paper')
     figstd.update_traces(hovertemplate ='Jahr:' + ' %{x}' + '<br>Std:' +  ' %{y}')
     figstd.update_layout(xaxis={'range':[1988,2020]})
