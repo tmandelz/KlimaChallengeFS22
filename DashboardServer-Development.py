@@ -553,7 +553,7 @@ def update_fig3(year,json_click,country_value):
     return grid_selected,fig3,country_fig
 
 
-page_Datastory_layout = html.Div([
+page_Datastory_layout = html.Div([header,html.Div([
     
     html.Div([
         html.H2("Wie schädigen Hitzewellen die Länder in Europa?"),
@@ -613,7 +613,7 @@ page_Datastory_layout = html.Div([
 
     ], className="contain")
 
-])
+])])
 
 page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.Div(id='Datastory-content'),
