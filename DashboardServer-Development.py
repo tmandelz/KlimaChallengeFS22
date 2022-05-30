@@ -220,7 +220,7 @@ def create_country_fig(country:str, year:int,grid_no:int):
                            color_continuous_scale=['#FFFFFF', '#FF9933','#CC6600', '#993300', '#993300' ,'#660000'],
                            scope = "europe",
                            range_color=(0, 50),
-                           title= country +"<br><sup>Magnitude pro 25 x 25km Feld im Jahr"+str(year) +"</sup>",
+                           title= country +"<br><sup>Magnitude pro 25 x 25km Feld im Jahr "+str(year) +"</sup>",
                            #width=600,
                            height=600,
                            labels={'summagnitude': 'Magnitude'},
@@ -306,7 +306,7 @@ def create_fig4():
     
     #update plot layout
     fig4.update_layout({'yaxis_title':'Magnitude','xaxis_title': 'Jahr ','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
-    fig4.add_annotation(x=0, y=-0.25, text="Lesebeispiel: 1994 betrug die Summe aller Hitzewellenmagnituden pro 25 x 25km Grid in Europa 43768.", showarrow=False,  xref='paper', yref='paper')
+    #fig4.add_annotation(x=0, y=-0.25, text="Lesebeispiel: 1994 betrug die Summe aller Hitzewellenmagnituden pro 25 x 25km Grid in Europa 43674.", showarrow=False,  xref='paper', yref='paper')
     fig4.update_traces(marker_line_color='rgb(8,48,107)',
                   marker_line_width=0.5, opacity=1)
     fig4.update_coloraxes(showscale=False)
@@ -563,14 +563,15 @@ page_Datastory_layout = html.Div([header,html.Div([
     html.Div([
         html.Div([
             html.P("Die Zahl der extremen Hitzeperioden hat in den letzten Jahrzehnten in ganz Europa erheblich zugenommen. Laut Klimaszenarien treten Hitzewellen wie 2003, 2015 und 2019 häufiger auf, sind intensiver und dauern länger. Eine Hitzewelle ist ein Zeitraum mit ungewöhnlich heissem Wetter, der in der Regel zwei oder mehr Tage dauert. Um als Hitzewelle zu gelten, müssen die Temperaturen ausserhalb der historischen Durchschnittswerte für ein bestimmtes Zeitabschnitt liegen. Diese Grafik aus dem Dashboard zeigt auf, dass es immer mehr Hitzewellen geben wird."),
-            html.Img(src= "/assets/plot1.jpg"),
+       
+        dcc.Graph(figure=create_fig4(), id = "europe_sum_datastory", config = {'displayModeBar': False,'staticPlot': True}),
             html.P("Hitzewellen treten meist in den Sommermonaten auf. Dies vor allem, weil es in diesen Monaten bereits warm oder sogar heiss ist. Das es jedoch noch heisser wird hängt damit zusammen, dass Kohlendioxid zusätzliche Wärme in der Atmosphäre speichert. Als Folge steigen die Temperaturen somit auch europaweit. Nun zählt die steigende Temperatur nicht zur einzigen Veränderung, denn diese Hitze wirkt sich auch schlecht auf die einzelnen Länder aus. Folgend werden anhand von vier Länder in Europa aufgelistet, wie diese durch Hitzewellen geschädigt wurden."),
             html.A("Quelle", href="https://journals.ametsoc.org/view/journals/clim/27/10/jcli-d-13-00284.1.xml")
         ]),
         html.Div([
             html.H5("Gesundheit"),
             html.P("Extreme Hitzewellen haben eine enorme Auswirkung auf die Gesundheit sowie auch auf die Sterblichkeit. Hier wird spezifisch von einem Hitzetod gesprochen. Unter diesen versteht sich ein Tod, der durch innere Überhitzung des Körpers ausgelöst wird. Die häufigste Ursache dafür sind unter anderem hohe Temperaturen. Meist jedoch in Verbindung mit Flüssigkeitsmangel und oder körperliche Anstrengung. Auch die schlechte Qualität der Infrastruktur und Gesundheitsversorgung, der allgemeine Gesundheitszustand der Bevölkerung und die demografische Struktur können eine Rolle spielen. Auch der Hitzesommer im Jahre 2003 sorgte dafür, dass die Mortalität in Frankreich sich deutlich erhöhte."),
-            html.Img(src="/assets/gesundheit.jpg"),
+            dcc.Graph(figure=create_fig3(2003,76094), id = "grid1", config = {'displayModeBar': False,'staticPlot': True}),
             html.P("Als Vorzeigegrafik wurde hier ein Grid aus dem südöstlichen Teil im Jahr 2003 von Frankreich gewählt. (lat=44.98188, lon= 5.300815) In der Grafik ist ein etwas dickerer oranger Balken zu sehen. Dieser bedeutet nichts anderes als die Dauer der Hitzewelle an jenem Sommer. Die untere Achse spiegelt den Jahrestag wider. Genau während der knapp zwei heissesten Wochen an jenem Sommer starben, fast 15'000 Menschen. Dies war ein nationales Trauma für Frankreich. Betroffen waren vornehmlich betagte Menschen, die allein lebten. Welche leider in Vergessenheit geraten waren. Folgende Grafik zeigt auf, wie sich die Anzahl der Toten während dieser Hitzewelle im Sommer 2003 verteilte. Als die extreme Hitze abnahm, ist auch zu sehen wie sich die Anzahl der Toten rückläufig verhaltet."),
             html.Img(src="/assets/deaths.png"),
             html.P("Nichtsdestotrotz hat Frankreich daraus gelernt. Durch verschiedene Massnahmen wie regelmässige Besuche für alleinstehende Rentner, Wasser für Obdachlose oder auch Fahrverbote versucht das Land die Mortalität durch Hitze zu senken."),
@@ -581,7 +582,7 @@ page_Datastory_layout = html.Div([header,html.Div([
         html.Div([
             html.H5("Landwirtschaft"),
             html.P("Immer mehr Hitzewellen werden gemessen und die negativen Auswirkungen dieser Veränderung wirken sich bereits auch auf die landwirtschaftliche Produktion in Europa aus, insbesondere im Süden. Kulturpflanzen reagieren empfindlich auf klimatische Veränderungen, wie Temperaturänderungen, Dürre und Niederschläge. Unter den Veränderungen werden sich die steigenden Temperaturen am ehesten auf die Landwirtschaftserträge auswirken. Auch der nördliche Teil Italiens war im Sommer 2003 von einer derartigen Hitzeaussetzung betroffen (siehe Grafik). "),
-            html.Img(src="/assets/landwirtschaft.jpg"),
+            dcc.Graph(figure=create_country_fig("Italien",2003,96097), id = "country", config = {'displayModeBar': False,'staticPlot': True}),
             html.P("In Italien, in der Po-Ebene (ein fruchtbares Tiefland in Norditalien), wo die Temperaturen hoch waren, verzeichnete Mais einen Rekordrückgang der Ernteerträge. Hinzukommend wurde festgestellt, dass Winterkulturen (Weizen) ihr Wachstum zum Zeitpunkt der Hitzewelle fast abgeschlossen hatten. Daher erlitten diese einen geringeren Rückgang der Produktivität als Sommerkulturen (Mais), die sich zu dieser Zeit in der maximalen Blattentwicklung befanden. Folgende Grafik zeigt, mit wieviel Prozent Rückgang einiger Pflanzen zu rechnen war. Auch ein finanzieller Aspekt ist zu sehen."),
             html.Img(src="/assets/crops.png"),
             html.P("Der künftige Temperaturanstieg könnte also auch einige aufgrund längerer Vegetationsperioden und besserer Anbaubedingungen positive Auswirkungen auf die Landwirtschaft haben. Allerdings wird die Zahl der Extremereignisse, die sich negativ auf die Landwirtschaft in Europa auswirken, zunehmen. Was somit zur Folge haben kann, dass die Sommerkulturen mehrere Ernteverluste mit sich tragen werden."),
