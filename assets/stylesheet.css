@@ -400,6 +400,23 @@
     border-top: 1px solid #E1E1E1; }
   
   
+    .topbar h2, h5 {
+      text-align: center;
+  }
+ 
+  .contain {  
+    height: auto;
+    width: 55%;
+    margin: auto;
+  }
+
+  .contain img {
+    width: 100%;
+  }
+
+  .contain h5{
+    text-align: center;
+  }
   /* Clearing
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   
