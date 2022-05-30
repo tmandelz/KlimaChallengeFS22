@@ -57,7 +57,6 @@ def GetDataEurope():
         left join country on country.id_Country = countrygrid.Country_id_Country 
         left join grid on grid.id_Grid = countrygrid.Grid_id_Grid 
         group by country.Countryname,country.CountryShape"""
-        # queryMagnitudeSum = f"SELECT country.Countryname as country, date_part('year', Date) as Year, sum(temperaturemagnitude.Magnitude) as Magnitudesum  FROM countrygrid left join country on country.id_Country = countrygrid.Country_id_Country left join grid on grid.id_Grid = countrygrid.Grid_id_Grid left join temperaturemagnitude on temperaturemagnitude.Grid_id_Grid = countrygrid.Grid_id_Grid group by country.CountryName, date_part('year', Date) "
         queryMagnitudeSum = """select country, Year, Magnitudesum from  materialized_view_summagnitudecountryyear"""
 
         mydb = ConnectPostgresSql()
@@ -92,15 +91,7 @@ def GetDataCountry(Country,Year):
         queryCountry = f"""select id_grid,geom,country,year,summagnitude from materialized_view_summagnitudecountrygridyear
                             where country = '{Country}' and year ={Year}"""
 
-        # queryCountry = f"""select id_grid,gridshape as geom, sum(magnitude) as summagnitude  from countrygrid
-        #     left join country on country.id_Country = countrygrid.Country_id_Country
-        #     left join grid on grid.id_Grid = countrygrid.Grid_id_Grid
-        #     left join temperaturemagnitude on temperaturemagnitude.grid_id_grid = countrygrid.Grid_id_Grid
-        #     WHERE country.countryname = '{Country}' and date_part('year', temperaturemagnitude.date) ={Year}
-        #     group by id_grid,gridshape
-        #     """
         cursor = mydb.cursor()
-        
         cursor.execute(queryCountry)
         DF = gpd.read_postgis(queryCountry,mydb)
         return DF
@@ -163,7 +154,9 @@ def getdatafig4():
 def getdatastats():
     try:
         data = getdatafig4()
-        data["sum_mag_norm"] = data["summe_magnitude"] / 4202.013625 * 1
+        data["sum_mag_norm"] = data["summe_magnitude"] / data['summe_magnitude'].iloc[0]
+        data["Std10y"] = data["sum_mag_norm"].rolling(10).std()
+        data = data.round({'sum_mag_norm': 2, 'Std10y': 2})
         return data
     except Exception as e:
         print(f"Error while connecting to postgres Sql Server. \n {e}")
@@ -288,6 +281,7 @@ def create_fig3(year, grid):
     
 def create_fig4():
     data = getdatafig4()
+    #start plot
     fig4 = px.bar(
         data,
         x='year',
@@ -300,10 +294,10 @@ def create_fig4():
         hover_name='year',
         hover_data= {'year': False,'summe_magnitude': ':d'}
         )
-   
-    fig4.update_layout({'yaxis_title':'Magnitude','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)','xaxis_title': 'Jahr '})
-    fig4.add_annotation(x=0, y=-0.25, text="Lesebeispiel: 1994 betrug die Summe aller Hitzewellenmagnituden pro 25 x 25km Grid in Europa 43768.", showarrow=False,  xref='paper', yref='paper')
     
+    #update plot layout
+    fig4.update_layout({'yaxis_title':'Magnitude','xaxis_title': 'Jahr ','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
+    fig4.add_annotation(x=0, y=-0.25, text="Lesebeispiel: 1994 betrug die Summe aller Hitzewellenmagnituden pro 25 x 25km Grid in Europa 43768.", showarrow=False,  xref='paper', yref='paper')
     fig4.update_traces(marker_line_color='rgb(8,48,107)',
                   marker_line_width=0.5, opacity=1)
     fig4.update_coloraxes(showscale=False)
@@ -311,29 +305,53 @@ def create_fig4():
 
 def showhist():
     data = getdatastats()
-    fighist = mplt.figure()
-    mplt.style.use('ggplot')
-    mplt.hist(data["sum_mag_norm"], bins = 15, figure = fighist)
-    # ax = fighist.add_subplot(1, 1, 1)
-    # ax.set_facecolor(color="#bba9a0")
-    fighist.patch.set_facecolor('black')
-    fighist = tls.mpl_to_plotly(fighist)
-    # fighist = px.histogram(
-    # data,
-    # x= "sum_mag_norm",
-    # nbins=15
-    # )
+    #start plot
+    fighist = px.histogram(
+        data,
+        x= "sum_mag_norm",
+        nbins=15,
+        title= "Verteilung der jährlichen Magnituden"
+        )
+
+    #update plot layout
+    fighist.update_layout({'yaxis_title':'Anzahl Aufzeichnungen','xaxis_title': 'Jährliche Magnituden','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
+    fighist.update_layout(yaxis = dict(tickmode = 'array', tickvals = [1, 3, 5, 7, 9, 11]))
+    fighist.update_yaxes(minor_ticks="inside", minor_tickmode = 'array', minor_tickvals = [1, 3, 5, 7, 9, 11], minor_tickcolor = "white", minor_tickwidth=1)
+    fighist.update_layout(width=800, height=400)
+    fighist.update_traces(marker_line_width=1,marker_line_color="white")
+    fighist.update_traces(hovertemplate ='Bereich:' + ' %{x}' + '<br>Anzahl:' +  ' %{y}', selector=dict(type="histogram"))
+    fighist.add_annotation(x=0, y=-0.3, text="Lesebeispiel: Fünf Jahre weisen eine Magnitude zwischen 14 und 15.9 aus.", showarrow=False,  xref='paper', yref='paper')
     return fighist
 # showhist()
+
+def showstd():
+    data = getdatastats()
+    #start plot
+    figstd = px.line(
+        data,
+        x = "year",
+        y = "Std10y",
+        line_shape = "spline",
+        width=800, height=400,
+        title="Rollierende 10-Jahres Standardabweichung"
+        )
+
+    #update plot layout
+    figstd.update_layout({'yaxis_title':'Standardabweichung (Std)','xaxis_title': 'Jahr','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
+    figstd.add_annotation(x=0, y=-0.3, text="Lesebeispiel: 2015 betrug die Standardabweichung 4.76.", showarrow=False,  xref='paper', yref='paper')
+    figstd.update_traces(hovertemplate ='Jahr:' + ' %{x}' + '<br>Std:' +  ' %{y}')
+    figstd.update_layout(xaxis={'range':[1988,2020]})
+    return figstd
+# showstd()
 
 # %%
 step_num = 2020
 min_value = 1979
 
+
 server = flask.Flask(__name__)
 app = DashProxy(server=server,prevent_initial_callbacks=True,suppress_callback_exceptions=True,
                 transforms=[MultiplexerTransform()], title='Klimadaten Challenge')
-
 
 header = html.Nav(className = "nav",style={'backgroundColor':'#bba9a0', 'height': 50, 'vertical-align': 'middle'}, children=[
     html.Div(className="li", children=[
@@ -527,8 +545,63 @@ def update_fig3(year,json_click,country_value):
 
 
 page_Datastory_layout = html.Div([header,html.Div([
-    html.Div(id='Datastory-content'),
-    html.H5(children='Hier kommt die Datenstory hin.'),
+    html.Div([
+        html.H2("Wie schädigen Hitzewellen die Länder in Europa?"),
+        html.H5("Eine Auslegeordnung anhand von vier Beispielen in Europa")
+    ], className="topbar"),
+    
+    html.Div([
+        html.Div([
+            html.P("Die Zahl der extremen Hitzeperioden hat in den letzten Jahrzehnten in ganz Europa erheblich zugenommen. Laut Klimaszenarien treten Hitzewellen wie 2003, 2015 und 2019 häufiger auf, sind intensiver und dauern länger. Eine Hitzewelle ist ein Zeitraum mit ungewöhnlich heissem Wetter, der in der Regel zwei oder mehr Tage dauert. Um als Hitzewelle zu gelten, müssen die Temperaturen ausserhalb der historischen Durchschnittswerte für ein bestimmtes Zeitabschnitt liegen. Diese Grafik aus dem Dashboard zeigt auf, dass es immer mehr Hitzewellen geben wird."),
+            html.Img(src= "/assets/plot1.jpg"),
+            html.P("Hitzewellen treten meist in den Sommermonaten auf. Dies vor allem, weil es in diesen Monaten bereits warm oder sogar heiss ist. Das es jedoch noch heisser wird hängt damit zusammen, dass Kohlendioxid zusätzliche Wärme in der Atmosphäre speichert. Als Folge steigen die Temperaturen somit auch europaweit. Nun zählt die steigende Temperatur nicht zur einzigen Veränderung, denn diese Hitze wirkt sich auch schlecht auf die einzelnen Länder aus. Folgend werden anhand von vier Länder in Europa aufgelistet, wie diese durch Hitzewellen geschädigt wurden."),
+            html.A("Quelle", href="https://journals.ametsoc.org/view/journals/clim/27/10/jcli-d-13-00284.1.xml")
+        ]),
+        html.Div([
+            html.H5("Gesundheit"),
+            html.P("Extreme Hitzewellen haben eine enorme Auswirkung auf die Gesundheit sowie auch auf die Sterblichkeit. Hier wird spezifisch von einem Hitzetod gesprochen. Unter diesen versteht sich ein Tod, der durch innere Überhitzung des Körpers ausgelöst wird. Die häufigste Ursache dafür sind unter anderem hohe Temperaturen. Meist jedoch in Verbindung mit Flüssigkeitsmangel und oder körperliche Anstrengung. Auch die schlechte Qualität der Infrastruktur und Gesundheitsversorgung, der allgemeine Gesundheitszustand der Bevölkerung und die demografische Struktur können eine Rolle spielen. Auch der Hitzesommer im Jahre 2003 sorgte dafür, dass die Mortalität in Frankreich sich deutlich erhöhte."),
+            html.Img(src="/assets/gesundheit.jpg"),
+            html.P("Als Vorzeigegrafik wurde hier ein Grid aus dem südöstlichen Teil im Jahr 2003 von Frankreich gewählt. (lat=44.98188, lon= 5.300815) In der Grafik ist ein etwas dickerer oranger Balken zu sehen. Dieser bedeutet nichts anderes als die Dauer der Hitzewelle an jenem Sommer. Die untere Achse spiegelt den Jahrestag wider. Genau während der knapp zwei heissesten Wochen an jenem Sommer starben, fast 15'000 Menschen. Dies war ein nationales Trauma für Frankreich. Betroffen waren vornehmlich betagte Menschen, die allein lebten. Welche leider in Vergessenheit geraten waren. Folgende Grafik zeigt auf, wie sich die Anzahl der Toten während dieser Hitzewelle im Sommer 2003 verteilte. Als die extreme Hitze abnahm, ist auch zu sehen wie sich die Anzahl der Toten rückläufig verhaltet."),
+            html.Img(src="/assets/deaths.png"),
+            html.P("Nichtsdestotrotz hat Frankreich daraus gelernt. Durch verschiedene Massnahmen wie regelmässige Besuche für alleinstehende Rentner, Wasser für Obdachlose oder auch Fahrverbote versucht das Land die Mortalität durch Hitze zu senken."),
+            html.A("Quelle 1, ", href="https://www.srf.ch/news/panorama/hitzewelle-in-europa-frankreich-hat-aus-den-hitzetoten-von-2003-gelernt"),
+            html.A("Quelle 2, " , href="https://www.directenergy.com/learning-center/heatwave"),
+            html.A("Quelle 3 & Bildquelle", href="https://www.eurosurveillance.org/content/10.2807/esm.10.07.00554-en")
+        ]),
+        html.Div([
+            html.H5("Landwirtschaft"),
+            html.P("Immer mehr Hitzewellen werden gemessen und die negativen Auswirkungen dieser Veränderung wirken sich bereits auch auf die landwirtschaftliche Produktion in Europa aus, insbesondere im Süden. Kulturpflanzen reagieren empfindlich auf klimatische Veränderungen, wie Temperaturänderungen, Dürre und Niederschläge. Unter den Veränderungen werden sich die steigenden Temperaturen am ehesten auf die Landwirtschaftserträge auswirken. Auch der nördliche Teil Italiens war im Sommer 2003 von einer derartigen Hitzeaussetzung betroffen (siehe Grafik). "),
+            html.Img(src="/assets/landwirtschaft.jpg"),
+            html.P("In Italien, in der Po-Ebene (ein fruchtbares Tiefland in Norditalien), wo die Temperaturen hoch waren, verzeichnete Mais einen Rekordrückgang der Ernteerträge. Hinzukommend wurde festgestellt, dass Winterkulturen (Weizen) ihr Wachstum zum Zeitpunkt der Hitzewelle fast abgeschlossen hatten. Daher erlitten diese einen geringeren Rückgang der Produktivität als Sommerkulturen (Mais), die sich zu dieser Zeit in der maximalen Blattentwicklung befanden. Folgende Grafik zeigt, mit wieviel Prozent Rückgang einiger Pflanzen zu rechnen war. Auch ein finanzieller Aspekt ist zu sehen."),
+            html.Img(src="/assets/crops.png"),
+            html.P("Der künftige Temperaturanstieg könnte also auch einige aufgrund längerer Vegetationsperioden und besserer Anbaubedingungen positive Auswirkungen auf die Landwirtschaft haben. Allerdings wird die Zahl der Extremereignisse, die sich negativ auf die Landwirtschaft in Europa auswirken, zunehmen. Was somit zur Folge haben kann, dass die Sommerkulturen mehrere Ernteverluste mit sich tragen werden."),
+            html.A("Quelle 1, ", href="https://www.landwirtschaft.de/landwirtschaft-verstehen/wie-funktioniert-landwirtschaft-heute/wie-wirkt-sich-der-klimawandel-auf-die-landwirtschaft-aus/"),
+            html.A("Quelle 2, ", href="https://www.nature.com/articles/nature03972"),
+            html.A("Quelle 3 & Bildquelle", href="https://www.unisdr.org/files/1145_ewheatwave.en.pdf")
+        ]),
+        html.Div([
+            html.H5("Produktivitätsverlust"),
+            html.P("In einigen Wirtschaftssektoren, insbesondere in der Landwirtschaft und im Baugewerbe, sinkt die Produktivität der Arbeitnehmer während der Hitzewelle. Es wird angenommen, dass ein Teil der gesamten Arbeitszeit verloren geht, weil es zu heiss zum Arbeiten ist oder die Arbeiter langsam arbeiten müssen. Unter anderem können die Temperaturen auch Auswirkungen auf die Arbeitsunfälle mit sich bringen. In den Jahren 2003, 2010, 2015 und 2018 beeinträchtigten Hitzewellen das Wirtschaftswachstum Europas in einer Grössenordnung von 0,3 % bis 0,5 % des europäischen BIP, das heisst 1,5 bis 2,5 Mal mehr als in einem durchschnittlichen Jahr. Unter den derzeitigen klimatischen Bedingungen scheinen Aussenarbeiter stärker von extremer Hitze betroffen zu sein, während die meisten Innenarbeiter isoliert bleiben. In der folgenden Grafik sind die Kosten der Hitzewellen auf regionaler Ebene (als Anteil des regionalen BIP) in den vier untersuchten Jahren zu sehen."),
+            html.Img(src="/assets/productivity.jpg"),
+            html.P("Aufgrund ihrer hohen geografischen Hitzeaussetzung erwiesen sich also die südlichen Teile Europas anfälliger für diese Schäden. Eines der betroffenen Länder war, laut einer Forschungsstudie von Environmental Health Perspectives, Spanien. Diese Studie ermittelte Auswirkungen von Temperaturen auf Arbeitsunfälle in Spanien. Hierfür wurden Daten mit den Höchsttemperaturen in den Jahren 1994 bis 2013 analysiert. Als Ergebnis konnte festgestellt werden, dass schätzungsweise 0,67 Millionen Arbeitstagen jedes Jahr aufgrund der Temperatur verloren gehen. Die geschätzte jährliche wirtschaftliche Belastung aufgrund der Temperaturen beläuft sich auf 370 Millionen Euro, welches 0,03 %  des spanischen BIP ausmacht."),
+            html.A("Quelle 1, ", href="https://ehp.niehs.nih.gov/doi/10.1289/ehp2590"),
+            html.A("Quelle 2 & Bildquelle", href="https://www.nature.com/articles/s41467-021-26050-z")
+        ]),
+        html.Div([
+            html.H5("Energieverbrauch "),
+            html.P("Hitzewellen haben erhebliche Auswirkungen auf die oben genannten Bereiche, aber hohe Temperaturen bergen auch erhebliche Risiken im Energiebereich. Beispielsweise erfordern diese Extremereignisse immer mehr Energie für die Klimatisierung. Solche Temperaturen reduzieren auch den Wirkungsgrad von Erdgaskraftwerken, Turbinen und Kesseln. Wasserkraftwerke leiden unter anderem unter Verdunstung und Trockenheit, was zu einer geringeren Stromerzeugung führt. Die Photovoltaikanlage wiederum liefert viel Strom. Aber auch diese haben an einem so heißen Tag zu kämpfen. Dies liegt vor allem daran, dass der Wirkungsgrad des Systems mit steigender Temperatur des Moduls abnimmt."),
+            html.P("Auch Deutschland benötigte im Sommer 2018 6% mehr Strom als in den Jahren 2016 und 2017. Damals verbrauchte das Land täglich etwa 1,36 Milliarden Kilowattstunden (kWh). In der folgenden Grafik sieht man, dass gegenüber dem vorherigen Jahr die Nettostromerzeugung bei vielen Energiequellen abgenommen hat. Das liegt daran, dass das heisse Wetter immer mehr Energie erforderte. Solche Situationen zeigen nur, dass Extremereignisse wie die Hitzewelle, sich auf die Energiequelle negativ auswirkt. Deshalb ist die Kombination aller Erzeugungsarten wichtig, um die Stromversorgung in ganz Europa sicherzustellen."),
+            html.Img(src="/assets/strom.png"),
+            html.A("Quelle 1, ", href="https://www.en-former.com/hitzewelle-stellt-energieversorgung-vor-herausforderungen/"),
+            html.A("Quelle 2 & Bildquelle", href="https://www.ise.fraunhofer.de/content/dam/ise/de/documents/news/2019/Stromerzeugung_2018_3.pdf")
+        ]),
+        html.Div([
+            html.H5("Schlussfolgerung"),
+            html.P("Im Rahmen einer Challenge des Studiengangs BSc Data Science an der Fachhochschule Nordwestschweiz in Brugg-Windisch konnten wir die Hitzewellen als Extremereignis näher analysieren. Dabei konnten wir eine dynamische Informationswebseite (Dashboard) erstellen. Passend dazu wollten wir in diesem Datenstory aufzeigen, welche Auswirkungen durch Hitzewellen entstehen können. Die kontinuierlich steigenden Temperaturen bringen verschiedene Auswirkungen mit sich. Extremereignisse wie unerwartete Hitzewellen haben schwerwiegende Folgen. Gesundheitliche Auswirkungen sind eine der grössten. Dennoch kann extreme Hitze auch andere Effekte haben. Durch unsere Analyse fanden wir heraus, dass in Europa es die südlichsten Länder sind, die betroffen sind. Im Grunde hat das damit zu tun, dass diese Länder bereits wärmere Temperaturen haben als im Norden. Basierend auf verschiedenen Studien und Annahmen konnten schon Massnahmen ergriffen werden, um die Auswirkungen der Hitzewelle zu bekämpfen. Je nach Schaden gibt es unterschiedliche, aber generell spielt auch der Klimawandel eine wichtige Rolle. Also sollte auch der bekämpft werden. Um einen näheren Einblick in die Berechnung der Hitzewelle zu kriegen, kann die von uns erstellte Hintergrundwissenswebseite besucht werden."),
+            html.P("Studiengang Bsc Data Science an der Fachhochschule Nordwestschweiz in Brugg-Windisch. Klimadaten Challenge cdk1 Datenstory. Gruppe: Daniela Herzig, Manjavy Kirupa, Thomas Mandelz, Patrick Schürmann, Jan Zwicky.")
+        ])
+
+    ], className="contain")
 ])])
 
 page_BackgroundInfo_layout = html.Div([header,html.Div([
@@ -540,7 +613,7 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.P('Russo hat 2014 eine Definition eines Heatwave-Magnitude-Index herausgegeben: diese definiert durch eine einzelne Zahl – der Magnitude – die Länge und Stärke von Hitzewellen. Sie hat aber auch ihre Schwächen, insbesondere im Rahmen des sich erwärmenden Klimas und führt zu einer Unterschätzung von Hitzewellen-Magnituden. Sie wurde darum 2015 durch Russo ersetzt mit der täglichen Magnitude, die auf Messungen in einem regelmässigen geographischen Raster anwendbar ist.'),
     html.P('Gemäss Russo ist eine Hitzewelle definiert durch drei aufeinanderfolgende Tage, die über einer Schwelle in einer 30-jährigen Referenzperiode liegen. Die Schwelle (oder Threshold) berechnet sich durch das 90 Prozent Perzentil von täglichen Maximaltemperaturen in einem 31-Tage Fenster, für einen Tag x also die Tage x-15 bis x+15. Die Magnitude, also die Stärke (abhängig von Länge und Temperatur) einer Hitzewelle, wiederum berechnet sich aus der Summe von aufeinanderfolgenden Tagen einer Hitzewelle gemäss folgender Formel:'),
 #
-    html.P(r'$\[ M_d (T_d) = \begin{cases}\frac{T_D – T_{30y25p}}{T_{30y75p} – T_{30y25p}} \quad \text{if } T_d > T_{30y25p} \\ 0 \quad \text{if} T_D \llT_{30y25p}\end{cases}]\]$'),
+    html.Div([dcc.Markdown(r'$M_d (T_d) = \left\{\begin{array}{lr}\frac{T_D – T_{30y25p}}{T_{30y75p} – T_{30y25p}} \quad \hspace{10mm} \text{if } T_d > T_{30y25p} \\ 0 \quad \hspace{29mm} \text{ if } T_d \leq T_{30y25p}\end{array}\right\}$', mathjax=True)]),
 #
     html.P('Wobei Td die tägliche Maximaltemperatur der Hitzewelle ist und T30y75p/25p die 25 bzw. 75 Prozent Perzentil der jährlichen Maximaltemperaturen der Referenzperiode. In der vorhandenen Literatur ist nicht eindeutig definiert, ob die T30y75p/25p sich auf die jährlichen Maximaltemperaturen oder auf alle Temperaturen der Referenzperiode bezieht.'),
     html.H6(children='Wie wurde die Magnitude abgegrenzt für diese Arbeit?'),
@@ -553,21 +626,24 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.P('Alle auftretenden Hitzewellen und deren Magnitude, die gemäss obiger Formel berechnet wurde, summiert über das Jahr.'),
     html.H6(children='Was ist eine normalisierte Magnitude?'),
     html.P('Um einen Vergleich zwischen den Ländern machen zu können, haben wir die Summe aller Magnituden pro Jahr pro Land aufsummiert und durch die Anzahl Grids geteilt. Somit kann ein Vergleich zwischen allen Ländern gemacht werden.'),
-    html.H6(children='Quelle:'),
-    html.P(children=[html.Span("Russo, Simone, Jana Sillmann, und Erich M Fischer. „Top Ten European Heatwaves since 1950 and Their Occurrence in the Coming Decades“. Environmental Research Letters 10, Nr. 12 (1. Dezember 2015): 124003. "),html.A("https://doi.org/10.1088/1748-9326/10/12/124003",href="https://doi.org/10.1088/1748-9326/10/12/124003")]),
     html.H5(children='Statistische Auswertung'),
     html.P('Um einen Überblick über die zunehmende Stärke von Hitzewellen zu erhalten, zeigen wir im Dashboard eine Grafik der jährlichen Stärken der Hitzewellen in Europa. Um die Daten nicht nur visuelle darzustellen, haben wir sie statistisch untersucht. Für die Verständlichkeit haben wir die Daten normalisiert. Dabei wurde die Stärke des ersten Jahres auf 1 gesetzt und die restlichen Jahre dazu standardisiert. Folgende Erkenntnisse konnten wir dadurch erzielen.'),
     html.H6(children='Mittelwert'),
     html.P('Die Stärke der Magnituden betrug im Durchschnitt 6.9 und Median lag bei 5.3. Es gibt also ein paar Ausreisser, die den Mittelwert nach oben ziehen.'),
     html.H6(children='Summen und Mittelwerte über Fünfjahresperioden'),
-    html.P('Für die ersten fünf Jahre unserer Beobachtungsperiode betrug der jährliche Mittelwert 2.7 und die Summe 13.7. Im Kontrast dazu wurde für die letzten fünf Jahre einen Mittelwert von 11.8 und eine Summe 59.0 und verzeichnet. Hier haben wir einen Anstieg von jeweils etwa 330% festgestellt. Die fünf Jahre mit dem höchsten Mittelwert waren von 2015 bis 2019 mit 13.3.'),
+    html.P('Während der ersten fünf Jahre unserer Beobachtungsperiode betrug der jährliche Mittelwert der Magnituden 2.7 und die Summe 13.7. Im Kontrast dazu wurde für die Magnituden für die letzten fünf Jahre einen Mittelwert von 11.8 und eine Summe 59.0 verzeichnet. Es wurde somit ein Anstieg von jeweils rund 330% festgestellt. Die fünf Jahre mit dem höchsten Mittelwert waren von 2015 bis 2019 mit 13.3. Die folgende Grafik zeigt die Verteilung der jährlichen Magnituden.'),
     html.Div([        
         dcc.Graph(figure=showhist(), id = "hist_europe", config = {'displayModeBar': False}),            
         ], className='row'),
     html.H6(children='Standardabweichung'),
     html.P('Für die Standardabweichung haben wir eine rollierende Standardabweichung über 10 Jahre angeschaut. Zu Beginn der Zeitreihe wurde eine Standardabweichung von 1.6 verzeichnet. Diese stieg bis zum Ende auf 3.9 an. Der höchste Wert von 5.7 wurde für die Periode von 2001 bis 2012 beobachtet.'),
+    html.Div([        
+        dcc.Graph(figure=showstd(), id = "std_europe", config = {'displayModeBar': False}),            
+        ], className='row'),
     html.H6(children='Regressionsanalyse'),
     html.P('Um festzustellen, ob eine Steigung erkennbar ist, haben wir eine lineare Regressionsanalyse durchgeführt. Anhand der Residuenanalyse wurde erkennbar, dass der starke Anstieg der Magnituden die Analyse stark verzerrt. Für die Regression müssten die Summen mit dem Logarithmus zur Basis 2 transformiert werden. Die Analyse ergibt so eine Steigung von 0.07 und ein Ordinatenabschnitt von -138.3. Aufgrund der geringen Anzahl Jahre, der starken Transformation und weiterhin starken Streuung der Residuen taugt dieses lineare Modell nicht für Prognosen. Möglicherweise können sophistiziertere Transformationen genauere Resultate liefern.'),
+    html.H6(children='Quelle:'),
+    html.P(children=[html.Span("Russo, Simone, Jana Sillmann, und Erich M Fischer. „Top Ten European Heatwaves since 1950 and Their Occurrence in the Coming Decades“. Environmental Research Letters 10, Nr. 12 (1. Dezember 2015): 124003. "),html.A("https://doi.org/10.1088/1748-9326/10/12/124003",href="https://doi.org/10.1088/1748-9326/10/12/124003")]),
 ])])
 
 
