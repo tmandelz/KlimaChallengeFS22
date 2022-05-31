@@ -645,7 +645,7 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.H6(children='Summen und Mittelwerte über Fünfjahresperioden'),
     html.P('Während der ersten fünf Jahre unserer Beobachtungsperiode betrug der jährliche Mittelwert der Magnituden 2.7 und die Summe 13.7. Im Kontrast dazu wurde für die Magnituden für die letzten fünf Jahre einen Mittelwert von 11.8 und eine Summe 59.0 verzeichnet. Es wurde somit ein Anstieg von jeweils rund 330% festgestellt. Die fünf Jahre mit dem höchsten Mittelwert waren von 2015 bis 2019 mit 13.3. Die folgende Grafik zeigt die Verteilung der jährlichen Magnituden.'),
     html.Div([        
-        dcc.Graph(figure=showhist(), id =t "hist_europe", config = {'displayModeBar': False}),            
+        dcc.Graph(figure=showhist(), id = "hist_europe", config = {'displayModeBar': False}),            
         ], className='row'),
     html.H6(children='Standardabweichung'),
     html.P('Für die Standardabweichung haben wir eine rollierende Standardabweichung über 10 Jahre angeschaut. Zu Beginn der Zeitreihe wurde eine Standardabweichung von 1.6 verzeichnet. Diese stieg bis zum Ende auf 3.9 an. Der höchste Wert von 5.7 wurde für die Periode von 2001 bis 2012 beobachtet.'),
