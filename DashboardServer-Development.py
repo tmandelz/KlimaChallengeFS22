@@ -618,9 +618,9 @@ page_Datastory_layout = html.Div([header,html.Div([
 
 page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.Div(id='Datastory-content'),
-    html.H5(children='Quelle unserer Daten'),
+    html.H6(children='Quelle unserer Daten'),
     html.P('In Europa besitzt jedes einzelne Land einen nationalen Wetterdienst. Diese führen eigene Messungen, teilweise nach eigenen Standards, aus und speichern sie an unterschiedlichen Orten. Wir verwenden deshalb die Daten vom AGRI4CAST Resources Portal der Europäischen Kommission. Diese Datenbank besteht aus täglichen meteorologischen Daten seit 1979. Die Messwerte werden für die ganze EU und umliegende Länder auf 25x25 km Grids/Felder dargestellt und erfüllen somit unsere Anforderungen für dieses Dashboard und die Datenstory.'),
-    html.H5(children='Was ist eine Hitzewelle und was sagt die Magnitude aus?'),
+    html.H6(children='Was ist eine Hitzewelle und was sagt die Magnitude aus?'),
     html.P('Eine Hitzewelle ist eine überdurchschnittliche heisse Periode. Es existiert eine Vielzahl von Definitionen, die WMO (World Meteorological Organization) definiert eine Hitzewelle als mindestens fünf aufeinanderfolgende Tage, an denen die maximale Tagestemperatur 5°C über der maximalen Durchschnittstemperatur liegt.'),
     html.P('Russo hat 2014 eine Definition eines Heatwave-Magnitude-Index herausgegeben: diese definiert durch eine einzelne Zahl – der Magnitude – die Länge und Stärke von Hitzewellen. Sie hat aber auch ihre Schwächen, insbesondere im Rahmen des sich erwärmenden Klimas und führt zu einer Unterschätzung von Hitzewellen-Magnituden. Sie wurde darum 2015 durch Russo ersetzt mit der täglichen Magnitude, die auf Messungen in einem regelmässigen geographischen Raster anwendbar ist.'),
     html.P('Gemäss Russo ist eine Hitzewelle definiert durch drei aufeinanderfolgende Tage, die über einer Schwelle in einer 30-jährigen Referenzperiode liegen. Die Schwelle (oder Threshold) berechnet sich durch das 90 Prozent Perzentil von täglichen Maximaltemperaturen in einem 31-Tage Fenster, für einen Tag x also die Tage x-15 bis x+15. Die Magnitude, also die Stärke (abhängig von Länge und Temperatur) einer Hitzewelle, wiederum berechnet sich aus der Summe von aufeinanderfolgenden Tagen einer Hitzewelle gemäss folgender Formel:'),
@@ -638,7 +638,7 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.P('Alle auftretenden Hitzewellen und deren Magnitude, die gemäss obiger Formel berechnet wurde, summiert über das Jahr.'),
     html.H6(children='Was ist eine normalisierte Magnitude?'),
     html.P('Um einen Vergleich zwischen den Ländern machen zu können, haben wir die Summe aller Magnituden pro Jahr pro Land aufsummiert und durch die Anzahl Grids geteilt. Somit kann ein Vergleich zwischen allen Ländern gemacht werden.'),
-    html.H5(children='Statistische Auswertung'),
+    html.H6(children='Statistische Auswertung'),
     html.P('Um einen Überblick über die zunehmende Stärke von Hitzewellen zu erhalten, zeigen wir im Dashboard eine Grafik der jährlichen Stärken der Hitzewellen in Europa. Um die Daten nicht nur visuelle darzustellen, haben wir sie statistisch untersucht. Für die Verständlichkeit haben wir die Daten normalisiert. Dabei wurde die Stärke des ersten Jahres auf 1 gesetzt und die restlichen Jahre dazu standardisiert. Folgende Erkenntnisse konnten wir dadurch erzielen.'),
     html.H6(children='Mittelwert'),
     html.P('Die Stärke der Magnituden betrug im Durchschnitt 6.9 und Median lag bei 5.3. Es gibt also ein paar Ausreisser, die den Mittelwert nach oben ziehen.'),
@@ -656,7 +656,7 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.P('Um festzustellen, ob eine Steigung erkennbar ist, haben wir eine lineare Regressionsanalyse durchgeführt. Anhand der Residuenanalyse wurde erkennbar, dass der starke Anstieg der Magnituden die Analyse stark verzerrt. Für die Regression müssten die Summen mit dem Logarithmus zur Basis 2 transformiert werden. Die Analyse ergibt so eine Steigung von 0.07 und ein Ordinatenabschnitt von -138.3. Aufgrund der geringen Anzahl Jahre, der starken Transformation und weiterhin starken Streuung der Residuen taugt dieses lineare Modell nicht für Prognosen. Möglicherweise können sophistiziertere Transformationen genauere Resultate liefern.'),
     html.H6(children='Quelle:'),
     html.P(children=[html.Span("Russo, Simone, Jana Sillmann, und Erich M Fischer. „Top Ten European Heatwaves since 1950 and Their Occurrence in the Coming Decades“. Environmental Research Letters 10, Nr. 12 (1. Dezember 2015): 124003. "),html.A("https://doi.org/10.1088/1748-9326/10/12/124003",href="https://doi.org/10.1088/1748-9326/10/12/124003")]),
-])])
+], className="contain")])
 
 
 # Update the index
