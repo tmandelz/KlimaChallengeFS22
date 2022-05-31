@@ -44,7 +44,7 @@ def ConnectPostgresSql():
 # varibles for gridno and year and definition of length of heatwave
 grid = 96099
 year = 2020
-lengthofheatwave = 3
+lengthofheatwave = 1
 
 # built query and get data
 queryData = f"select Threshold.date as NoDay, Threshold.threshold as reference_temperature, Threshold.Grid_id_Grid, TemperatureMagnitude.date, TemperatureMagnitude.temperature_max, TemperatureMagnitude.magnitude, EXTRACT(DOY FROM TemperatureMagnitude.date) as Magnitudenoday from Threshold full join TemperatureMagnitude on Threshold.date = EXTRACT(DOY FROM TemperatureMagnitude.date) where extract(year from TemperatureMagnitude.date) = {year} and Threshold.Grid_id_grid = {grid} and TemperatureMagnitude.Grid_id_grid = {grid} order by Threshold.date"
@@ -54,15 +54,25 @@ cursor = mydb.cursor()
 
 cursor.execute(queryData)
 data = pd.read_sql(queryData,mydb)
+# data = data.drop_duplicates(subset=['date'])
+
+data["date"] = pd.to_datetime(data["date"])
 
 # generate df(magni) of heatwaves
 magni = data.loc[data["magnitude"] > 0.0]
 magni['grp_date'] = magni["noday"].diff().ne(1).cumsum()
-magni = magni.groupby('grp_date').agg(Start = ("noday", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'))
+magni = magni.groupby('grp_date').agg(Start = ("noday", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'), Startdatum = ("date", "min"))
 magni = magni.loc[magni['Count'] >= lengthofheatwave]
-magni["End"] = magni["Start"] + magni["Count"] -1
+magni["End"] = magni["Startdatum"] + pd.to_timedelta(magni["Count"], unit='d')
+# magni['Startdatum'] = magni['Startdatum'].dt.strftime('%Y%m%d')
+# magni['Startdatum'] = magni['Startdatum'].astype('datetime64')
+# magni['End'] = magni['End'].dt.strftime('%Y%m%d')
+# magni['End'] = magni['End'].astype('datetime64')
 magni = magni.reset_index(drop=True)
-print(magni)
+print(magni.head())
+print(magni.dtypes)
+print(data.dtypes)
+print(data.loc[0, "date"])
 
 # start plot
 fig = go.Figure()
@@ -70,7 +80,8 @@ fig = go.Figure()
 # plot threshold temp
 fig.add_trace(
     go.Scatter(
-        x=data["noday"],
+        # x=data["noday"],
+        x=data["date"],
         y=data["reference_temperature"],
         line_color = "blue",
         name = "Threshold Temperature"
@@ -79,7 +90,8 @@ fig.add_trace(
 # add temp of day
 fig.add_trace(
     go.Scatter(
-        x=data["noday"],
+        # x=data["noday"],
+        x=data["date"],
         y=data["temperature_max"],
         line_color = "red",
         name = "Max Temperature"
@@ -87,14 +99,17 @@ fig.add_trace(
 
 # change background color to white. perhaps needs to be changed if different background color in html
 fig.update_layout(plot_bgcolor = 'white')
+fig.update_layout(legend=dict(x=0, y=1))
 
 # add heatwaves by adding vertical rectangle for each heatwave
 for x in range(len(magni)):
-    c = magni.loc[x,"Count"]
-    fig.add_vrect(x0=magni.loc[x,"Start"], x1=magni.loc[x, "End"], 
+    print(magni.loc[x,"Startdatum"])
+    c = pd.Timedelta(magni.loc[x,"Count"], unit = "D")
+    fig.add_vrect(x0=magni.loc[x,"Startdatum"], x1=magni.loc[x, "End"],
                 annotation_text="Anzahl Tage: %s" %c, annotation_position="bottom",
+                # annotation_text="Anzahl Tage: %s" %str(magni.loc[x,"End"] - magni.loc[x, "Startdatum"]), annotation_position="bottom",
                 annotation=dict(font_size=15, font_family="Arial", textangle=-90),
-              fillcolor="orange", opacity=0.25, line_width=0),
+                fillcolor="orange", opacity=0.25, line_width=0),
 
 # generate and save plot
 fig.show()
