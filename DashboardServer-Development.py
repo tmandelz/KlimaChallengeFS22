@@ -200,7 +200,7 @@ fig_europe=create_europe_fig(1979)
 def update_europe(year,fig,data = data_europe):
     fig.update_traces(z = data[data["year"] == year]["countMagnitude"])
     fig.update_traces(text = data[data["year"] == year]["country"], hovertemplate="<b>%{text}</b><br><br>" + "Magnitude: %{z:.2f}")
-    fig.update_layout(title_text="Stärke der Hitzewellen in Europa,"+str(year)+"<br><sup>Summe der Magnituden pro Jahr </sup>")
+    fig.update_layout(title_text="Stärke der Hitzewellen in Europa, "+str(year)+"<br><sup>Summe der Magnituden pro Jahr </sup>")
     return fig
 
 fig_europe = update_europe(1979,fig_europe)
