@@ -557,49 +557,54 @@ def update_fig3(year,json_click,country_value):
     country_fig = create_country_fig(country_value,year,grid_selected)
     return grid_selected,fig3,country_fig
 
+page_Datastory_layout = html.Div([header, html.Div([
 
-page_Datastory_layout = html.Div([header,html.Div([
-    
     html.Div([
         html.H2("Wie schädigen Hitzewellen die Länder in Europa?"),
         html.H5("Eine Auslegeordnung anhand von vier Beispielen in Europa")
     ], className="topbar"),
-    
+
     html.Div([
         html.Div([
             html.P("Die Zahl der extremen Hitzeperioden hat in den letzten Jahrzehnten in ganz Europa erheblich zugenommen. Eine Hitzewelle ist ein Zeitraum mit ungewöhnlich heissem Wetter, das über einem Schwellenwert der Referenzperiode zwischen 1979 und 2008 liegt. In dem Balkendiagramm ist ersichtlich, dass die Anzahl von Hitzetagen bzw. Hitzewellen stark zunimmt seit der Jahrtausendwende."),
-            html.Img(src= "/assets/plot1.jpg"),
-            html.P(["Hitzewellen treten meist in den Sommermonaten auf. Dies vor allem, weil es in diesen Monaten bereits warm oder sogar heiss ist. Infolge der Speicherung von Wärme durch das freigesetzte Kohlendioxid, wird das Klima zusätzlich angeheizt. Als Folge steigen die Temperaturen. Die steigende Temperatur ist nicht die einzige Veränderung durch die Hitze, diese wirkt sich auch negativ auf einzelne Länder aus. Anhand von vier Beispielen werden die Auswirkungen von Hitzewellen im Folgenden illustriert. ", html.A("Quelle", href="https://journals.ametsoc.org/view/journals/clim/27/10/jcli-d-13-00284.1.xml")])
+            dcc.Graph(figure=create_fig4(), id = "europe_sum_datastory", config = {'displayModeBar': False,'staticPlot': True}),
+            html.P(["Hitzewellen treten meist in den Sommermonaten auf. Dies vor allem, weil es in diesen Monaten bereits warm oder sogar heiss ist. Infolge der Speicherung von Wärme durch das freigesetzte Kohlendioxid, wird das Klima zusätzlich angeheizt. Als Folge steigen die Temperaturen. Die steigende Temperatur ist nicht die einzige Veränderung durch die Hitze, diese wirkt sich auch negativ auf einzelne Länder aus. Anhand von vier Beispielen werden die Auswirkungen von Hitzewellen im Folgenden illustriert. ", html.A(
+                "Quelle", href="https://journals.ametsoc.org/view/journals/clim/27/10/jcli-d-13-00284.1.xml")])
         ]),
         html.Div([
             html.H5("Gesundheit"),
-            html.P(["Extreme Hitzewellen haben eine enorme Auswirkung auf die Gesundheit sowie auf die Sterblichkeit. Hier wird spezifisch von einem Hitzetod gesprochen. Unter diesem versteht man einen Tod, der durch innere Überhitzung des Körpers ausgelöst wird. Die häufigste Ursache dafür sind hohe Temperaturen in Verbindung mit Flüssigkeitsmangel und oder körperliche Anstrengung. ", html.A("(Quelle)", href="https://www.toppharm.ch/krankheitsbild/hitzetod#:~:text=Unter%20Hitzetod%20verstehen%20Fachleute%20einen,Hitzeersch%C3%B6pfung%2C%20Hitzschlag%20und%20Sonnenstich%20ein."), html.P("Die schlechte Qualität der Infrastruktur und Gesundheitsversorgung, der allgemeine Gesundheitszustand der Bevölkerung und die demografische Struktur können ebenso eine Rolle spielen. Der Hitzesommer im Jahre 2003 sorgte dafür, dass die Mortalität in Frankreich sich deutlich erhöhte.")]),
-            html.Img(src="/assets/gesundheit.jpg"),
+            html.P(["Extreme Hitzewellen haben eine enorme Auswirkung auf die Gesundheit sowie auf die Sterblichkeit. Hier wird spezifisch von einem Hitzetod gesprochen. Unter diesem versteht man einen Tod, der durch innere Überhitzung des Körpers ausgelöst wird. Die häufigste Ursache dafür sind hohe Temperaturen in Verbindung mit Flüssigkeitsmangel und oder körperliche Anstrengung. ", html.A(
+                "(Quelle)", href="https://www.toppharm.ch/krankheitsbild/hitzetod#:~:text=Unter%20Hitzetod%20verstehen%20Fachleute%20einen,Hitzeersch%C3%B6pfung%2C%20Hitzschlag%20und%20Sonnenstich%20ein."), html.P("Die schlechte Qualität der Infrastruktur und Gesundheitsversorgung, der allgemeine Gesundheitszustand der Bevölkerung und die demografische Struktur können ebenso eine Rolle spielen. Der Hitzesommer im Jahre 2003 sorgte dafür, dass die Mortalität in Frankreich sich deutlich erhöhte.")]),
+            html.Img(src="/assets/gesundheit.png"),
             html.P("Als Beispiel wurde hier ein Bereich aus dem südöstlichen Teil von Frankreich im Jahr 2003 gewählt. (lat=44.98188, lon= 5.300815) In der Grafik ist ein etwas dickerer oranger Balken zu sehen. Dieser zeigt die Dauer dieser einzelnen Hitzewelle in jenem Sommer. Die untere Achse spiegelt den Jahrestag wider. Genau während der knapp zwei heissesten Wochen an jenem Sommer starben fast 15'000 Menschen. Das Ganze war zwischen dem 02.08.2003 und 15.08.2003, welches zwischen dem 212.Jahrestag und 225. Jahrestag liegt. Dies war ein nationales Trauma für Frankreich. Betroffen waren vornehmlich betagte Menschen, die alleine lebten. Folgende Grafik zeigt auf, wie sich die Anzahl der Toten während dieser Hitzewelle im Sommer 2003 verteilte. Als die extreme Hitze abnahm, ist auch zu sehen wie sich die Anzahl der Toten rückläufig verhaltet."),
             html.Img(src="/assets/deaths.png"),
             html.P("Durch verschiedene Massnahmen wie regelmässige Besuche für alleinstehende Rentner, Wasser für Obdachlose oder auch Fahrverbote versucht das Land die Mortalität durch Hitze zu senken, damit solche Ereignisse einzigartig bleiben."),
             html.A("Quelle 1, ", href="https://www.srf.ch/news/panorama/hitzewelle-in-europa-frankreich-hat-aus-den-hitzetoten-von-2003-gelernt"),
-            html.A("Quelle 2, " , href="https://www.directenergy.com/learning-center/heatwave"),
-            html.A("Quelle 3 & Bildquelle", href="https://www.eurosurveillance.org/content/10.2807/esm.10.07.00554-en")
+            html.A(
+                "Quelle 2, ", href="https://www.directenergy.com/learning-center/heatwave"),
+            html.A("Quelle 3 & Bildquelle",
+                   href="https://www.eurosurveillance.org/content/10.2807/esm.10.07.00554-en")
         ]),
         html.Div([
-            html.H5("Landwirtschaft"), 
+            html.H5("Landwirtschaft"),
             html.P("Immer mehr Hitzewellen werden gemessen und die negativen Auswirkungen dieser Veränderung wirken sich bereits auch auf die landwirtschaftliche Produktion in Europa aus, insbesondere im Süden. Kulturpflanzen reagieren empfindlich auf klimatische Veränderungen, wie Temperaturänderungen, Dürre und Niederschläge. Von diesen Veränderungen werden sich die steigenden Temperaturen am stärksten auf die Landwirtschaftserträge auswirken. Der nördliche Teil Italiens war im Sommer 2003 von einer derartigen Hitzeaussetzung betroffen (siehe Grafik). "),
-            html.Img(src="/assets/landwirtschaft.jpg"),
+            html.Img(src="/assets/landwirtschaft.png"),
             html.P("In Italien, in der Po-Ebene (ein fruchtbares Tiefland in Norditalien), wo die Temperaturen hoch waren, verzeichnete Mais einen Rekordrückgang der Ernteerträge. Hinzukommend wurde festgestellt, dass Winterkulturen (Weizen) ihr Wachstum zum Zeitpunkt der Hitzewelle fast abgeschlossen hatten. Daher erlitten diese einen geringeren Rückgang der Produktivität als Sommerkulturen (Mais), die sich zu dieser Zeit in der maximalen Blattentwicklung befanden. Folgende Grafik zeigt, mit wieviel Prozent Rückgang einiger Pflanzen zu rechnen war. Auch ein finanzieller Aspekt ist zu sehen."),
             html.Img(src="/assets/crops.png"),
             html.P("Der künftige Temperaturanstieg könnte neben den negativen auch positiven Auswirkungen auf die Landwirtschaft haben, insbesondere aufgrund längerer Vegetationsperioden und besseren Anbaubedingungen. Allerdings wird die Zahl der Extremereignisse, die sich negativ auf die Landwirtschaft in Europa auswirken, zunehmen. Dies hat zur Folge, dass die Sommerkulturen viele Ernteverluste erleiden können. "),
             html.A("Quelle 1, ", href="https://www.landwirtschaft.de/landwirtschaft-verstehen/wie-funktioniert-landwirtschaft-heute/wie-wirkt-sich-der-klimawandel-auf-die-landwirtschaft-aus/"),
             html.A("Quelle 2, ", href="https://www.nature.com/articles/nature03972"),
-            html.A("Quelle 3 & Bildquelle", href="https://www.unisdr.org/files/1145_ewheatwave.en.pdf")
+            html.A("Quelle 3 & Bildquelle",
+                   href="https://www.unisdr.org/files/1145_ewheatwave.en.pdf")
         ]),
         html.Div([
             html.H5("Produktivitätsverlust"),
             html.P("In einigen Wirtschaftssektoren, insbesondere in der Landwirtschaft und im Baugewerbe, sinkt die Produktivität der Arbeitnehmer während einer Hitzewelle. Es wird angenommen, dass ein Teil der Arbeitszeit verloren geht, weil es zu heiss zum Arbeiten ist oder die Arbeiter langsam arbeiten müssen. Unter anderem können die Temperaturen auch Auswirkungen auf die Arbeitssicherheit haben. In den Jahren 2003, 2010, 2015 und 2018 beeinträchtigten Hitzewellen das Wirtschaftswachstum Europas laut Quelle 2 in einer Grössenordnung von 0,3 % bis 0,5 % des europäischen BIP. Das sind ca. 1,5 bis 2,5 Mal mehr als in einem durchschnittlichen Jahr. Unter den derzeitigen klimatischen Bedingungen scheinen Aussenarbeiter stärker von extremer Hitze betroffen zu sein, während die meisten Innenarbeiter isoliert bleiben. In der folgenden Grafik sind die Kosten der Hitzewellen auf regionaler Ebene (als Anteil des regionalen BIP) in den vier untersuchten Jahren zu sehen. "),
-            html.Img(src="/assets/productivity.jpg"),
+            html.Img(src="/assets/productivity_transp.png"),
             html.P("Aufgrund ihrer hohen geografischen Hitzeaussetzung erwiesen sich die südlichen Teile Europas anfälliger für diese Schäden. Eines der betroffenen Länder war, laut einer Forschungsstudie von Environmental Health Perspectives, Spanien. Diese Studie ermittelte Auswirkungen von Temperaturen auf Arbeitsunfälle in Spanien. Hierfür wurden Daten mit den Höchsttemperaturen in den Jahren 1994 bis 2013 analysiert. Als Ergebnis konnte festgestellt werden, dass schätzungsweise 0,67 Millionen Arbeitstagen jedes Jahr aufgrund der hohen Temperatur verloren gehen. Die geschätzte jährliche wirtschaftliche Belastung aufgrund der Temperaturen beläuft sich auf 370 Millionen Euro. "),
             html.A("Quelle 1, ", href="https://ehp.niehs.nih.gov/doi/10.1289/ehp2590"),
-            html.A("Quelle 2 & Bildquelle", href="https://www.nature.com/articles/s41467-021-26050-z")
+            html.A("Quelle 2 & Bildquelle",
+                   href="https://www.nature.com/articles/s41467-021-26050-z")
         ]),
         html.Div([
             html.H5("Energieverbrauch "),
@@ -607,7 +612,8 @@ page_Datastory_layout = html.Div([header,html.Div([
             html.P("Deutschland benötigte im Sommer 2018 6% mehr Strom als in den Jahren 2016 und 2017. Damals verbrauchte das Land täglich etwa 1,36 Milliarden Kilowattstunden (kWh). In der folgenden Grafik sieht man, dass gegenüber dem vorherigen Jahr die Nettostromerzeugung bei vielen Energiequellen abgenommen hat. Das liegt daran, dass das heisse Wetter den Wirkungsgrad der Energiequellen überfordert. Solche Situationen zeigen, dass Extremereignisse wie die Hitzewelle, sich auf die Energiequelle negativ auswirkt. Deshalb ist die Kombination aller Erzeugungsarten wichtig, um die Stromversorgung in ganz Europa sicherzustellen."),
             html.Img(src="/assets/strom.png"),
             html.A("Quelle 1, ", href="https://www.en-former.com/hitzewelle-stellt-energieversorgung-vor-herausforderungen/"),
-            html.A("Quelle 2 & Bildquelle", href="https://www.ise.fraunhofer.de/content/dam/ise/de/documents/news/2019/Stromerzeugung_2018_3.pdf")
+            html.A("Quelle 2 & Bildquelle",
+                   href="https://www.ise.fraunhofer.de/content/dam/ise/de/documents/news/2019/Stromerzeugung_2018_3.pdf")
         ]),
         html.Div([
             html.H5("Schlussfolgerung"),
