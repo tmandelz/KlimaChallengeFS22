@@ -278,7 +278,7 @@ def create_fig3(year, grid):
         'yaxis_title':'Temperatur [°C]','xaxis_title':'Jahrestag','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
     fig3.update_layout(legend=dict(x=0.02, y=1.1))
     fig3.update_yaxes(range = [-20,40])
-
+    fig3.add_annotation(x=0, y=-0.3, text="Als Datengrundlage dient der Datensatz vom Joint Research centre agri4cast, das dem Science Hub der EU unterstellt ist: <a href=https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d>agri4cast, gridded agro-meteorological data</a> ", showarrow=False,  xref='paper', yref='paper')
     # add heatwaves by adding vertical rectangle for each heatwave
     for x in range(len(magni)):
         c = magni.loc[x,"Count"]
@@ -388,7 +388,7 @@ page_DashBoard_layout = html.Div(
     html.Div([        
         html.H5(children='Was ist eine Magnitude?'),
         html.P('Die Magnitude zeigt die Stärke bzw. Intensität einer Hitzewelle. Je höher die Magnitude ist, desto stärker ist die Hitzewelle.'),          
-        ], className='row'),
+        ], className='row', style={'text-align': 'center'}),
     html.Div([
         html.Div([
             dcc.Graph(figure=create_europe_fig(1979), id = "europe", config = {'displayModeBar': False}),            
@@ -411,21 +411,26 @@ page_DashBoard_layout = html.Div(
         html.Div([html.Button("Stopp",id = "stopp_button",n_clicks= 0, className="button button-primary")], className= 'six columns'),     
     ], className='row'),
     html.Div([
-        dcc.Graph(figure=create_fig3(1979,96097), id = "grid1", config = {'displayModeBar': False}),
-        html.P(children=[html.Span("Als Datengrundlage dient der Datensatz vom Joint Research centre agri4cast, das dem Science Hub der EU unterstellt ist: "),html.A("agri4cast, gridded agro-meteorological data",href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d")])
+        dcc.Graph(figure=create_fig3(1979,96097), id = "grid1", config = {'displayModeBar': False})
         ], className='row'), 
 
     html.Div([
         html.Div([
             html.H5(children='Was ist eine Hitzewelle?'),
-            html.P('Eine Hitzewelle wird durch ein überschreiten eines Schwellenwerts definiert. Dieser Wert wird für jedes 25 x 25km Feld berechnet, damit lokale Gegebenheiten berücksichtigt werden können. Sobald eine tägliche Maximaltemperatur diesen Schwellenwert um einen bestimmten Wert  übersteigt, spricht man von einer Hitzewelle.'),
-            html.H5(children='Wie ist dieser Schwellenwert definiert?'),
-            html.P('Der Schwellenwert wird anhand einer Referenzperiode von 30 Jahren berechnet. In unserem Fall ist dies die Periode von 1979 - 2009. Der Wert an einem Tag x ist das 90 Prozent Percentil von allen maximalen Tagestemperaturen in der Referenzperiode an den Tagen x-15 bis x+15.')
-                     
+            html.P('Eine Hitzewelle wird durch ein überschreiten eines Schwellenwerts definiert. Dieser Wert wird für jedes 25 x 25km Feld berechnet, damit lokale Gegebenheiten berücksichtigt werden können. Sobald eine tägliche Maximaltemperatur diesen Schwellenwert um einen bestimmten Wert  übersteigt, spricht man von einer Hitzewelle.'),      
         ], className='six columns'),
         html.Div([
             html.H5(children='Was sagt eine Magnitude aus?'),
-            html.P('Die Summe aller Magnituden über alle Grids definiert die Jahres - Magnitude. Dies kann pro Land oder über einen gesamten Kontinent berechnet werden.'),
+            html.P('Die Summe aller Magnituden über alle Grids definiert die Jahres - Magnitude. Dies kann pro Land oder über einen gesamten Kontinent berechnet werden.'),          
+        ], className='six columns')
+    ], className='row'),
+
+    html.Div([
+        html.Div([
+            html.H5(children='Wie ist dieser Schwellenwert definiert?'),
+            html.P('Der Schwellenwert wird anhand einer Referenzperiode von 30 Jahren berechnet. In unserem Fall ist dies die Periode von 1979 - 2009. Der Wert an einem Tag x ist das 90 Prozent Percentil von allen maximalen Tagestemperaturen in der Referenzperiode an den Tagen x-15 bis x+15.')               
+        ], className='six columns'),
+        html.Div([
             html.H5(children='Was ist eine normalisierte Magnitude?'),
             html.P('Die Summer aller Magnituden über alle Grids pro Land, dividiert durch die Anzahl Grids pro Land. Dies ist erforderlich um einen Vergleich zwischen verschieden grossen Ländern zu ermöglichen.'),           
         ], className='six columns')
