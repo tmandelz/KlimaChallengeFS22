@@ -278,7 +278,7 @@ def create_fig3(year, grid):
         'yaxis_title':'Temperatur [°C]','xaxis_title':'Jahrestag','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
     fig3.update_layout(legend=dict(x=0.02, y=1.1))
     fig3.update_yaxes(range = [-20,40])
-    fig3.add_annotation(x=0, y=-0.3, text="Als Datengrundlage dient der Datensatz vom Joint Research centre agri4cast, das dem Science Hub der EU unterstellt ist: <a href=https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d>agri4cast, gridded agro-meteorological data</a> ", showarrow=False,  xref='paper', yref='paper')
+    fig3.add_annotation(x=0, y=-0.3, text='Als Datengrundlage dient der Datensatz vom Joint Research centre agri4cast, das dem Science Hub der EU unterstellt ist: <a href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d">Agri4cast</a>', showarrow=False,  xref='paper', yref='paper')
     # add heatwaves by adding vertical rectangle for each heatwave
     for x in range(len(magni)):
         c = magni.loc[x,"Count"]
@@ -367,6 +367,7 @@ header = html.Nav(className = "nav",style={'backgroundColor':'#bba9a0', 'height'
         dcc.Link('Dashboard', href='/DashBoard',className="a a-nav"),
         dcc.Link('Datenstory', href='/Datastory',className="a a-nav"),
         dcc.Link('Hintergrundwissen', href='/BackgroundInformation',className="a a-nav"),
+        dcc.Link('Über uns', href='/aboutus',className="a a-nav"),
         ])])
     
 app.layout = html.Div([
@@ -377,10 +378,10 @@ app.layout = html.Div([
 page_DashBoard_layout = html.Div(
     [header, html.Div(children=[
     html.Div([
-        html.H1(children='Hitzewellen in Europa von 1979 - 2020', style={'text-align': 'center'})],style={'color': '#993300', 'margin-top': 30}, className='row'),
+        html.H1(children='Hitzewellen in Europa von 1979 - 2020')],style={'margin-top':30}, className='row'),
     html.Div([
-        html.P('Das Klima hat sich in den letzten Jahrzehnten stark verändert. Die Erwärmung zeigt sich in den erhöhten Durchschnittstemperaturen und durch Hitzewellen. Diese treten nicht nur öfters auf, sondern werden auch immer stärker. Dieses Dashboard zeigt die Entwicklung von Hitzewellen in Europa seit 1979 auf der Ebene von Ländern bis hin zu einzelnen 25 x 25km Feldern auf.'), 
-        html.P('Die vorliegende Webseite ist im Rahmen einer Challenge des Studiengangs Data Science an der FHNW entstanden. Bearbeitet wurde diese Arbeit durch Daniela Herzig, Manjavi Kirupa, Thomas Mandelz, Patrick Schürmann und Jan Zwicky.'),   
+        html.P('Das Klima hat sich in den letzten Jahrzehnten stark verändert. Die Erwärmung zeigt sich in den erhöhten Durchschnittstemperaturen und durch Hitzewellen. Diese treten nicht nur öfters auf, sondern werden auch immer stärker. Dieses Dashboard zeigt die Entwicklung von Hitzewellen in Europa seit 1979 auf der Ebene von Ländern bis hin zu einzelnen 25 x 25 km Feldern auf.'), 
+        html.P('Die vorliegende Webseite ist im Rahmen einer Challenge des Studiengangs Data Science an der FHNW entstanden. Bearbeitet wurde diese Arbeit durch Daniela Herzig, Manjavy Kirupa, Thomas Mandelz, Patrick Schürmann und Jan Zwicky.'),   
     ], className='row'),
     html.Div([        
         dcc.Graph(figure=create_fig4(), id = "europe_sum", config = {'displayModeBar': False}),            
@@ -428,7 +429,7 @@ page_DashBoard_layout = html.Div(
     html.Div([
         html.Div([
             html.H5(children='Wie ist dieser Schwellenwert definiert?'),
-            html.P('Der Schwellenwert wird anhand einer Referenzperiode von 30 Jahren berechnet. In unserem Fall ist dies die Periode von 1979 - 2009. Der Wert an einem Tag x ist das 90 Prozent Percentil von allen maximalen Tagestemperaturen in der Referenzperiode an den Tagen x-15 bis x+15.')               
+            html.P('Der Schwellenwert wird anhand einer Referenzperiode von 30 Jahren berechnet. In unserem Fall ist dies die Periode von 1979 - 2009. Der Wert an einem Tag x ist das 90 Prozent Perzentil von allen maximalen Tagestemperaturen in der Referenzperiode an den Tagen x-15 bis x+15.')               
         ], className='six columns'),
         html.Div([
             html.H5(children='Was ist eine normalisierte Magnitude?'),
@@ -560,9 +561,9 @@ def update_fig3(year,json_click,country_value):
 page_Datastory_layout = html.Div([header, html.Div([
 
     html.Div([
-        html.H2("Wie schädigen Hitzewellen die Länder in Europa?"),
+        html.H1("Wie schädigen Hitzewellen die Länder in Europa?"),
         html.H5("Eine Auslegeordnung anhand von vier Beispielen in Europa")
-    ], className="topbar"),
+    ], className="row",style={'margin-top':30}),
 
     html.Div([
         html.Div([
@@ -626,7 +627,8 @@ page_Datastory_layout = html.Div([header, html.Div([
 
 page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.Div(id='Datastory-content'),
-   html.H6(children='Was ist eine Hitzewelle und was sagt die Magnitude aus?'),
+    html.H1("Alles Wissenswerte über Hitzewellen"),
+    html.H5(children='Was ist eine Hitzewelle und was sagt die Magnitude aus?'),
     html.P('Eine Hitzewelle ist eine überdurchschnittliche heisse Periode. Es existiert eine Vielzahl von Definitionen, die WMO (World Meteorological Organization) definiert eine Hitzewelle als mindestens fünf aufeinanderfolgende Tage, an denen die maximale Tagestemperatur 5°C über der maximalen Durchschnittstemperatur liegt.'),
     html.P('Russo hat 2014 eine Definition eines Heatwave-Magnitude-Index herausgegeben: diese definiert durch eine einzelne Zahl – der Magnitude – die Länge und Stärke von Hitzewellen. Sie hat aber auch ihre Schwächen, insbesondere im Rahmen des sich erwärmenden Klimas und führt zu einer Unterschätzung von Hitzewellen-Magnituden. Sie wurde darum 2015 durch Russo ersetzt mit der täglichen Magnitude, die auf Messungen in einem regelmässigen geographischen Raster anwendbar ist.'),
     html.P('Gemäss Russo ist eine Hitzewelle definiert durch drei aufeinanderfolgende Tage, die über einer Schwelle in einer 30-jährigen Referenzperiode liegen. Die Schwelle (oder Threshold) berechnet sich durch das 90 Prozent Perzentil von täglichen Maximaltemperaturen in einem 31-Tage Fenster, für einen Tag x also die Tage x-15 bis x+15. Die Magnitude, also die Stärke (abhängig von Länge und Temperatur) einer Hitzewelle, wiederum berechnet sich aus der Summe von aufeinanderfolgenden Tagen einer Hitzewelle gemäss folgender Formel:'),
@@ -634,38 +636,49 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
     html.Div([dcc.Markdown(r'$M_d (T_d) = \left\{\begin{array}{lr}\frac{T_D – T_{30y25p}}{T_{30y75p} – T_{30y25p}} \quad \hspace{10mm} \text{if } T_d > T_{30y25p} \\ 0 \quad \hspace{29mm} \text{ if } T_d \leq T_{30y25p}\end{array}\right\}$', mathjax=True)]),
 #
     html.P('Wobei Td die tägliche Maximaltemperatur der Hitzewelle ist und T30y75p/25p die 25 bzw. 75 Prozent Perzentil der jährlichen Maximaltemperaturen der Referenzperiode. In der vorhandenen Literatur ist nicht eindeutig definiert, ob die T30y75p/25p sich auf die jährlichen Maximaltemperaturen oder auf alle Temperaturen der Referenzperiode bezieht.'),
-    html.H6(children='Wie wurde die Magnitude abgegrenzt für diese Arbeit?'),
+    html.H5(children='Wie wurde die Magnitude abgegrenzt für diese Arbeit?'),
     html.P('Wir haben uns im Rahmen dieser Arbeit an die Definition von der täglichen Magnitude-Index von Russo angelehnt. Folgende Abgrenzungen haben wir jedoch gemacht:'),
     html.Li('Eine Hitzewelle muss nicht drei Tage lang sein. Ein ausserordentlicher Hitzetag wird als Hitzewelle aufgenommen und die Magnitude berechnet.'),
     html.Li('Wir haben T30y75p/25p als jährliche Maximaltemperatur der Referenzperiode interpretiert. Damit treten Hitzewellen bei uns nur in den Sommermonaten auf und ausserordentlich warme Tage im Winter werden damit vernachlässigt.'),
     html.Li('Wir haben nicht einzelne Hitzewellen miteinander verglichen, sondern immer die aufsummierten Magnituden pro Jahr, je nach Grafik pro Grid, pro Land oder in Europa.'),
     html.Li('Unsere Referenzperiode ist definiert von 1979 – 2008. Wir werten jedoch nicht nur Temperaturen ausserhalb der Referenzperiode aus, sondern auch innerhalb der Referenzperiode. Damit können wir den gesamten Datensatz im dashboard darstellen. Uns ist aber bewusst, dass dies von der Idee einer Referenzperiode abweicht.'),
-    html.H6(children='Was ist eine Jahresmagnitude?'),
+    html.H5(children='Was ist eine Jahresmagnitude?'),
     html.P('Alle auftretenden Hitzewellen und deren Magnitude, die gemäss obiger Formel berechnet wurde, summiert über das Jahr.'),
-    html.H6(children='Was ist eine normalisierte Magnitude?'),
+    html.H5(children='Was ist eine normalisierte Magnitude?'),
     html.P('Um einen Vergleich zwischen den Ländern machen zu können, haben wir die Summe aller Magnituden pro Jahr pro Land aufsummiert und durch die Anzahl Grids geteilt. Somit kann ein Vergleich zwischen allen Ländern gemacht werden.'),
-    html.H6(children='Quelle:'),
+    html.H5(children='Quelle:'),
     html.P(children=[html.Span("Russo, Simone, Jana Sillmann, und Erich M Fischer. „Top Ten European Heatwaves since 1950 and Their Occurrence in the Coming Decades“. Environmental Research Letters 10, Nr. 12 (1. Dezember 2015): 124003. "),html.A("https://doi.org/10.1088/1748-9326/10/12/124003",href="https://doi.org/10.1088/1748-9326/10/12/124003")]),
-    html.H6(children='Statistische Auswertung'),
+    html.H5(children='Statistische Auswertung'),
     html.P('Um einen Überblick über die zunehmende Stärke von Hitzewellen zu erhalten, zeigen wir im Dashboard eine Grafik der jährlichen Stärken der Hitzewellen in Europa. Um die Daten nicht nur visuelle darzustellen, haben wir sie statistisch untersucht. Für die Verständlichkeit haben wir die Daten normalisiert. Dabei wurde die Stärke des ersten Jahres auf 1 gesetzt und die restlichen Jahre dazu standardisiert. Folgende Erkenntnisse konnten wir dadurch erzielen.'),
-    html.H6(children='Mittelwert'),
+    html.H5(children='Mittelwert'),
     html.P('Die Stärke der Magnituden betrug im Durchschnitt 6.9 und Median lag bei 5.3. Es gibt also ein paar Ausreisser, die den Mittelwert nach oben ziehen.'),
-    html.H6(children='Summen und Mittelwerte über Fünfjahresperioden'),
+    html.H5(children='Summen und Mittelwerte über Fünfjahresperioden'),
     html.P('Während der ersten fünf Jahre unserer Beobachtungsperiode betrug der jährliche Mittelwert der Magnituden 2.7 und die Summe 13.7. Im Kontrast dazu wurde für die Magnituden für die letzten fünf Jahre einen Mittelwert von 11.8 und eine Summe 59.0 verzeichnet. Es wurde somit ein Anstieg von jeweils rund 330% festgestellt. Die fünf Jahre mit dem höchsten Mittelwert waren von 2015 bis 2019 mit 13.3. Die folgende Grafik zeigt die Verteilung der jährlichen Magnituden.'),
     html.Div([        
         dcc.Graph(figure=showhist(), id = "hist_europe", config = {'displayModeBar': False}),            
         ], className='row'),
-    html.H6(children='Standardabweichung'),
+    html.H5(children='Standardabweichung'),
     html.P('Für die Standardabweichung haben wir eine rollierende Standardabweichung über 10 Jahre angeschaut. Zu Beginn der Zeitreihe wurde eine Standardabweichung von 1.6 verzeichnet. Diese stieg bis zum Ende auf 3.9 an. Der höchste Wert von 5.7 wurde für die Periode von 2001 bis 2012 beobachtet.'),
     html.Div([        
         dcc.Graph(figure=showstd(), id = "std_europe", config = {'displayModeBar': False}),            
         ], className='row'),
-    html.H6(children='Regressionsanalyse'),
+    html.H5(children='Regressionsanalyse'),
     html.P('Um festzustellen, ob eine Steigung erkennbar ist, haben wir eine lineare Regressionsanalyse durchgeführt. Anhand der Residuenanalyse wurde erkennbar, dass der starke Anstieg der Magnituden die Analyse stark verzerrt. Für die Regression müssten die Summen mit dem Logarithmus zur Basis 2 transformiert werden. Die Analyse ergibt so eine Steigung von 0.07 und ein Ordinatenabschnitt von -138.3. Aufgrund der geringen Anzahl Jahre, der starken Transformation und weiterhin starken Streuung der Residuen taugt dieses lineare Modell nicht für Prognosen. Möglicherweise können sophistiziertere Transformationen genauere Resultate liefern.'),
-    html.H6(children='Quelle unserer Daten'),
+    html.H5(children='Quelle unserer Daten'),
     html.P(children=['In Europa besitzt jedes einzelne Land einen nationalen Wetterdienst. Diese führen eigene Messungen, teilweise nach eigenen Standards, aus und speichern sie an unterschiedlichen Orten. Wir verwenden deshalb die Daten vom AGRI4CAST Resources Portal der Europäischen Kommission. Diese Datenbank besteht aus täglichen meteorologischen Daten seit 1979. Die Messwerte werden für die ganze EU und umliegende Länder auf 25x25 km Grids/Felder dargestellt und erfüllen somit unsere Anforderungen für dieses Dashboard und die Datenstory. Die Daten können unter dem folgenden Link abgerufen werden (Login notwendig): ',html.A("agri4cast, gridded agro-meteorological data",href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d")])
-], className="contain")])
+], className="contain",style={'margin-top':30})])
 
+page_aboutus_layout = html.Div([header,html.Div([
+    html.Div(id='aboutus-content'),
+    html.H1("Klimadaten - Team"),
+    html.Div([
+        html.Div([
+            html.Img(src="/assets/dah.png")
+        ], className='three columns'),
+        html.Div([html.B("Daniela Herzig"), html.P("Ich studiere teilzeit im 2. Semester Data Science an der FHNW und arbeite nebenher in Infrastrukturprojekten in der Deutschschweiz als Bauingenieurin. Motivation für diese Projektarbeit ist die Dringlichkeit des Themas Klimaveränderungen. Ich bin davon überzeugt, dass visualisierte Informationen zu einem besseren Verständnis und einer grösseren Handlungsbereitschaft beitragen."),html.A("Github", href="https://github.com/dcherzig")], className='nine columns')
+    ], className='row'),
+    
+], className="contain",style={'margin-top':30})])
 
 # Update the index
 @app.callback(Output('page-content', 'children'),
@@ -677,6 +690,8 @@ def display_page(pathname):
         return page_Datastory_layout
     elif pathname == '/BackgroundInformation':
         return page_BackgroundInfo_layout
+    elif pathname == '/aboutus':
+        return page_aboutus_layout
     else:
         return page_DashBoard_layout
 
