@@ -325,7 +325,7 @@ def showhist():
     #update plot layout
     fighist.update_layout({'yaxis_title':'Anzahl Aufzeichnungen','xaxis_title': 'Jährliche Magnituden','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
     fighist.update_layout(yaxis = dict(tickmode = 'array', tickvals = [1, 3, 5, 7, 9, 11]))
-    fighist.update_yaxes(minor_ticks="inside", minor_tickmode = 'array', minor_tickvals = [1, 3, 5, 7, 9, 11], minor_tickcolor = "white", minor_tickwidth=1)
+    # fighist.update_yaxes(minor_ticks="inside", minor_tickmode = 'array', minor_tickvals = [1, 3, 5, 7, 9, 11], minor_tickcolor = "white", minor_tickwidth=1)
     fighist.update_layout(width=800, height=400)
     fighist.update_traces(marker_line_width=1,marker_line_color="white")
     fighist.update_traces(hovertemplate ='Bereich:' + ' %{x}' + '<br>Anzahl:' +  ' %{y}', selector=dict(type="histogram"))
@@ -395,7 +395,7 @@ page_DashBoard_layout = html.Div(
             dcc.Graph(figure=create_europe_fig(1979), id = "europe", config = {'displayModeBar': False}),            
         ], className='six columns'),
         html.Div([
-            dcc.Graph(figure=create_country_fig("Belgien",1979,96097), id = "country", config = {'displayModeBar': False})            
+            dcc.Graph(figure=create_country_fig("Schweiz",1979,86104), id = "country", config = {'displayModeBar': False})            
         ], className='six columns')
     ], className='row'),
     html.Div([
@@ -412,7 +412,7 @@ page_DashBoard_layout = html.Div(
         html.Div([html.Button("Stopp",id = "stopp_button",n_clicks= 0, className="button button-primary")], className= 'six columns'),     
     ], className='row'),
     html.Div([
-        dcc.Graph(figure=create_fig3(1979,96097), id = "grid1", config = {'displayModeBar': False})
+        dcc.Graph(figure=create_fig3(1979,86104), id = "grid1", config = {'displayModeBar': False})
         ], className='row'), 
 
     html.Div([
@@ -438,8 +438,8 @@ page_DashBoard_layout = html.Div(
     ], className='row'),
 
     dcc.Store(id = "year",storage_type='local',data = 1980),
-    dcc.Store(id = "country_value",data = "Belgien"),
-    dcc.Store(id = "grid_no",data = 96097),
+    dcc.Store(id = "country_value",data = "Schweiz"),
+    dcc.Store(id = "grid_no",data = 86104),
     dcc.Interval(id='auto-stepper',
             interval=1*3000, # in milliseconds
             n_intervals=0),
