@@ -23,6 +23,7 @@ import dash
 import matplotlib.pyplot as mplt
 from plotly import tools as tls
 import numpy as np
+from traitlets import Bool
 
 
 #%%
@@ -172,8 +173,6 @@ def getdatastats():
         raise e
 
 # %% default Figures
-
-#%%
 data_europe = GetDataEurope()
 
 # %%
@@ -205,10 +204,11 @@ def update_europe(year,fig,data = data_europe):
 
 fig_europe = update_europe(1979,fig_europe)
 
-def create_country_fig(country:str, year:int,grid_no:int):
+def create_country_fig(country:str, year:int,grid_no:int,return_grid_random: Bool):
     data_country = GetDataCountry(country,year)
-    
     gpd_country = data_europe[(data_europe.country == country) & (data_europe.year == year)]
+    if return_grid_random:
+        grid_no = max(data_country["id_grid"])
 
     # intersection zwischen shape und daten
     intersect_df = gpd_country.overlay(data_country, how='intersection')
@@ -231,17 +231,18 @@ def create_country_fig(country:str, year:int,grid_no:int):
     country_fig.update_geos(fitbounds="locations", visible=False)
     country_fig.update_traces(z=intersect_df["summagnitude"], hovertemplate="<b>"+ country +"</b><br><br>" + "Magnitude: %{z:.2f}")
     country_fig.update_layout({'autosize':True,'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
-    
     if grid_no in intersect_df.index:
         lats = [] 
         lons = []
         for linestring in intersect_df.loc[grid_no,"geometry"].exterior.coords:
-    
             x, y = linestring[0],linestring[1]
             lats = np.append(lats, y)
             lons = np.append(lons, x)
         fig = px.line_geo(lat=lats, lon=lons)
         country_fig.add_trace(fig.data[0] )
+    
+    if return_grid_random:
+        return country_fig,grid_no
     return country_fig
 
 def create_fig3(year, grid):
@@ -395,7 +396,7 @@ page_DashBoard_layout = html.Div(
             dcc.Graph(figure=create_europe_fig(1979), id = "europe", config = {'displayModeBar': False}),            
         ], className='six columns'),
         html.Div([
-            dcc.Graph(figure=create_country_fig("Schweiz",1979,86104), id = "country", config = {'displayModeBar': False})            
+            dcc.Graph(figure=create_country_fig("Schweiz",1979,86104,False), id = "country", config = {'displayModeBar': False})            
         ], className='six columns')
     ], className='row'),
     html.Div([
@@ -509,7 +510,7 @@ def on_click(slider_user,country_value,grid_no,special_year):
         special_year +=1
     # update Figures
     europe_fig = update_europe(slider_user,fig_europe)
-    country_fig = create_country_fig(country_value,slider_user,grid_no)
+    country_fig = create_country_fig(country_value,slider_user,grid_no,False)
     grid_fig = create_fig3(slider_user,grid_no)
     return slider_user,slider_user,europe_fig,country_fig,grid_fig,special_year
 
@@ -529,6 +530,8 @@ def update_output(stepper,n_intervals):
 @app.callback(
    Output('country_value', 'data'),
    Output("country","figure"),
+   Output("grid1","figure"),
+   Output('grid_no', 'data'),
    State("steper","value"),
    Input('europe', 'clickData'),
    State("grid_no","data"))
@@ -542,8 +545,11 @@ def update_country(stepper_value,json_click,grid_no):
     country_fig: update the country fig with the new country
     """
     country_value = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
-    country_fig = create_country_fig(country_value,stepper_value,grid_no)
-    return country_value,country_fig
+    print(country_value)
+    country_fig,new_grid = create_country_fig(country_value,stepper_value,grid_no,True)
+
+    fig3=create_fig3(stepper_value,new_grid)
+    return country_value,country_fig,fig3,new_grid
 
 @app.callback(
    Output('grid_no', 'data'),
@@ -555,7 +561,7 @@ def update_country(stepper_value,json_click,grid_no):
 def update_fig3(year,json_click,country_value):
     grid_selected = json.loads(json.dumps(json_click, indent=2))["points"][0]["location"]
     fig3=create_fig3(year,grid_selected)
-    country_fig = create_country_fig(country_value,year,grid_selected)
+    country_fig = create_country_fig(country_value,year,grid_selected,False)
     return grid_selected,fig3,country_fig
 
 page_Datastory_layout = html.Div([header, html.Div([
@@ -576,9 +582,9 @@ page_Datastory_layout = html.Div([header, html.Div([
             html.H5("Gesundheit"),
             html.P(["Extreme Hitzewellen haben eine enorme Auswirkung auf die Gesundheit sowie auf die Sterblichkeit. Hier wird spezifisch von einem Hitzetod gesprochen. Unter diesem versteht man einen Tod, der durch innere Überhitzung des Körpers ausgelöst wird. Die häufigste Ursache dafür sind hohe Temperaturen in Verbindung mit Flüssigkeitsmangel und oder körperliche Anstrengung. ", html.A(
                 "(Quelle)", href="https://www.toppharm.ch/krankheitsbild/hitzetod#:~:text=Unter%20Hitzetod%20verstehen%20Fachleute%20einen,Hitzeersch%C3%B6pfung%2C%20Hitzschlag%20und%20Sonnenstich%20ein."), html.P("Die schlechte Qualität der Infrastruktur und Gesundheitsversorgung, der allgemeine Gesundheitszustand der Bevölkerung und die demografische Struktur können ebenso eine Rolle spielen. Der Hitzesommer im Jahre 2003 sorgte dafür, dass die Mortalität in Frankreich sich deutlich erhöhte.")]),
-            html.Img(src="/assets/gesundheit.png"),
+            dcc.Graph(figure=create_fig3(2003,76094), id = "grid1", config = {'displayModeBar': False,'staticPlot': True}),
             html.P("Als Beispiel wurde hier ein Bereich aus dem südöstlichen Teil von Frankreich im Jahr 2003 gewählt. (lat=44.98188, lon= 5.300815) In der Grafik ist ein etwas dickerer oranger Balken zu sehen. Dieser zeigt die Dauer dieser einzelnen Hitzewelle in jenem Sommer. Die untere Achse spiegelt den Jahrestag wider. Genau während der knapp zwei heissesten Wochen an jenem Sommer starben fast 15'000 Menschen. Das Ganze war zwischen dem 02.08.2003 und 15.08.2003, welches zwischen dem 212.Jahrestag und 225. Jahrestag liegt. Dies war ein nationales Trauma für Frankreich. Betroffen waren vornehmlich betagte Menschen, die alleine lebten. Folgende Grafik zeigt auf, wie sich die Anzahl der Toten während dieser Hitzewelle im Sommer 2003 verteilte. Als die extreme Hitze abnahm, ist auch zu sehen wie sich die Anzahl der Toten rückläufig verhaltet."),
-            html.Img(src="/assets/deaths.png"),
+            html.Img(src="/assets/deaths_transp.png"),
             html.P("Durch verschiedene Massnahmen wie regelmässige Besuche für alleinstehende Rentner, Wasser für Obdachlose oder auch Fahrverbote versucht das Land die Mortalität durch Hitze zu senken, damit solche Ereignisse einzigartig bleiben."),
             html.A("Quelle 1, ", href="https://www.srf.ch/news/panorama/hitzewelle-in-europa-frankreich-hat-aus-den-hitzetoten-von-2003-gelernt"),
             html.A(
@@ -589,14 +595,14 @@ page_Datastory_layout = html.Div([header, html.Div([
         html.Div([
             html.H5("Landwirtschaft"),
             html.P("Immer mehr Hitzewellen werden gemessen und die negativen Auswirkungen dieser Veränderung wirken sich bereits auch auf die landwirtschaftliche Produktion in Europa aus, insbesondere im Süden. Kulturpflanzen reagieren empfindlich auf klimatische Veränderungen, wie Temperaturänderungen, Dürre und Niederschläge. Von diesen Veränderungen werden sich die steigenden Temperaturen am stärksten auf die Landwirtschaftserträge auswirken. Der nördliche Teil Italiens war im Sommer 2003 von einer derartigen Hitzeaussetzung betroffen (siehe Grafik). "),
-            html.Img(src="/assets/landwirtschaft.png"),
+            dcc.Graph(figure = create_country_fig("Italien",2003,96097,False), id = "country", config = {'displayModeBar': False,'staticPlot': True}),
             html.P("In Italien, in der Po-Ebene (ein fruchtbares Tiefland in Norditalien), wo die Temperaturen hoch waren, verzeichnete Mais einen Rekordrückgang der Ernteerträge. Hinzukommend wurde festgestellt, dass Winterkulturen (Weizen) ihr Wachstum zum Zeitpunkt der Hitzewelle fast abgeschlossen hatten. Daher erlitten diese einen geringeren Rückgang der Produktivität als Sommerkulturen (Mais), die sich zu dieser Zeit in der maximalen Blattentwicklung befanden. Folgende Grafik zeigt, mit wieviel Prozent Rückgang einiger Pflanzen zu rechnen war. Auch ein finanzieller Aspekt ist zu sehen."),
-            html.Img(src="/assets/crops.png"),
+            html.Img(src="/assets/crops_transp.png"),
             html.P("Der künftige Temperaturanstieg könnte neben den negativen auch positiven Auswirkungen auf die Landwirtschaft haben, insbesondere aufgrund längerer Vegetationsperioden und besseren Anbaubedingungen. Allerdings wird die Zahl der Extremereignisse, die sich negativ auf die Landwirtschaft in Europa auswirken, zunehmen. Dies hat zur Folge, dass die Sommerkulturen viele Ernteverluste erleiden können. "),
             html.A("Quelle 1, ", href="https://www.landwirtschaft.de/landwirtschaft-verstehen/wie-funktioniert-landwirtschaft-heute/wie-wirkt-sich-der-klimawandel-auf-die-landwirtschaft-aus/"),
             html.A("Quelle 2, ", href="https://www.nature.com/articles/nature03972"),
             html.A("Quelle 3 & Bildquelle",
-                   href="https://www.unisdr.org/files/1145_ewheatwave.en.pdf")
+                   href= "https://www.unisdr.org/files/1145_ewheatwave.en.pdf")
         ]),
         html.Div([
             html.H5("Produktivitätsverlust"),
@@ -611,7 +617,7 @@ page_Datastory_layout = html.Div([header, html.Div([
             html.H5("Energieverbrauch "),
             html.P("Hitzewellen haben erhebliche Auswirkungen auf die oben genannten Bereiche, aber hohe Temperaturen bergen auch Risiken im Energiebereich. Beispielsweise erfordern diese Extremereignisse immer mehr Energie für die Klimatisierung. Solche Temperaturen reduzieren zum Beispiel den Wirkungsgrad von Erdgaskraftwerken, Turbinen und Kesseln. Wasserkraftwerke leiden unter anderem unter Verdunstung und Trockenheit, was zu einer geringeren Stromerzeugung führt. Die Photovoltaikanlagen wiederum liefern viel Strom. Aber auch diese haben an einem so heissen Tag zu kämpfen. Dies liegt vor allem daran, dass der Wirkungsgrad des Systems mit steigender Temperatur des Moduls abnimmt."),
             html.P("Deutschland benötigte im Sommer 2018 6% mehr Strom als in den Jahren 2016 und 2017. Damals verbrauchte das Land täglich etwa 1,36 Milliarden Kilowattstunden (kWh). In der folgenden Grafik sieht man, dass gegenüber dem vorherigen Jahr die Nettostromerzeugung bei vielen Energiequellen abgenommen hat. Das liegt daran, dass das heisse Wetter den Wirkungsgrad der Energiequellen überfordert. Solche Situationen zeigen, dass Extremereignisse wie die Hitzewelle, sich auf die Energiequelle negativ auswirkt. Deshalb ist die Kombination aller Erzeugungsarten wichtig, um die Stromversorgung in ganz Europa sicherzustellen."),
-            html.Img(src="/assets/strom.png"),
+            html.Img(src="/assets/strom_transp.png"),
             html.A("Quelle 1, ", href="https://www.en-former.com/hitzewelle-stellt-energieversorgung-vor-herausforderungen/"),
             html.A("Quelle 2 & Bildquelle",
                    href="https://www.ise.fraunhofer.de/content/dam/ise/de/documents/news/2019/Stromerzeugung_2018_3.pdf")
@@ -698,4 +704,4 @@ def display_page(pathname):
 if __name__ == '__main__':
     app.run_server(debug=False)
 
-#%%
+# %%
