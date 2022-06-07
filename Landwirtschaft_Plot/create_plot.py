@@ -33,5 +33,5 @@ import os
 if not os.path.exists("assets"):
     os.mkdir("assets")
 #%%
-fig.write_image("assets/fig_crop.png")
+fig.write_image("assets/fig_crop.png", width=1980, height=1080)
 # %%
