@@ -23,7 +23,7 @@ fig = px.bar(new_data,
             color="Land",
             barmode='group',
 
-            title="Abnahme von Ernteerträge pro Land <br><sup>2002/2003 </sup>",
+            #title="Abnahme von Ernteerträge pro Land <br><sup>2002/2003 </sup>",
             color_discrete_sequence = ["#0000FF","#404040","#808080","#C0C0C0"],
             labels={'variable':'Getreide',"value":"Abnahme in %"},)
 fig.update_layout({'autosize':True,'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
