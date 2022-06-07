@@ -28,6 +28,7 @@ pycountry = "*"
 diskcache = "*"
 multiprocess = "*"
 psutil = "*"
+kaleido = "*"
 
 [requires]
 python_version = "3.9"
