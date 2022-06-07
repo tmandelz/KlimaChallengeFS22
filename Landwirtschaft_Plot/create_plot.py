@@ -22,6 +22,7 @@ fig = px.bar(new_data,
             y='value',
             color="Land",
             barmode='group',
+
             title="Abnahme von Ernteerträge pro Land <br><sup>2002/2003 </sup>",
             color_discrete_sequence = ["#0000FF","#404040","#808080","#C0C0C0"],
             labels={'variable':'Getreide',"value":"Abnahme in %"},)
@@ -33,5 +34,5 @@ import os
 if not os.path.exists("assets"):
     os.mkdir("assets")
 #%%
-fig.write_image("assets/fig_crop.png", width=1980, height=1080)
+fig.write_image("assets/fig_crop.png", scale=5, width=700, height=500)
 # %%
