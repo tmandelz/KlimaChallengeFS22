@@ -581,7 +581,7 @@ page_Datastory_layout = html.Div([header, html.Div([
         html.Div([
             html.H5("Gesundheit"),
             html.P(["Extreme Hitzewellen haben eine enorme Auswirkung auf die Gesundheit sowie auf die Sterblichkeit. Hier wird spezifisch von einem Hitzetod gesprochen. Unter diesem versteht man einen Tod, der durch innere Überhitzung des Körpers ausgelöst wird. Die häufigste Ursache dafür sind hohe Temperaturen in Verbindung mit Flüssigkeitsmangel und oder körperliche Anstrengung. ", html.A(
-                "(Quelle)", href="https://www.toppharm.ch/krankheitsbild/hitzetod#:~:text=Unter%20Hitzetod%20verstehen%20Fachleute%20einen,Hitzeersch%C3%B6pfung%2C%20Hitzschlag%20und%20Sonnenstich%20ein."), html.P("Die schlechte Qualität der Infrastruktur und Gesundheitsversorgung, der allgemeine Gesundheitszustand der Bevölkerung und die demografische Struktur können ebenso eine Rolle spielen. Der Hitzesommer im Jahre 2003 sorgte dafür, dass die Mortalität in Frankreich sich deutlich erhöhte.")]),
+                "Quelle", href="https://www.toppharm.ch/krankheitsbild/hitzetod#:~:text=Unter%20Hitzetod%20verstehen%20Fachleute%20einen,Hitzeersch%C3%B6pfung%2C%20Hitzschlag%20und%20Sonnenstich%20ein."), html.P("Die schlechte Qualität der Infrastruktur und Gesundheitsversorgung, der allgemeine Gesundheitszustand der Bevölkerung und die demografische Struktur können ebenso eine Rolle spielen. Der Hitzesommer im Jahre 2003 sorgte dafür, dass die Mortalität in Frankreich sich deutlich erhöhte.")]),
             dcc.Graph(figure=create_fig3(2003,76094), id = "grid1", config = {'displayModeBar': False,'staticPlot': True}),
             html.P("Als Beispiel wurde hier ein Bereich aus dem südöstlichen Teil von Frankreich im Jahr 2003 gewählt. (lat=44.98188, lon= 5.300815) In der Grafik ist ein etwas dickerer oranger Balken zu sehen. Dieser zeigt die Dauer dieser einzelnen Hitzewelle in jenem Sommer. Die untere Achse spiegelt den Jahrestag wider. Genau während der knapp zwei heissesten Wochen an jenem Sommer starben fast 15'000 Menschen. Das Ganze war zwischen dem 02.08.2003 und 15.08.2003, welches zwischen dem 212.Jahrestag und 225. Jahrestag liegt. Dies war ein nationales Trauma für Frankreich. Betroffen waren vornehmlich betagte Menschen, die alleine lebten. Folgende Grafik zeigt auf, wie sich die Anzahl der Toten während dieser Hitzewelle im Sommer 2003 verteilte. Als die extreme Hitze abnahm, ist auch zu sehen wie sich die Anzahl der Toten rückläufig verhaltet."),
             html.H6("Anzahl Toter im August 2003 in Frankreich"),
@@ -682,9 +682,11 @@ page_aboutus_layout = html.Div([header,html.Div([
     html.H1("Klimadaten - Team"),
     html.Div([
         html.Div([
-            html.Img(src="/assets/dah.png")
+            html.Img(src="/assets/dah.png"),
+            html.Img(src="/assets/thm.png")
         ], className='three columns'),
-        html.Div([html.B("Daniela Herzig"), html.P("Ich studiere teilzeit im 2. Semester Data Science an der FHNW und arbeite nebenher in Infrastrukturprojekten in der Deutschschweiz als Bauingenieurin. Motivation für diese Projektarbeit ist die Dringlichkeit des Themas Klimaveränderungen. Ich bin davon überzeugt, dass visualisierte Informationen zu einem besseren Verständnis und einer grösseren Handlungsbereitschaft beitragen."),html.A("Github", href="https://github.com/dcherzig")], className='nine columns')
+        html.Div([html.B("Daniela Herzig"), html.P("Ich studiere teilzeit im 2. Semester Data Science an der FHNW und arbeite nebenher in Infrastrukturprojekten in der Deutschschweiz als Bauingenieurin. Motivation für diese Projektarbeit ist die Dringlichkeit des Themas Klimaveränderungen. Ich bin davon überzeugt, dass visualisierte Informationen zu einem besseren Verständnis und einer grösseren Handlungsbereitschaft beitragen."),html.A("GitHub", href="https://github.com/dcherzig",target="_blank")], className='nine columns'),
+        html.Div([html.B("Thomas Mandelz"), html.P("Ich studiere Vollzeit im 2. Semester Data Science an der FHNW. Mit dem Blick nach vorne gerichtet und auf der Suche nach neuem Wissen meistere ich mein Studium. Mein Hauptinteresse liegt im Storytelling mit Daten und der Visualisierung und Vermittlung von komplexen Zusammenhängen."),html.A("GitHub", href="https://github.com/tmandelz",target="_blank")], className='nine columns')
     ], className='row'),
     
 ], className="contain",style={'margin-top':30})])
