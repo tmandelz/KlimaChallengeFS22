@@ -421,6 +421,14 @@
   .contain h5{
     text-align: center;
   }
+
+  .Portrait {
+    width: 130px;
+    height: 170px;
+    object-fit: cover;
+  }
+  
+
   /* Clearing
   –––––––––––––––––––––––––––––––––––––––––––––––––– */
   

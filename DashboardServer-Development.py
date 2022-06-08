@@ -682,17 +682,25 @@ page_aboutus_layout = html.Div([header,html.Div([
     html.H1("Klimadaten - Team"),
     html.Div([
         html.Div([
-            html.Img(src="/assets/dah.png"),
-            html.Img(src="/assets/mak.png"),
-            html.Img(src="/assets/thm.png"),
-            html.Img(src="/assets/pas.png"),
-            html.Img(src="/assets/jaz.png")
-        ], className='three columns'),
-        html.Div([html.B("Daniela Herzig"), html.P("Ich studiere teilzeit im 2. Semester Data Science an der FHNW und arbeite nebenher in Infrastrukturprojekten in der Deutschschweiz als Bauingenieurin. Motivation für diese Projektarbeit ist die Dringlichkeit des Themas Klimaveränderungen. Ich bin davon überzeugt, dass visualisierte Informationen zu einem besseren Verständnis und einer grösseren Handlungsbereitschaft beitragen."),html.A("GitHub", href="https://github.com/dcherzig",target="_blank")], className='nine columns'),
-        html.Div([html.B("Manjavy Kirupa"), html.P("XXX"),html.A("GitHub", href="https://github.com/xxx",target="_blank")], className='nine columns'),
-        html.Div([html.B("Thomas Mandelz"), html.P("Ich studiere Vollzeit im 2. Semester Data Science an der FHNW. Mit dem Blick nach vorne gerichtet und auf der Suche nach neuem Wissen meistere ich mein Studium. Mein Hauptinteresse liegt im Storytelling mit Daten und der Visualisierung und Vermittlung von komplexen Zusammenhängen."),html.A("GitHub", href="https://github.com/tmandelz",target="_blank")], className='nine columns'),
-        html.Div([html.B("Patrick Schuermann"), html.P("XXX"),html.A("GitHub", href="https://github.com/patschue",target="_blank")], className='nine columns'),
-        html.Div([html.B("Jan Zwicky"), html.P("XXX"),html.A("GitHub", href="https://github.com/swiggy123",target="_blank")], className='nine columns'),
+            html.Div([ html.Img(src="/assets/dah.png",className='Portrait')], className='three columns'),
+            html.Div([html.B("Daniela Herzig"), html.P("Ich studiere teilzeit im 2. Semester Data Science an der FHNW und arbeite nebenher in Infrastrukturprojekten in der Deutschschweiz als Bauingenieurin. Motivation für diese Projektarbeit ist die Dringlichkeit des Themas Klimaveränderungen. Ich bin davon überzeugt, dass visualisierte Informationen zu einem besseren Verständnis und einer grösseren Handlungsbereitschaft beitragen."),html.A("GitHub", href="https://github.com/dcherzig",target="_blank")], className='nine columns'),
+        ], className='twelve columns'),
+        html.Div([
+            html.Div([html.Img(src="/assets/mak.png",className='Portrait')], className='three columns'),
+            html.Div([html.B("Manjavy Kirupa"), html.P("XXX"),html.A("GitHub", href="https://github.com/Manjavy",target="_blank")], className='nine columns'),
+        ], className='twelve columns'),
+        html.Div([
+            html.Div([html.Img(src="/assets/thm.png",className='Portrait')], className='three columns'),
+            html.Div([html.B("Thomas Mandelz"), html.P("Ich studiere Vollzeit im 2. Semester Data Science an der FHNW. Mit dem Blick nach vorne gerichtet und auf der Suche nach neuem Wissen meistere ich mein Studium. Mein Hauptinteresse liegt im Storytelling mit Daten und der Visualisierung und Vermittlung von komplexen Zusammenhängen."),html.A("GitHub", href="https://github.com/tmandelz",target="_blank")], className='nine columns'),
+        ], className='twelve columns'),
+        html.Div([
+            html.Div([html.Img(src="/assets/pas.png",className='Portrait')], className='three columns'),
+            html.Div([html.B("Patrick Schürmann"), html.P("Ich studiere Vollzeit im 2. Semester Data Science an der FHNW. In diesem Studium kann ich vertiefen, was mir die letzten 13 Jahre im Büro am meisten Spass gemacht haben: Daten beschaffen, aufbereiten, visualisieren und Erkenntnisse daraus ziehen. Mit dieser Challenge konnte ich meinen Wissens-Rucksack mit dem Thema Klimawandel vertiefen."),html.A("GitHub", href="https://github.com/patschue",target="_blank")], className='nine columns'),
+        ], className='twelve columns'),
+        html.Div([
+            html.Div([html.Img(src="/assets/jaz.png",className='Portrait')], className='three columns'),
+            html.Div([html.B("Jan Zwicky"), html.P("XXX"),html.A("GitHub", href="https://github.com/swiggy123",target="_blank")], className='nine columns'),
+        ], className='twelve columns'),
     ], className='row'),
     
 ], className="contain",style={'margin-top':30})])
