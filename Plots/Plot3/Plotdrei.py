@@ -54,25 +54,15 @@ cursor = mydb.cursor()
 
 cursor.execute(queryData)
 data = pd.read_sql(queryData,mydb)
-# data = data.drop_duplicates(subset=['date'])
-
-data["date"] = pd.to_datetime(data["date"])
 
 # generate df(magni) of heatwaves
 magni = data.loc[data["magnitude"] > 0.0]
 magni['grp_date'] = magni["noday"].diff().ne(1).cumsum()
-magni = magni.groupby('grp_date').agg(Start = ("noday", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'), Startdatum = ("date", "min"))
+magni = magni.groupby('grp_date').agg(Start = ("noday", "min"), Sum=('magnitude', 'sum'), Count=('grp_date', 'count'))
 magni = magni.loc[magni['Count'] >= lengthofheatwave]
-magni["End"] = magni["Startdatum"] + pd.to_timedelta(magni["Count"], unit='d')
-# magni['Startdatum'] = magni['Startdatum'].dt.strftime('%Y%m%d')
-# magni['Startdatum'] = magni['Startdatum'].astype('datetime64')
-# magni['End'] = magni['End'].dt.strftime('%Y%m%d')
-# magni['End'] = magni['End'].astype('datetime64')
+magni["End"] = magni["Start"] + magni["Count"] -1
 magni = magni.reset_index(drop=True)
-print(magni.head())
-print(magni.dtypes)
-print(data.dtypes)
-print(data.loc[0, "date"])
+print(magni)
 
 # start plot
 fig = go.Figure()
@@ -80,8 +70,7 @@ fig = go.Figure()
 # plot threshold temp
 fig.add_trace(
     go.Scatter(
-        # x=data["noday"],
-        x=data["date"],
+        x=data["noday"],
         y=data["reference_temperature"],
         line_color = "blue",
         name = "Threshold Temperature"
@@ -90,8 +79,7 @@ fig.add_trace(
 # add temp of day
 fig.add_trace(
     go.Scatter(
-        # x=data["noday"],
-        x=data["date"],
+        x=data["noday"],
         y=data["temperature_max"],
         line_color = "red",
         name = "Max Temperature"
@@ -99,17 +87,24 @@ fig.add_trace(
 
 # change background color to white. perhaps needs to be changed if different background color in html
 fig.update_layout(plot_bgcolor = 'white')
-fig.update_layout(legend=dict(x=0, y=1))
 
 # add heatwaves by adding vertical rectangle for each heatwave
 for x in range(len(magni)):
-    print(magni.loc[x,"Startdatum"])
-    c = pd.Timedelta(magni.loc[x,"Count"], unit = "D")
-    fig.add_vrect(x0=magni.loc[x,"Startdatum"], x1=magni.loc[x, "End"],
+    c = magni.loc[x,"Count"]
+    fig.add_vrect(x0=magni.loc[x,"Start"], x1=magni.loc[x, "End"], 
                 annotation_text="Anzahl Tage: %s" %c, annotation_position="bottom",
-                # annotation_text="Anzahl Tage: %s" %str(magni.loc[x,"End"] - magni.loc[x, "Startdatum"]), annotation_position="bottom",
                 annotation=dict(font_size=15, font_family="Arial", textangle=-90),
-                fillcolor="orange", opacity=0.25, line_width=0),
+              fillcolor="orange", opacity=0.25, line_width=0),
+
+# fig.update_layout(xaxis={"ticktext":[1988,2020]})
+# fig.update_layout(xaxis = dict(tickmode = 'array', tickvals = [1, 3, 5, 7, 9, 11]))
+# fig.update_xaxes(dict(ticktext=["Januar", "Juni"]))
+fig.update_layout(
+    xaxis = dict(
+        tickmode = 'array',
+        tickvals = [1, 90, 180, 270, 365],
+        ticktext = ["Januar", "April", "Juli", "September", "Dezember"]))
+
 
 # generate and save plot
 fig.show()

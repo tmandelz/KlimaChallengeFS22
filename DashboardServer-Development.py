@@ -287,6 +287,10 @@ def create_fig3(year, grid):
                     annotation_text="Anzahl Tage: %s" %c, annotation_position="bottom",
                     annotation=dict(font_size=15, font_family="Arial", textangle=-90),
                 fillcolor="orange", opacity=0.25, line_width=0),
+    fig3.update_layout(xaxis = dict(
+                    tickmode = 'array',
+                    tickvals = [1, 90, 180, 270, 365],
+                    ticktext = ["Januar", "April", "Juli", "September", "Dezember"]))
     return fig3
     
 def create_fig4():
