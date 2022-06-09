@@ -703,7 +703,7 @@ page_aboutus_layout = html.Div([header,html.Div([
         ], className='twelve columns'),
         html.Div([
             html.Div([html.Img(src="/assets/jaz.png",className='Portrait')], className='three columns'),
-            html.Div([html.B("Jan Zwicky"), html.P("Ich studiere Vollzeit im 2. Semester Data Science an der FHNW. XXX"),html.A("GitHub", href="https://github.com/swiggy123",target="_blank")], className='nine columns'),
+            html.Div([html.B("Jan Zwicky"), html.P("Ich studiere Vollzeit im 2. Semester Data Science an der FHNW. Am meisten Freude habe ich am Erkennen und herausfinden von komplexen Zusammenhängen. Doch all diese Zusammenhänge bringen nichts, wenn sie nicht in irgendeiner Form visualisiert werden. Um so wichtiger ist dies bei einem so wichtigen und komplexen Thema wie dem Klimawandel."),html.A("GitHub", href="https://github.com/swiggy123",target="_blank")], className='nine columns'),
         ], className='twelve columns'),
     ], className='row'),
     
