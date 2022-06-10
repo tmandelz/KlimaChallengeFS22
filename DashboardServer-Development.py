@@ -264,7 +264,7 @@ def create_fig3(year, grid):
         'title': "Temperaturverlauf über das Jahr "+str(year) +" im ausgewählten Grid<br><sup>Hitzewellen werden orange dargestellt</sup>",
         'yaxis_title':'Temperatur [°C]','xaxis_title':'Jahrestag','plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)'})
     fig3.update_layout(legend=dict(x=0.02, y=1.1))
-    fig3.update_yaxes(range = [-20,40])
+    fig3.update_yaxes(range = [-21,51], dtick = 10)
     fig3.add_annotation(x=0, y=-0.3, text='Als Datengrundlage dient der Datensatz vom Joint Research centre agri4cast, das dem Science Hub der EU unterstellt ist: <a href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d">Agri4cast</a>', showarrow=False,  xref='paper', yref='paper')
     # add heatwaves by adding vertical rectangle for each heatwave
     for x in range(len(magni)):
@@ -663,6 +663,8 @@ page_BackgroundInfo_layout = html.Div([header,html.Div([
         ], className='row'),
     html.H5(children='Regressionsanalyse'),
     html.P('Um festzustellen, ob eine Steigung erkennbar ist, haben wir eine lineare Regressionsanalyse durchgeführt. Anhand der Residuenanalyse wurde erkennbar, dass der starke Anstieg der Magnituden die Analyse stark verzerrt. Für die Regression müssten die Summen mit dem Logarithmus zur Basis 2 transformiert werden. Die Analyse ergibt so eine Steigung von 0.07 und ein Ordinatenabschnitt von -138.3. Aufgrund der geringen Anzahl Jahre, der starken Transformation und weiterhin starken Streuung der Residuen taugt dieses lineare Modell nicht für Prognosen. Möglicherweise können sophistiziertere Transformationen genauere Resultate liefern.'),
+    html.H5(children='Anomalien in den Daten'),
+    html.P('Wir haben festgestellt, dass 1982 in Polen ein Bereich extrem hohe Temperaturn ausweist, die über dem offiziellen europäischen Temperaturrekord liegen. Dies ist sehr wahrscheinlich eine Anomalie, mangels Unterlagen haben wir diese Daten unverändert belassen.'),
     html.H5(children='Quelle unserer Daten'),
     html.P(children=['In Europa besitzt jedes einzelne Land einen nationalen Wetterdienst. Diese führen eigene Messungen, teilweise nach eigenen Standards, aus und speichern sie an unterschiedlichen Orten. Wir verwenden deshalb die Daten vom AGRI4CAST Resources Portal der Europäischen Kommission. Diese Datenbank besteht aus täglichen meteorologischen Daten seit 1979. Die Messwerte werden für die ganze EU und umliegende Länder auf 25x25 km Grids/Felder dargestellt und erfüllen somit unsere Anforderungen für dieses Dashboard und die Datenstory. Die Daten können unter dem folgenden Link abgerufen werden (Login notwendig): ',html.A("agri4cast, gridded agro-meteorological data",href="https://agri4cast.jrc.ec.europa.eu/DataPortal/RequestDataResource.aspx?idResource=7&o=d")])
 ], className="contain",style={'margin-top':30})])
