@@ -17,7 +17,7 @@ indexes = ["Land","Finanziell"]
 # %%
 new_data = pd.melt(data,indexes,all_names)
 new_data["Finanziell"]=abs(new_data["Finanziell"])
-new_data["Land"] = new_data["Land"]+"/ "+ new_data["Finanziell"].astype(int).astype(str) + " Mio"
+new_data["Land"] = new_data["Land"]
 
 # %%
 fig = px.bar(new_data, 
@@ -25,10 +25,10 @@ fig = px.bar(new_data,
             y='value',
             color="Land",
             barmode='group',
-            #title="Abnahme von Ernteerträge pro Land <br><sup>2002/2003 </sup>",
+            title="Abnahme von Ernteerträge pro Land <br><sup>2002/2003 </sup>",
             color_discrete_sequence = ["#0000FF","#404040","#808080","#C0C0C0","#E4E4E4"],
-            labels={'variable':'Getreide',"value":"Abnahme in %"})
-fig.update_layout({'autosize':True,'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)',"legend_title":"Land/ Finanzielle Verluste durch Abnahme"})
+            labels={'variable':'Feldfrucht',"value":"Abnahme in %"})
+fig.update_layout({'autosize':True,'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)',"legend_title":f"Land"})
 fig.show(config = {'displayModeBar': False,'staticPlot': True})
 #%%
 import os

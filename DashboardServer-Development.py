@@ -1,27 +1,13 @@
 #%%
-from ast import Global
-from itertools import count
-from operator import index
-from pickle import FALSE, TRUE
-from pkgutil import get_data
 from dash import dcc,html
 from dash_extensions.enrich import Output, DashProxy, Input, MultiplexerTransform, State
 import flask
-from matplotlib.axis import XAxis
-from matplotlib.pyplot import grid
-import plotly as plt
-import json
 import plotly.express as px
 import pandas as pd
 import plotly.graph_objects as go
 import psycopg2
-import os
-import socket
+import os,socket,datetime,json
 import geopandas as gpd
-import dash_daq as daq
-import dash
-import matplotlib.pyplot as mplt
-from plotly import tools as tls
 import numpy as np
 from traitlets import Bool
 
@@ -289,8 +275,8 @@ def create_fig3(year, grid):
                 fillcolor="orange", opacity=0.25, line_width=0),
     fig3.update_layout(xaxis = dict(
                     tickmode = 'array',
-                    tickvals = [1, 90, 180, 270, 365],
-                    ticktext = ["Januar", "April", "Juli", "September", "Dezember"]))
+                    tickvals = [datetime.date(m//12, m%12+1, 15).timetuple().tm_yday for m in range(year*12+1-1, year*12+12)],
+                    ticktext = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember']))
     return fig3
     
 def create_fig4():
@@ -586,10 +572,10 @@ page_Datastory_layout = html.Div([header, html.Div([
             html.H5("Gesundheit"),
             html.P(["Extreme Hitzewellen haben eine enorme Auswirkung auf die Gesundheit sowie auf die Sterblichkeit. Hier wird spezifisch von einem Hitzetod gesprochen. Unter diesem versteht man einen Tod, der durch innere Überhitzung des Körpers ausgelöst wird. Die häufigste Ursache dafür sind hohe Temperaturen in Verbindung mit Flüssigkeitsmangel und oder körperliche Anstrengung. ", html.A(
                 "Quelle", href="https://www.toppharm.ch/krankheitsbild/hitzetod#:~:text=Unter%20Hitzetod%20verstehen%20Fachleute%20einen,Hitzeersch%C3%B6pfung%2C%20Hitzschlag%20und%20Sonnenstich%20ein."), html.P("Die schlechte Qualität der Infrastruktur und Gesundheitsversorgung, der allgemeine Gesundheitszustand der Bevölkerung und die demografische Struktur können ebenso eine Rolle spielen. Der Hitzesommer im Jahre 2003 sorgte dafür, dass die Mortalität in Frankreich sich deutlich erhöhte.")]),
-            dcc.Graph(figure=create_fig3(2003,76094), id = "grid1", config = {'displayModeBar': False,'staticPlot': True}),
+            dcc.Graph(figure=create_fig3(2003,76094), id = "grid1France", config = {'displayModeBar': False,'staticPlot': True}),
             html.P("Als Beispiel wurde hier ein Bereich aus dem südöstlichen Teil von Frankreich im Jahr 2003 gewählt. (lat=44.98188, lon= 5.300815) In der Grafik ist ein etwas dickerer oranger Balken zu sehen. Dieser zeigt die Dauer dieser einzelnen Hitzewelle in jenem Sommer. Die untere Achse spiegelt den Jahrestag wider. Genau während der knapp zwei heissesten Wochen an jenem Sommer starben fast 15'000 Menschen. Das Ganze war zwischen dem 02.08.2003 und 15.08.2003, welches zwischen dem 212.Jahrestag und 225. Jahrestag liegt. Dies war ein nationales Trauma für Frankreich. Betroffen waren vornehmlich betagte Menschen, die alleine lebten. Folgende Grafik zeigt auf, wie sich die Anzahl der Toten während dieser Hitzewelle im Sommer 2003 verteilte. Als die extreme Hitze abnahm, ist auch zu sehen wie sich die Anzahl der Toten rückläufig verhaltet."),
-            html.H6("Anzahl Toter im August 2003 in Frankreich"),
-            html.Img(src="/assets/deaths_transp.png", style={'width': '60%'}),
+            html.Div(children=[html.H6("Anzahl Toter im August 2003 in Frankreich",style={'color':'rgba(42,63,95,255)'}),
+            html.Img(src="/assets/deaths_transp.png", style={'width': '60%','margin-left': '5.0rem'})]),
             html.P("Durch verschiedene Massnahmen wie regelmässige Besuche für alleinstehende Rentner, Wasser für Obdachlose oder auch Fahrverbote versucht das Land die Mortalität durch Hitze zu senken, damit solche Ereignisse einzigartig bleiben."),
             html.A("Quelle 1, ", href="https://www.srf.ch/news/panorama/hitzewelle-in-europa-frankreich-hat-aus-den-hitzetoten-von-2003-gelernt"),
             html.A(
@@ -600,9 +586,9 @@ page_Datastory_layout = html.Div([header, html.Div([
         html.Div([
             html.H5("Landwirtschaft"),
             html.P("Immer mehr Hitzewellen werden gemessen und die negativen Auswirkungen dieser Veränderung wirken sich bereits auch auf die landwirtschaftliche Produktion in Europa aus, insbesondere im Süden. Kulturpflanzen reagieren empfindlich auf klimatische Veränderungen, wie Temperaturänderungen, Dürre und Niederschläge. Von diesen Veränderungen werden sich die steigenden Temperaturen am stärksten auf die Landwirtschaftserträge auswirken. Der nördliche Teil Italiens war im Sommer 2003 von einer derartigen Hitzeaussetzung betroffen (siehe Grafik). "),
-            dcc.Graph(figure = create_country_fig("Italien",2003,96097,False), id = "country", config = {'displayModeBar': False,'staticPlot': True}),
-            html.P("In Italien, in der Po-Ebene (ein fruchtbares Tiefland in Norditalien), wo die Temperaturen hoch waren, verzeichnete Mais einen Rekordrückgang der Ernteerträge. Hinzukommend wurde festgestellt, dass Winterkulturen (Weizen) ihr Wachstum zum Zeitpunkt der Hitzewelle fast abgeschlossen hatten. Daher erlitten diese einen geringeren Rückgang der Produktivität als Sommerkulturen (Mais), die sich zu dieser Zeit in der maximalen Blattentwicklung befanden. Folgende Grafik zeigt, mit wieviel Prozent Rückgang einiger Pflanzen zu rechnen war. Auch ein finanzieller Aspekt ist zu sehen."),
-            html.H6("Abnahme von Ernteerträgen im Jahr 2002 und 2003"),
+            dcc.Graph(figure = create_country_fig("Italien",2003,96097,False), id = "countryItaly", config = {'displayModeBar': False,'staticPlot': True}),
+            html.P("In Italien, in der Po-Ebene (ein fruchtbares Tiefland in Norditalien), wo die Temperaturen hoch waren, verzeichnete Mais einen Rekordrückgang der Ernteerträge. Hinzukommend wurde festgestellt, dass Winterkulturen (Weizen) ihr Wachstum zum Zeitpunkt der Hitzewelle fast abgeschlossen hatten. Daher erlitten diese einen geringeren Rückgang der Produktivität als Sommerkulturen (Mais), die sich zu dieser Zeit in der maximalen Blattentwicklung befanden. Folgende Grafik zeigt, mit wieviel Prozent Rückgang einiger Pflanzen zu rechnen war. Auch ein finanzieller Verlust ist zu sehen."),
+            # html.H6("Abnahme von Ernteerträgen im Jahr 2002 und 2003"),
             html.Img(src="/assets/fig_crop.png", style={'width':'100%'}),
             html.P("Der künftige Temperaturanstieg könnte neben den negativen auch positiven Auswirkungen auf die Landwirtschaft haben, insbesondere aufgrund längerer Vegetationsperioden und besseren Anbaubedingungen. Allerdings wird die Zahl der Extremereignisse, die sich negativ auf die Landwirtschaft in Europa auswirken, zunehmen. Dies hat zur Folge, dass die Sommerkulturen viele Ernteverluste erleiden können. "),
             html.A("Quelle 1, ", href="https://www.landwirtschaft.de/landwirtschaft-verstehen/wie-funktioniert-landwirtschaft-heute/wie-wirkt-sich-der-klimawandel-auf-die-landwirtschaft-aus/"),
