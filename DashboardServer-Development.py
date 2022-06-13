@@ -10,7 +10,7 @@ import os,socket,datetime,json
 import geopandas as gpd
 import numpy as np
 from traitlets import Bool
-
+import shapely
 
 #%%
 dirname = os.path.dirname(__file__)
@@ -191,6 +191,18 @@ def update_europe(year,fig,data = data_europe):
 fig_europe = update_europe(1979,fig_europe)
 
 def create_country_fig(country:str, year:int,grid_no:int,return_grid_random: Bool):
+
+    def add_line_geo(polygon,figure):
+        lats = [] 
+        lons = []
+        for linestring in polygon.exterior.coords:
+            x, y = linestring[0],linestring[1]
+            lats = np.append(lats, y)
+            lons = np.append(lons, x)
+        fig = px.line_geo(lat=lats, lon=lons)
+        figure.add_trace(fig.data[0])
+        return figure
+    
     data_country = GetDataCountry(country,year)
     gpd_country = data_europe[(data_europe.country == country) & (data_europe.year == year)]
     if return_grid_random:
@@ -218,15 +230,12 @@ def create_country_fig(country:str, year:int,grid_no:int,return_grid_random: Boo
     country_fig.update_traces(z=intersect_df["summagnitude"], hovertemplate="<b>"+ country +"</b><br><br>" + "Magnitude: %{z:.2f}")
     country_fig.update_layout({'autosize':True,'plot_bgcolor':'rgba(0,0,0,0)', 'paper_bgcolor':'rgba(0,0,0,0)', 'geo': dict(bgcolor='rgba(0,0,0,0)')})
     if grid_no in intersect_df.index:
-        lats = [] 
-        lons = []
-        for linestring in intersect_df.loc[grid_no,"geometry"].exterior.coords:
-            x, y = linestring[0],linestring[1]
-            lats = np.append(lats, y)
-            lons = np.append(lons, x)
-        fig = px.line_geo(lat=lats, lon=lons)
-        country_fig.add_trace(fig.data[0] )
-    
+        geo_grid = intersect_df.loc[grid_no,"geometry"]
+        if type(geo_grid) == shapely.geometry.polygon.Polygon:
+            country_fig = add_line_geo(geo_grid,country_fig)
+        else:
+            for polygon in geo_grid.geoms:
+                country_fig = add_line_geo(polygon,country_fig)
     if return_grid_random:
         return country_fig,grid_no
     return country_fig
