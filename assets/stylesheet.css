@@ -423,8 +423,8 @@
   }
 
   .Portrait {
-    width: 130px;
-    height: 170px;
+    width:'75%';
+    height: '100%';
     object-fit: cover;
   }
   
