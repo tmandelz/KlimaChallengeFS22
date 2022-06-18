@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
-# from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
-# from scipy.stats import norm
+from scipy.stats import norm
 import os
 import plotly.express as px
 
@@ -13,7 +13,8 @@ dataPath = os.path.join(
     dirname, 'data_statistics.csv')
 
 data = pd.read_csv(dataPath)
-data["sum_mag_norm"] = data["summe_magnitude"] / df['data'].iloc[summe_magnitude]
+# data["sum_mag_norm"] = data["summe_magnitude"] / data['data'].iloc[summe_magnitude]
+# print(data.head)
 
 def dostats(data):
     data["Mean5y"] = data["sum_mag_norm"].rolling(5).mean()
@@ -25,7 +26,7 @@ def dostats(data):
     print(data["sum_mag_norm"].describe())
     print(data)
 
-dostats(data)
+# dostats(data)
 
 # def showhist(data):
 #     fig = px.histogram(
@@ -40,7 +41,7 @@ def showhist(data):
     plt.hist(data["sum_mag_norm"], bins = 15)
     plt.show()
 
-showhist(data)
+# showhist(data)
 
 def showrollingmean(data):
     data["Mean5y"] = data["sum_mag_norm"].rolling(5).mean()
@@ -65,11 +66,11 @@ def showrollingstd(data):
 # showrollingstd(data)
 
 def linReg(data):
-    plt.scatter(data["year"], data["sum_mag_norm"])
+    plt.scatter(data["year"], data["summe_magnitude"])
     plt.show()
 
     x = data["year"].values.reshape(-1,1)
-    y = np.log2(data["sum_mag_norm"].values.reshape(-1,1))
+    y = np.log2(data["summe_magnitude"].values.reshape(-1,1))
     model = LinearRegression().fit(x, y)
     r_sq = model.score(x, y)
     steigung = model.coef_
@@ -78,8 +79,8 @@ def linReg(data):
 
     new_x = np.arange(1979, 2020).reshape(-1,1)
     new_y = model.predict(new_x)
-    data.plot.scatter("year", "sum_mag_norm")
-    plt.plot(new_x, new_y, color = "r")
+    data.plot.scatter("year", "summe_magnitude")
+    plt.plot(new_x, np.log2(new_y), color = "r")
     plt.yscale('log', base=2)
     plt.title("Regression")
     plt.show() # y-Achse wird offenbar falsch dargestellt
@@ -93,7 +94,7 @@ def linReg(data):
     plt.title("Residuenanalyse")
     plt.show()
 
-    n, bins, patches = plt.hist(resid, bins = 100, stacked=True, density=True)
+    n, bins, patches = plt.hist(resid, bins = 50, stacked=True, density=True)
     std = np.std(resid)
     mu = np.average(resid)
 
@@ -102,4 +103,4 @@ def linReg(data):
     plt.title("Verteilung Residuen")
     plt.show()
 
-# linReg(data)
+linReg(data)
