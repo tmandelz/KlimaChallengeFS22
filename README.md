@@ -1,137 +1,43 @@
 # Klimadatenchallenge cdk1
+This project is a part of the [CDK1 Heatwave Group](http://v000727.edu.ds.fhnw.ch/) at [Data Science FHNW](https://www.fhnw.ch/en/degree-programmes/engineering/bsc-data-science).
 
-## Structure
-    	.
-	|   .dockerignore
-	|   .gitignore
-	|   DashboardServer-Development.py
-	|   DashboardServer.py
-	|   Datapipeline.py
-	|   docker-compose.yaml
-	|   Pipfile
-	|   Pipfile.lock
-	|   README.md
-	|   requirements.txt
+#### -- Project Status: Completed
 
-	+---assets
-	|       crops.png
-	|       crops_transp.png
-	|       crop_new.jpg
-	|       dah.png
-	|       deaths.png
-	|       deaths_transp.png
-	|       fig_head.png
-	|       gesundheit.JPG
-	|       gesundheit.png
-	|       landwirtschaft.JPG
-	|       landwirtschaft.png
-	|       plot1.JPG
-	|       productivity.JPG
-	|       productivity1.jpg
-	|       productivity_transp.png
-	|       strom.png
-	|       strom_transp.png
-	|       stylesheet.css
-	|       
-	+---Calculate_Magnitude
-	|   |   filenames.txt
-	|   |   function_calculate_magnitude.py
-	|   |   magnitude.csv
-	|   |   ne_50m_admin_0_countries.dbf
-	|   |   ne_50m_admin_0_countries.prj
-	|   |   ne_50m_admin_0_countries.shp
-	|   |   ne_50m_admin_0_countries.shx
-	|   |   
-	|   \---data
-	|           polynoms.csv
-	|           
-	+---Data
-	|   +---ArchiveData
-	|   +---CountryData
-	|   +---CountryGridData
-	|   +---GridData
-	|   +---MagnitudeData
-	|   +---ThresholdData
-	|   \---UnprocessedData
-	+---Docker
-	|       1_build_klima_docker.bat
-	|       2_run_python_docker.bat
-	|       3_run_postgres_docker.bat
-	|       4_run_gunicorn_webserver.bat
-	|       Dockerfile
-	|       Networking_Ports.drawio
-	|       
-	+---grid
-	|       grid_25km.dbf
-	|       grid_25km.ids
-	|       grid_25km.prj
-	|       grid_25km.sbn
-	|       grid_25km.sbx
-	|       grid_25km.shp
-	|       grid_25km.shp.xml
-	|       grid_25km.shx
-	|       grid_converter.py
-	|       grid_small.csv
-	|       
-	+---Hintergrundinfos
-	|       data_getstatistics.py
-	|       data_statistics.csv
-	|       Hintergrundstory.docx
-	|       html_hintergrundinfos.py
-	|       
-	+---Plots
-	|   |   dash_layout.py
-	|   |   
-	|   +---assets
-	|   |       stylesheet.css
-	|   |       
-	|   +---Plot 2
-	|   |       heatmap.py
-	|   |       
-	|   +---Plot3
-	|   |       file.html
-	|   |       Luxembourg.csv
-	|   |       magnitude.csv
-	|   |       Plotdrei.py
-	|   |       threshhold.csv
-	|   |       
-	|   \---Plot4
-	|           file.html
-	|           file_new - Backup.html
-	|           file_new.html
-	|           Plotvier.py
-	|           Plotviernew.py
-	|           Plotvieronlysql.py
-	|           
-	+---Shapefiles
-	|       ne_50m_admin_0_countries.dbf
-	|       ne_50m_admin_0_countries.prj
-	|       ne_50m_admin_0_countries.shp
-	|       ne_50m_admin_0_countries.shx
-	|       
-	+---SQL
-	|       1_DatabaseScript.sql
-	|       UML
-	|       UML.png
-	|       
-	+---TechnicalSetup
-	|       Techoverview.drawio
-	|       Techoverview.png
-	|       Techoverview_focusData.png
-	|       Techoverview_focusHosting.png
-	|       
-	+---wheels
-	|       Fiona-1.8.21-cp39-cp39-win_amd64.whl
-	|       GDAL-3.4.2-cp39-cp39-win_amd64.whl
-	|       pyproj-3.3.0-cp39-cp39-win_amd64.whl
-	|       Rtree-0.9.7-cp39-cp39-win_amd64.whl
-	|       Shapely-1.8.1.post1-cp39-cp39-win_amd64.whl
-	|       
-	  
+## Project Intro/Objective
+The climate has changed significantly in recent decades. The warming is evident in the increased average temperatures and through heat waves. These are not only occurring more often, but are also becoming more severe. This dashboard shows the evolution of heat waves in Europe since 1979 at the country level down to individual 25 x 25 km fields.
 
+### Methods Used
+* Data Visualization
+* Dashboard development
+* GIS data processing
+
+### Technologies
+* Python
+* PostGres
+* Geopandas
+* Pandas
+* HTML
+* CSS
+* SQL
+
+## Getting Started
+1. Clone this repo (for help see this [tutorial](https://help.github.com/articles/cloning-a-repository/)).
+2. Raw Data is being kept on an SQL Server at [FHNW](v000727.edu.ds.fhnw.ch).    
+3. Docker Scripts and Files are being kept [here](Docker)
+4. CSS and other assets for the dashboard are being kept [here](assets)
+5. shapefiles for the dashboard processing are being kept [here](grid)
+6. Prototyping files for the calculation of magnitudes [here](Calculate_Magnitude)
+7. Details for Background information [here](Hintergrundinfos)
+8. Details for Crop Plots [here](Landwirtschaft_Plot)
+9. Prototyping files for different Plots [here](Plots)
+10. SQL Databasescript and Data Model [here](SQL)
+11. Technical setup drawings [here](TechnicalSetup)
+
+### Open Dashboard
+- Run `DashboardServer.py`
+- Call `localhost:8050` in Browser
 
 ## Pipenv for Virtual Environment
-
 ### First install of Environment
 
 - open `cmd`
@@ -140,13 +46,21 @@
 - Restart VS Code
 - Choose the newly created "KlimachallengeFS22" Virtual Environment python Interpreter
 
-
 ### Environment already installed (Update dependecies)
 - open `cmd`
 - `cd /your/local/github/repofolder/`
 - `pipenv sync` 
 
+## Featured Files
+* [Development File to start the dashboard locally](DashboardServer-Development.py)
+* [Development File to start in the virtualised server](DashboardServer.py)
+* [Datapipeline for the Processing of the data for the Database](Datapipeline.py)
+* [Docker compose file for the installation of the docker environment](docker-compose.yaml)
 
-## Open Dashboard
-- Run `DashboardServer.py`
-- Call `localhost:8050` in Browser
+
+## Contributing DSWG Members
+**[Daniela Herzig](https://github.com/dcherzig)**
+**[Manjavy Kirupa](https://github.com/Manjavy)**
+**[Thomas Mandelz](https://github.com/tmandelz)**
+**[Patrick Schürmann](https://github.com/patschue)**
+**[Jan Zwicky](https://github.com/swiggy123)**
