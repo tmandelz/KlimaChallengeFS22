@@ -1,4 +1,4 @@
-![](https://github.com/tmandelz/KlimaChallengeFS22/banner.png) 
+![](https://github.com/tmandelz/KlimaChallengeFS22/blob/9ab675c132d50150d196ac91b82307cf21f74ba5/banner.PNG)
 # Klimadatenchallenge cdk1
 This project is a part of the [CDK1 Heatwave Group](http://v000727.edu.ds.fhnw.ch/) at [Data Science FHNW](https://www.fhnw.ch/en/degree-programmes/engineering/bsc-data-science).
 
