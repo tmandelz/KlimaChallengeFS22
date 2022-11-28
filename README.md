@@ -2,7 +2,7 @@
 # Klimadatenchallenge cdk1
 This project is a part of the [CDK1 Heatwave Group](http://v000727.edu.ds.fhnw.ch/) at [Data Science FHNW](https://www.fhnw.ch/en/degree-programmes/engineering/bsc-data-science).
 
-**The Full Functioned Version is only accessible with a VPN Connection to the FHNW network!**
+**The full featured Version is only accessible with a VPN Connection to the FHNW network!**
 
 #### -- Project Status: Completed
 
